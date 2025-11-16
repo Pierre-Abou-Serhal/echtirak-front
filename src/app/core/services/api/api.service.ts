@@ -1,5 +1,5 @@
 import { map, Observable } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
 @Injectable({
@@ -8,9 +8,10 @@ import { inject, Injectable } from '@angular/core';
 export class ApiService {
     private readonly httpClient: HttpClient = inject(HttpClient);
 
-    get<T>(path: string, headers?: HttpHeaders) : Observable<T> {
+    get<T>(path: string, options?: { headers?: HttpHeaders; params?: HttpParams }) : Observable<T> {
+        const { headers, params } = options ?? {};
         return this.httpClient
-            .get<ApiResponse<T>>(path, { headers })
+            .get<ApiResponse<T>>(path, { headers, params })
             .pipe(map(response => response.data));
     }
 
@@ -30,6 +31,23 @@ export class ApiService {
         return this.httpClient
             .delete<ApiResponse<T>>(path, { headers })
             .pipe(map(response => response.data));
+    }
+
+    buildParams(params: any) : HttpParams {
+        let queryParams = new HttpParams();
+
+        Object.entries(params).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === '') return;
+
+            // serialize Date to ISO; everything else to string
+            if (value instanceof Date) {
+                queryParams = queryParams.set(key, value.toISOString());
+            } else {
+                queryParams = queryParams.set(key, String(value));
+            }
+        });
+
+        return queryParams;
     }
 }
 

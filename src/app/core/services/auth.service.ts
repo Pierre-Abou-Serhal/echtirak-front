@@ -1,8 +1,8 @@
 import { effect, inject, Injectable, signal } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
-import { SignInRequest } from '@/core/services/api/request';
+import { RefreshTokenRequest, SignInRequest } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
-import { SignInResponse } from '@/core/services/api/response';
+import { RefreshTokenResponse, SignInResponse } from '@/core/services/api/response';
 import { AuthSession, TokenPair } from '@/core/dtos/dto';
 import { environment } from '../../../environments/environment';
 import { User } from '@/core/models/model';
@@ -32,6 +32,10 @@ export class AuthService {
 
     public signIn(request: SignInRequest): Observable<SignInResponse> {
         return this.apiService.post<SignInResponse>('/Auth/SignIn', request);
+    }
+
+    public refreshToken(request: RefreshTokenRequest): Observable<RefreshTokenResponse> {
+        return this.apiService.post<RefreshTokenResponse>('/Auth/RefreshToken', request);
     }
 
     private restoreSession(): AuthSession | null {
@@ -116,5 +120,20 @@ export class AuthService {
             default:
                 return router.createUrlTree(['/access-denied']);
         }
+    }
+
+    public updateTokens(tokens: RefreshTokenResponse): void {
+        const current = this.sessionState();
+        if (!current) {
+            return;
+        }
+
+        const updated: AuthSession = {
+            ...current,
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+        };
+
+        this.sessionState.set(updated);
     }
 }

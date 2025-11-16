@@ -9,29 +9,22 @@ import { AppFloatingConfigurator } from '@/layout/component/app.floatingconfigur
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '@/core/services/auth.service';
 import { SignInRequest } from '@/core/services/api/request';
-import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
-import { MessageModule } from 'primeng/message';
 import { SignInResponse } from '@/core/services/api/response';
 import { firstValueFrom } from 'rxjs';
-import { ApiError } from '@/core/services/api/api.service';
+import { Message } from 'primeng/message';
 
 @Component({
     selector: 'app-sign-in',
     standalone: true,
-    imports: [ButtonModule, InputTextModule, PasswordModule, FormsModule, RouterModule, RippleModule, AppFloatingConfigurator, ToastModule, MessageModule, ReactiveFormsModule],
+    imports: [ButtonModule, InputTextModule, PasswordModule, FormsModule, RouterModule, RippleModule, AppFloatingConfigurator, ReactiveFormsModule, Message],
     templateUrl: './sign-in.component.html',
-    styleUrl: './sign-in.component.scss',
-    providers: [MessageService]
+    styleUrl: './sign-in.component.scss'
 })
 export class SignInComponent {
     authService: AuthService = inject(AuthService);
     signInForm: FormGroup;
 
-    constructor(
-        private messageService: MessageService,
-        private fb: FormBuilder
-    ) {
+    constructor(private fb: FormBuilder) {
         this.signInForm = this.fb.group({
             username: ['', Validators.required],
             password: ['', [Validators.required]]
@@ -47,7 +40,7 @@ export class SignInComponent {
 
         if (!this.signInForm.valid) {
             this.signingIn = false;
-           return;
+            return;
         }
 
         let signInRequest: SignInRequest = {
@@ -59,17 +52,9 @@ export class SignInComponent {
             const response: SignInResponse = await firstValueFrom(this.authService.signIn(signInRequest));
             this.authService.setSession(response.user, response.token);
             await this.authService.redirectUserByRole();
+            this.signingIn = false;
         } catch (error) {
             console.log(error);
-            const apiError = error as ApiError;
-
-            this.messageService.add({
-                severity: 'error',
-                summary: apiError.title,
-                detail: apiError.detail,
-                sticky: false
-            });
-        } finally {
             this.signingIn = false;
         }
     }
