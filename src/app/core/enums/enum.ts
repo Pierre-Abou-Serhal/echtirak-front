@@ -1,0 +1,5 @@
+export enum UserRole {
+    GENERATOR_OWNER = "GENERATOR_OWNER",
+    BILL_COLLECTOR = "BILL_COLLECTOR",
+    ADMIN = "ADMIN",
+}

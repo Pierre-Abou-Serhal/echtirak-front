@@ -1,23 +1,40 @@
 import { Routes } from '@angular/router';
-import { AppLayout } from './app/layout/component/app.layout';
-import { Dashboard } from './app/pages/dashboard/dashboard';
-import { Documentation } from './app/pages/documentation/documentation';
-import { Landing } from './app/pages/landing/landing';
-import { Notfound } from './app/pages/notfound/notfound';
+import { AppLayout } from '@/layout/component/app.layout';
+import { NotFoundComponent } from '@/static/not-found/not-found.component';
+import { anonymousOnlyGuard, roleMatchGuard } from '@/core/guards/guard';
+import { UserRole } from '@/core/enums/enum';
+import { HomeComponent } from '@/static/home/home.component';
+import { AccessDeniedComponent } from '@/static/access-denied/access-denied.component';
 
 export const appRoutes: Routes = [
     {
         path: '',
+        component: HomeComponent,
+    },
+    {
+        path: 'auth',
+        loadChildren: () => import('./app/modules/auth/auth.routes'),
+        canMatch: [anonymousOnlyGuard],
+    },
+    {
+        path: 'app',
         component: AppLayout,
         children: [
-            { path: '', component: Dashboard },
-            { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
-            { path: 'documentation', component: Documentation },
-            { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
+            {
+                path: 'generator-owner',
+                canMatch: [roleMatchGuard],
+                data: {
+                    roles: [UserRole.GENERATOR_OWNER]
+                },
+                loadChildren: () =>
+                    import('./app/modules/generator-owner/generator-owner.routes')
+                        .then((route) => route.GENERATOR_OWNER_ROUTES)
+            },
         ]
     },
-    { path: 'landing', component: Landing },
-    { path: 'notfound', component: Notfound },
-    { path: 'auth', loadChildren: () => import('./app/pages/auth/auth.routes') },
-    { path: '**', redirectTo: '/notfound' }
+    {
+        path: 'access-denied',
+        component: AccessDeniedComponent,
+    },
+    { path: '**', component: NotFoundComponent }
 ];

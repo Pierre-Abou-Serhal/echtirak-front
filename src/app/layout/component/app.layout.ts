@@ -1,11 +1,13 @@
 import { Component, Renderer2, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { AppTopbar } from './app.topbar';
 import { AppSidebar } from './app.sidebar';
 import { AppFooter } from './app.footer';
-import { LayoutService } from '../service/layout.service';
+import { LayoutService } from '@/core/services/layout.service';
+import { MenuService } from '@/core/services/menu.service';
+import { MenuItem } from 'primeng/api';
 
 @Component({
     selector: 'app-layout',
@@ -35,7 +37,9 @@ export class AppLayout {
     constructor(
         public layoutService: LayoutService,
         public renderer: Renderer2,
-        public router: Router
+        public router: Router,
+        private ar: ActivatedRoute,
+        private menuService: MenuService
     ) {
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
             if (!this.menuOutsideClickListener) {
@@ -53,6 +57,7 @@ export class AppLayout {
 
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
             this.hideMenu();
+            this.pushActiveMenu();
         });
     }
 
@@ -107,5 +112,19 @@ export class AppLayout {
         if (this.menuOutsideClickListener) {
             this.menuOutsideClickListener();
         }
+    }
+
+    // call once on first render (add ngOnInit)
+    ngOnInit() {
+        this.pushActiveMenu();
+    }
+
+    private pushActiveMenu() {
+        // Walk down to the deepest active child and read data.menu
+        let r: ActivatedRoute | null = this.ar;
+        while (r?.firstChild) r = r.firstChild;
+
+        const menu = r?.snapshot.data?.['menu'] as MenuItem[];
+        this.menuService.set(menu);
     }
 }

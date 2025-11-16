@@ -4,7 +4,8 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
 import { AppConfigurator } from './app.configurator';
-import { LayoutService } from '../service/layout.service';
+import { LayoutService } from '@/core/services/layout.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
     selector: 'app-topbar',
@@ -33,7 +34,7 @@ import { LayoutService } from '../service/layout.service';
                         />
                     </g>
                 </svg>
-                <span>SAKAI</span>
+                <span>{{appName}}</span>
             </a>
         </div>
 
@@ -89,4 +90,6 @@ export class AppTopbar {
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
     }
+
+    appName: string = environment.appName;
 }

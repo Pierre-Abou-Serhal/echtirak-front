@@ -1,0 +1,129 @@
+<app-floating-configurator />
+<div class="min-h-screen flex flex-col">
+
+    <!-- HERO -->
+    <section class="hero-gradient pt-10 md:pt-16 pb-10">
+        <div class="px-5 md:px-8 lg:px-10 max-w-6xl mx-auto">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="hero-logo">
+                    <i class="pi pi-bolt text-2xl"></i>
+                </div>
+                <div>
+                    <div class="text-sm text-primary-50/90">Echtirak</div>
+                    <div class="text-900 dark:text-0 text-xl font-semibold">Powering subscriptions for generator owners</div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h1 class="text-900 dark:text-0 text-4xl md:text-5xl font-bold leading-tight mb-4">
+                        Manage subscribers, bills, and SMS alerts — all in one place.
+                    </h1>
+                    <p class="text-700 dark:text-300 text-lg mb-6">
+                        Echtirak is the control center for <strong>electric generator owners</strong>.
+                        Track subscriptions, generate invoices, collect payments, and dispatch SMS updates to customers in seconds.
+                    </p>
+
+                    <div class="flex flex-wrap gap-3">
+                        <a pButton routerLink="/auth/sign-in" label="Sign In" icon="pi pi-sign-in" class="p-button-lg"></a>
+                        <a pButton routerLink="/auth/sign-in" label="Try the Demo" icon="pi pi-play" severity="secondary" class="p-button-outlined p-button-lg"></a>
+                    </div>
+
+                    <div class="mt-5 flex flex-wrap gap-2">
+                        <p-chip label="SMS Dispatch" icon="pi pi-send"></p-chip>
+                        <p-chip label="Billing" icon="pi pi-wallet"></p-chip>
+                        <p-chip label="Subscribers" icon="pi pi-users"></p-chip>
+                        <p-chip label="Reports" icon="pi pi-chart-line"></p-chip>
+                    </div>
+                </div>
+
+                <div>
+                    <!-- Placeholder “screenshot” card -->
+                    <p-card styleClass="shadow-2">
+                        <ng-template pTemplate="header">
+                            <div class="flex items-center gap-2 p-3">
+                                <span class="w-3 h-3 rounded-full bg-red-400"></span>
+                                <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+                                <span class="w-3 h-3 rounded-full bg-green-400"></span>
+                                <span class="ml-3 text-900 dark:text-0 text-sm">Echtirak Dashboard</span>
+                            </div>
+                        </ng-template>
+
+                        <div class="p-3">
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <div class="col-span-2">
+                                    <div class="surface-200 dark:surface-800 h-36 rounded-lg mb-3"></div>
+                                    <div class="surface-100 dark:surface-700 h-24 rounded-lg"></div>
+                                </div>
+                                <div>
+                                    <div class="surface-100 dark:surface-700 h-16 rounded-lg mb-3"></div>
+                                    <div class="surface-200 dark:surface-800 h-16 rounded-lg mb-3"></div>
+                                    <div class="surface-100 dark:surface-700 h-16 rounded-lg"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </p-card>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VALUE / FEATURES -->
+    <section class="py-10 section-muted">
+        <div class="px-5 md:px-8 lg:px-10 max-w-6xl mx-auto">
+            <h2 class="text-900 dark:text-0 text-3xl font-semibold mb-6">Why Echtirak?</h2>
+            <div class="grid md:grid-cols-3 gap-5">
+                <p-card>
+                    <div class="flex items-start gap-3">
+                        <i class="pi pi-users text-2xl text-primary-500 mt-1"></i>
+                        <div>
+                            <div class="text-xl font-semibold mb-1">Subscriber management</div>
+                            <p class="m-0 text-700 dark:text-300">Add, import, and track customers with address, kWh, meter, and contact info.</p>
+                        </div>
+                    </div>
+                </p-card>
+
+                <p-card>
+                    <div class="flex items-start gap-3">
+                        <i class="pi pi-wallet text-2xl text-primary-500 mt-1"></i>
+                        <div>
+                            <div class="text-xl font-semibold mb-1">Billing & payments</div>
+                            <p class="m-0 text-700 dark:text-300">Generate monthly bills, apply discounts, and export/print invoices in one click.</p>
+                        </div>
+                    </div>
+                </p-card>
+
+                <p-card>
+                    <div class="flex items-start gap-3">
+                        <i class="pi pi-send text-2xl text-primary-500 mt-1"></i>
+                        <div>
+                            <div class="text-xl font-semibold mb-1">SMS dispatch</div>
+                            <p class="m-0 text-700 dark:text-300">Notify subscribers about outages, schedule, and payments instantly.</p>
+                        </div>
+                    </div>
+                </p-card>
+            </div>
+
+            <p-divider class="my-8"></p-divider>
+
+            <div class="flex items-center gap-3">
+                <p-avatar icon="pi pi-user" shape="circle" styleClass="bg-primary text-white"></p-avatar>
+                <div>
+                    <div class="text-900 dark:text-0 font-semibold">Built for generator owners</div>
+                    <div class="text-700 dark:text-300 text-sm">Simple setup, secure access, and role-based features.</div>
+                </div>
+                <p-tag value="Made for Lebanon" severity="success" styleClass="ml-auto"></p-tag>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-10">
+        <div class="px-5 md:px-8 lg:px-10 max-w-6xl mx-auto text-center">
+            <h3 class="text-900 dark:text-0 text-3xl font-semibold mb-2">Ready to power up your operations?</h3>
+            <p class="text-700 dark:text-300 mb-5">Sign in to access your Echtirak dashboard.</p>
+            <a pButton routerLink="/auth/sign-in" label="Sign In" icon="pi pi-sign-in" class="p-button-lg"></a>
+        </div>
+    </section>
+
+</div>
