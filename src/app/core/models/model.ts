@@ -6,16 +6,24 @@ export interface User {
     userRoleCode: UserRole;
 }
 
-export interface Subscriber {
-    id: number;
-    generatorId: number;
-    phoneNumber: string;
-    firstName: string;
-    lastName: string;
-    previousKva: number;
-    subscriptionAmps: number;
-    currentKva: number;
-    electricMeterNumber: string;
-    billingModeCode: string;
-    statusCode: string;
+export class Subscriber {
+    id: number = -1;
+    generatorId: number = 0;
+    phoneNumber: string = '';
+    firstName: string = '';
+    lastName: string = '';
+    previousKva: number = 0;
+    subscriptionAmps: number = 0;
+    currentKva: number = 0;
+    electricMeterNumber: string = '';
+    billingModeCode: string = '';
+    statusCode: string = '';
+}
+
+export interface Generator {
+    id: number,
+    generatorOwnerUserId: number,
+    code: string,
+    description: string,
+    location: string
 }

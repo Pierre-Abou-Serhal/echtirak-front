@@ -1,4 +1,4 @@
-import { Subscriber, User } from '@/core/models/model';
+import { Subscriber, User, Generator } from '@/core/models/model';
 import { TokenPair } from '@/core/dtos/dto';
 
 // Auth Response
@@ -25,4 +25,10 @@ export interface GetSubscribersPage {
 
 export interface GetSubscribersResponse {
     page: GetSubscribersPage
+}
+
+export interface UpsertSubscriberResponse extends Subscriber {}
+
+export interface GetGeneratorsResponse {
+    generators: Generator[]
 }

@@ -1,4 +1,6 @@
 // Auth Requests
+import { Subscriber } from '@/core/models/model';
+
 export interface SignInRequest {
     username: string;
     password: string;
@@ -23,3 +25,4 @@ export interface GetSubscribersQueryParams {
     modifiedBy?: string;
     keyword?: string;
 }
+export interface UpsertSubscriberRequest extends Subscriber {}

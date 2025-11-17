@@ -5,41 +5,32 @@ import { IconField } from 'primeng/iconfield';
 import { FormsModule } from '@angular/forms';
 import { Button, ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Subscriber } from '@/core/models/model';
+import { Generator, Subscriber } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import * as Papa from 'papaparse';
-
-// --- API response types for clarity ---
-interface SubscribersPage {
-    items: Subscriber[];
-    pageNumber: number;
-    pageSize: number;
-    totalCount: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrevious: boolean;
-}
-
-interface SubscribersResponse {
-    page: SubscribersPage;
-}
+import { GetGeneratorsResponse, GetSubscribersResponse, UpsertSubscriberResponse } from '@/core/services/api/response';
+import { Tag } from 'primeng/tag';
+import { BillingMode, SubscriberStatus } from '@/core/enums/enum';
+import { Dialog } from 'primeng/dialog';
+import { Select } from 'primeng/select';
+import { NotificationService } from '@/core/services/notification.service';
+import { SelectOption } from '@/core/dtos/dto';
+import { InputNumber } from 'primeng/inputnumber';
 
 @Component({
     selector: 'app-subscribers',
     standalone: true,
-    imports: [TableModule, InputIcon, IconField, FormsModule, ButtonDirective, InputText, Button],
+    imports: [TableModule, InputIcon, IconField, FormsModule, ButtonDirective, InputText, Button, Tag, Dialog, Select, InputNumber],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss'
 })
 export class SubscribersComponent implements OnInit {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly notificationService = inject(NotificationService);
 
-    // =========================
-    // Data & UI state
-    // =========================
     subscribers: Subscriber[] = [];
     selectedSubscribers: Subscriber[] = [];
 
@@ -48,11 +39,11 @@ export class SubscribersComponent implements OnInit {
 
     // UI pagination (PrimeNG table)
     rowsPerPageOptions = [10, 20, 50, 100];
-    first = 0;          // index of first row in current UI page
-    rows  = 10;         // number of rows per UI page
+    first = 0; // index of first row in current UI page
+    rows = 10; // number of rows per UI page
 
     // API pagination
-    private apiPageSize = 100;   // requested page size
+    private apiPageSize = 100; // requested page size
     private currentApiPage = -1; // last page index loaded from API (-1 = none yet)
     private hasMoreFromServer = true;
 
@@ -63,6 +54,21 @@ export class SubscribersComponent implements OnInit {
     keyword = '';
     private search$ = new Subject<string>();
 
+    // Subscriber dialog
+    isSubscriberDialogOpen: boolean = false;
+    selectedSubscriber: Subscriber = new Subscriber();
+    submitted: boolean = false;
+    subscriberStatuses: SelectOption[] = [
+        { label: 'Active', value: SubscriberStatus.ACTIVE },
+        { label: 'Inactive', value: SubscriberStatus.INACTIVE }
+    ];
+    billingModes: SelectOption[] = [
+        { label: 'Metered', value: BillingMode.METERED },
+        { label: 'Fixed', value: BillingMode.FIXED },
+    ]
+    isSubscriberSaving: boolean = false;
+    generators: SelectOption[] = [];
+
     ngOnInit(): void {
         // Stream of search terms → reset state → load first API page
         this.search$
@@ -71,13 +77,11 @@ export class SubscribersComponent implements OnInit {
                 distinctUntilChanged(),
                 tap((q) => {
                     this.keyword = q;
-                    this.resetDataState();       // clear current list & pagination
+                    this.resetDataState(); // clear current list & pagination
                     this.loading = true;
                 }),
                 // first API page: if your backend is 1-based, use 1 instead of 0
-                switchMap(() => this.fetchApiPage(0).pipe(
-                    finalize(() => (this.loading = false))
-                )),
+                switchMap(() => this.fetchApiPage(1).pipe(finalize(() => (this.loading = false)))),
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe({
@@ -94,38 +98,44 @@ export class SubscribersComponent implements OnInit {
 
         // Initial load (empty search)
         this.search$.next('');
+
+        this.generatorOwnerService.getGenerators().subscribe({
+            next: (response: GetGeneratorsResponse) => {
+                response.generators.forEach((generator: Generator) => {
+                    this.generators.push({
+                       value: generator.id,
+                       label: generator.code
+                    });
+                });
+            },
+            error: (err) => {
+                console.log(err);
+                this.generators = [];
+            }
+        })
     }
 
     // =========================
     // API wrapper using full page object
     // =========================
     private fetchApiPage(pageNumber: number) {
-        pageNumber = Math.max(1, pageNumber || 1);  // <— clamp here
-
         this.loadingMore = true;
 
-        return this.generatorOwnerService.getSubscribers({
-            pageNumber,
-            pageSize: this.apiPageSize,
-            keyword: this.keyword || undefined
-        })
+        return this.generatorOwnerService
+            .getSubscribers({
+                pageNumber,
+                pageSize: this.apiPageSize,
+                keyword: this.keyword || undefined
+            })
             .pipe(
-                tap((res: SubscribersResponse) => {
+                tap((res: GetSubscribersResponse) => {
                     const page = res?.page;
                     if (!page) {
                         this.hasMoreFromServer = false;
                         return;
                     }
 
-                    const {
-                        items = [],
-                        pageNumber: apiPageNumber,
-                        pageSize,
-                        totalCount,
-                        totalPages,
-                        hasNext,
-                        hasPrevious
-                    } = page;
+                    const { items = [], pageNumber: apiPageNumber, pageSize, totalCount, totalPages, hasNext, hasPrevious } = page;
 
                     // Append items from this page to the list
                     this.subscribers = [...this.subscribers, ...items];
@@ -137,9 +147,7 @@ export class SubscribersComponent implements OnInit {
                     }
 
                     // Use server totalCount if available
-                    this.totalRecords = typeof totalCount === 'number'
-                        ? totalCount
-                        : this.subscribers.length;
+                    this.totalRecords = typeof totalCount === 'number' ? totalCount : this.subscribers.length;
 
                     // Rely on API flag to know if more pages exist
                     this.hasMoreFromServer = hasNext;
@@ -225,7 +233,7 @@ export class SubscribersComponent implements OnInit {
         const oldRows = this.rows;
 
         this.first = event.first ?? this.first;
-        this.rows  = event.rows  ?? this.rows;
+        this.rows = event.rows ?? this.rows;
 
         // When rows-per-page changes, reset to first page
         if (event.rows != null && event.rows !== oldRows) {
@@ -252,7 +260,13 @@ export class SubscribersComponent implements OnInit {
     exportToCsv() {
         if (!this.subscribers?.length) return;
 
-        const csv = Papa.unparse(this.subscribers);
+        let listToExport: Subscriber[] = this.subscribers;
+
+        if (this.selectedSubscribers.length > 0) {
+            listToExport = this.selectedSubscribers;
+        }
+
+        const csv = Papa.unparse(listToExport);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -262,7 +276,94 @@ export class SubscribersComponent implements OnInit {
         URL.revokeObjectURL(url);
     }
 
-    actionTaken(subscriber: Subscriber) {
-        alert(`clicked on ${subscriber.firstName} ${subscriber.lastName}`);
+    // UI styling
+    getSubscriberSeverity(statusCode: string) {
+        switch (statusCode) {
+            case SubscriberStatus.INACTIVE:
+                return 'danger';
+
+            case SubscriberStatus.ACTIVE:
+                return 'success';
+
+            default:
+                return null;
+        }
+    }
+
+    // Dialog functions
+    openNew() {
+        this.selectedSubscriber = new Subscriber();
+        this.submitted = false;
+        this.isSubscriberDialogOpen = true;
+    }
+
+    editSubscriber(subscriber: Subscriber) {
+        this.selectedSubscriber = { ...subscriber };
+        this.isSubscriberDialogOpen = true;
+    }
+
+    hideDialog() {
+        this.isSubscriberDialogOpen = false;
+        this.submitted = false;
+    }
+
+    findIndexById(id: number): number {
+        let index = -1;
+        for (let i = 0; i < this.subscribers.length; i++) {
+            if (this.subscribers[i].id === id) {
+                index = i;
+                break;
+            }
+        }
+
+        return index;
+    }
+
+    saveSubscriber() {
+        this.submitted = true;
+        this.isSubscriberSaving = true;
+
+        if (this.isSubscriberValid()) {
+            let isCreatingSub = this.selectedSubscriber.id === 0;
+            this.generatorOwnerService.upsertSubscriber({
+                ...this.selectedSubscriber
+            }).subscribe({
+                next: (response: UpsertSubscriberResponse) => {
+                    if (!isCreatingSub) {
+                        // Edit
+                        this.subscribers[this.findIndexById(this.selectedSubscriber.id)] = this.selectedSubscriber;
+                        this.notificationService.success('Successful', 'Subscriber Updated')
+                    } else {
+                        // Add
+                        this.selectedSubscriber.id = response.id;
+                        this.subscribers.push(this.selectedSubscriber);
+                        this.notificationService.success('Successful', 'Subscriber Created');
+                    }
+
+                    this.subscribers = [...this.subscribers];
+                    this.isSubscriberDialogOpen = false;
+                    this.selectedSubscriber = new Subscriber();
+                    this.isSubscriberSaving = false;
+                },
+                error: (err) => {
+                    console.log(err);
+                    this.isSubscriberSaving = false;
+                }
+            });
+        } else {
+            this.isSubscriberSaving = false;
+        }
+    }
+
+    isSubscriberValid() {
+        return this.selectedSubscriber.phoneNumber.length > 0 &&
+            this.selectedSubscriber.firstName.length > 0 &&
+            this.selectedSubscriber.lastName.length > 0 &&
+            this.selectedSubscriber.subscriptionAmps > 0 &&
+            this.selectedSubscriber.previousKva > 0 &&
+            this.selectedSubscriber.currentKva > 0 &&
+            this.selectedSubscriber.electricMeterNumber.length > 0 &&
+            this.selectedSubscriber.billingModeCode.length > 0 &&
+            this.selectedSubscriber.statusCode.length > 0
     }
 }
