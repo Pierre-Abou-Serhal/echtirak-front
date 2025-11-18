@@ -14,7 +14,7 @@ import { MenuItem } from 'primeng/api';
     standalone: true,
     imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter ],
     template: `<div class="layout-wrapper" [ngClass]="containerClass">
-        <app-topbar></app-topbar>
+        <app-topbar [profileMenu]="profileMenu"></app-topbar>
         <app-sidebar></app-sidebar>
         <div class="layout-main-container">
             <div class="layout-main">
@@ -33,6 +33,8 @@ export class AppLayout {
     @ViewChild(AppSidebar) appSidebar!: AppSidebar;
 
     @ViewChild(AppTopbar) appTopBar!: AppTopbar;
+
+    profileMenu: MenuItem[] = [];
 
     constructor(
         public layoutService: LayoutService,
@@ -124,7 +126,11 @@ export class AppLayout {
         let r: ActivatedRoute | null = this.ar;
         while (r?.firstChild) r = r.firstChild;
 
-        const menu = r?.snapshot.data?.['menu'] as MenuItem[];
+        const data = r?.snapshot.data ?? {};
+        const menu = data['menu'] as MenuItem[];
+        const profileMenu = data['profileMenu'] as MenuItem[];
+
         this.menuService.set(menu);
+        this.profileMenu = profileMenu ?? [];
     }
 }

@@ -1,0 +1,187 @@
+<div class="card max-w-2xl mx-auto">
+    <!-- Header with profile icon -->
+    <div class="flex items-center gap-4 mb-6">
+        <p-avatar
+            icon="pi pi-user"
+            shape="circle"
+            size="large"
+            styleClass="bg-primary/10 text-primary"
+        ></p-avatar>
+
+        <div>
+            <div class="text-2xl font-semibold">Profile</div>
+            <p class="text-sm text-surface-500 dark:text-surface-400">
+                Update your profile information details.
+            </p>
+        </div>
+    </div>
+
+    <!-- LOADING STATE: Skeletons -->
+    @if (loading) {
+        <div class="space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <p-skeleton width="40%" height="1rem"></p-skeleton>
+                    <p-skeleton height="2.75rem"></p-skeleton>
+                </div>
+                <div class="space-y-2">
+                    <p-skeleton width="40%" height="1rem"></p-skeleton>
+                    <p-skeleton height="2.75rem"></p-skeleton>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <p-skeleton width="40%" height="1rem"></p-skeleton>
+                    <p-skeleton height="2.75rem"></p-skeleton>
+                </div>
+                <div class="space-y-2">
+                    <p-skeleton width="40%" height="1rem"></p-skeleton>
+                    <p-skeleton height="2.75rem"></p-skeleton>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <p-skeleton width="7rem" height="2.5rem"></p-skeleton>
+            </div>
+        </div>
+    }
+    @else {
+        <!-- ACTUAL FORM -->
+        <form
+            [formGroup]="profileForm"
+            class="space-y-6"
+            (ngSubmit)="onSave()"
+        >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- First Name -->
+                <div>
+                    <label
+                        for="dialogFirstName"
+                        class="block text-surface-900 dark:text-surface-0 text-sm font-medium mb-2"
+                    >
+                        First Name
+                    </label>
+                    <input
+                        pInputText
+                        id="dialogFirstName"
+                        type="text"
+                        placeholder="First Name"
+                        class="w-full"
+                        formControlName="firstName"
+                        [invalid]="isInvalid('firstName')"
+                    />
+                    @if (isInvalid('firstName')) {
+                        <p-message
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            class="mt-1"
+                        >
+                            First Name is required.
+                        </p-message>
+                    }
+                </div>
+
+                <!-- Last Name -->
+                <div>
+                    <label
+                        for="dialogLastName"
+                        class="block text-surface-900 dark:text-surface-0 text-sm font-medium mb-2"
+                    >
+                        Last Name
+                    </label>
+                    <input
+                        pInputText
+                        id="dialogLastName"
+                        type="text"
+                        placeholder="Last Name"
+                        class="w-full"
+                        formControlName="lastName"
+                        [invalid]="isInvalid('lastName')"
+                    />
+                    @if (isInvalid('lastName')) {
+                        <p-message
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            class="mt-1"
+                        >
+                            Last Name is required.
+                        </p-message>
+                    }
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Business Name -->
+                <div>
+                    <label
+                        for="dialogBusinessName"
+                        class="block text-surface-900 dark:text-surface-0 text-sm font-medium mb-2"
+                    >
+                        Business Name
+                    </label>
+                    <input
+                        pInputText
+                        id="dialogBusinessName"
+                        type="text"
+                        placeholder="Business Name"
+                        class="w-full"
+                        formControlName="businessName"
+                        [invalid]="isInvalid('businessName')"
+                    />
+                    @if (isInvalid('businessName')) {
+                        <p-message
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            class="mt-1"
+                        >
+                            Business Name is required.
+                        </p-message>
+                    }
+                </div>
+
+                <!-- Phone Number -->
+                <div>
+                    <label
+                        for="dialogPhoneNumber"
+                        class="block text-surface-900 dark:text-surface-0 text-sm font-medium mb-2"
+                    >
+                        Phone Number
+                    </label>
+                    <input
+                        pInputText
+                        id="dialogPhoneNumber"
+                        type="text"
+                        placeholder="Phone Number"
+                        class="w-full"
+                        formControlName="phoneNumber"
+                        [invalid]="isInvalid('phoneNumber')"
+                    />
+                    @if (isInvalid('phoneNumber')) {
+                        <p-message
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            class="mt-1"
+                        >
+                            Phone Number is required.
+                        </p-message>
+                    }
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <p-button
+                    label="Save changes"
+                    icon="pi pi-check"
+                    [loading]="saving"
+                    [disabled]="profileForm.invalid || saving"
+                    type="submit"
+                ></p-button>
+            </div>
+        </form>
+    }
+</div>

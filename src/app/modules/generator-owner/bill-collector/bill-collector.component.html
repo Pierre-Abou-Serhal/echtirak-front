@@ -1,0 +1,186 @@
+<div class="card">
+    <div class="font-semibold text-xl mb-4">Bill Collectors</div>
+
+    <div class="mb-4">
+        <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
+        <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
+        <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
+    </div>
+    <p-table
+        #dt
+        [value]="billCollectors"
+        dataKey="id"
+        [globalFilterFields]="['code', 'description', 'location']"
+        responsiveLayout="scroll"
+        [loading]="loading"
+        rowHover
+        showGridlines
+        paginator
+        stripedRows
+        [first]="first"
+        [rows]="rows"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [(selection)]="selectBillCollectors"
+        (onPage)="pageChange($event)"
+    >
+        <ng-template #caption>
+            <div class="text-end pb-4">
+                <p-button icon="pi pi-plus" class="me-2" label="New" severity="info" (click)="openNew()" />
+                <p-button icon="pi pi-external-link" label="Export" (click)="exportToCsv()" />
+            </div>
+
+            <div class="flex justify-between items-center flex-column sm:flex-row">
+                <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt)"></button>
+                <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text"
+                           (input)="onGlobalFilter(dt, $event)" placeholder="Search keyword" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+        <ng-template #header>
+            <tr>
+                <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+                <th style="width: 5rem"></th>
+
+                <th pSortableColumn="userName" style="min-width: 14rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Username
+                        <p-sortIcon field="userName" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="firstName" style="min-width: 14rem">
+                    <div class="flex justify-between items-center gap-2">
+                        First Name
+                        <p-sortIcon field="firstName" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="lastName" style="min-width: 12rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Last Name
+                        <p-sortIcon field="lastName" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="phoneNumber" style="min-width: 12rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Phone Number
+                        <p-sortIcon field="phoneNumber" />
+                    </div>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-billCollector>
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="billCollector" />
+                </td>
+                <td>
+                    <p-button icon="pi pi-pencil" styleClass="p-button-sm" (click)="editBillCollector(billCollector)" severity="secondary" rounded />
+                </td>
+                <td>
+                    {{ billCollector.userName }}
+                </td>
+                <td>
+                    {{ billCollector.firstName }}
+                </td>
+                <td>
+                    {{ billCollector.lastName }}
+                </td>
+                <td>
+                    {{ billCollector.phoneNumber }}
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="11">No bill collectors found.</td>
+            </tr>
+        </ng-template>
+        <ng-template #loadingbody>
+            <tr>
+                <td colspan="11">Loading bill collector data. Please wait.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Add/Edit Subscriber Dialog -->
+    <p-dialog
+        [(visible)]="isBillCollectorDialogOpen"
+        [style]="{ width: '640px' }"
+        header="Bill Collector Details"
+        [modal]="true"
+    >
+        <ng-template #content>
+            <form [formGroup]="billCollectorForm">
+                <label for="dialogUserName" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Username</label>
+                <input pInputText id="dialogUserName" type="text" placeholder="Username" class="w-full md:w-120 mb-4"  formControlName="username" [invalid]="isInvalid('username')" />
+
+                @if (isInvalid('username')) {
+                    <p-message severity="error" size="small" variant="simple">Username is required.</p-message>
+                }
+
+                <label for="dialogFirstName" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">First Name</label>
+                <input pInputText id="dialogFirstName" type="text" placeholder="First Name" class="w-full md:w-120 mb-4"  formControlName="firstName" [invalid]="isInvalid('firstName')" />
+
+                @if (isInvalid('firstName')) {
+                    <p-message severity="error" size="small" variant="simple">First Name is required.</p-message>
+                }
+
+                <label for="dialogLastName" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Last Name</label>
+                <input pInputText id="dialogLastName" type="text" placeholder="Last Name" class="w-full md:w-120 mb-4"  formControlName="lastName" [invalid]="isInvalid('lastName')" />
+
+                @if (isInvalid('lastName')) {
+                    <p-message severity="error" size="small" variant="simple">Last Name is required.</p-message>
+                }
+
+                <label for="dialogPhoneNumber" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Phone Number</label>
+                <input pInputText id="dialogPhoneNumber" type="text" placeholder="Phone Number" class="w-full md:w-120 mb-4"  formControlName="phoneNumber" [invalid]="isInvalid('phoneNumber')" />
+
+                @if (isInvalid('phoneNumber')) {
+                    <p-message severity="error" size="small" variant="simple">Phone Number is required.</p-message>
+                }
+
+                <label for="dialogNewPassword" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">New Password</label>
+                <input pInputText id="dialogNewPassword" type="text" placeholder="New Password" class="w-full md:w-120 mb-4"  formControlName="newPassword" [invalid]="billCollectorForm.hasError('newRequired')" />
+
+                @if (billCollectorForm.hasError('newRequired') && (billCollectorForm.get('newPassword')?.touched || billCollectorForm.get('newPassword')?.dirty)) {
+                    <p-message severity="error" size="small" variant="simple">
+                        New Password is required when confirming a password.
+                    </p-message>
+                }
+
+                <label for="dialogConfirmPassword" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Confirm Password</label>
+                <input pInputText id="dialogConfirmPassword" type="text" placeholder="Confirm Password" class="w-full md:w-120 mb-4"  formControlName="confirmPassword" [invalid]="billCollectorForm.hasError('confirmRequired') ||
+    billCollectorForm.hasError('passwordMismatch')" />
+
+                @if (billCollectorForm.hasError('confirmRequired') && (billCollectorForm.get('confirmPassword')?.touched || billCollectorForm.get('confirmPassword')?.dirty)) {
+                    <p-message severity="error" size="small" variant="simple">
+                        Confirm Password is required when changing the password.
+                    </p-message>
+                }
+
+                @if (billCollectorForm.hasError('passwordMismatch') && (billCollectorForm.get('confirmPassword')?.touched || billCollectorForm.get('confirmPassword')?.dirty)) {
+                    <p-message severity="error" size="small" variant="simple">
+                        Passwords do not match.
+                    </p-message>
+                }
+
+            </form>
+        </ng-template>
+
+        <ng-template #footer>
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()"></p-button>
+                <p-button label="Save" icon="pi pi-check" (click)="saveBillCollector()" [loading]="isBillCollectorSaving"></p-button>
+            </div>
+        </ng-template>
+    </p-dialog>
+
+</div>

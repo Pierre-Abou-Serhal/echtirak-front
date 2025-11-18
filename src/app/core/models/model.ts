@@ -26,3 +26,19 @@ export interface Generator {
     description: string,
     location: string
 }
+
+export interface GeneratorOwnerProfile {
+    firstName: string,
+    lastName: string,
+    businessName: string,
+    phoneNumber: string
+}
+
+export interface BillCollectorProfile {
+    id: number;
+    userId: number;
+    username: string,
+    firstName: string,
+    lastName: string,
+    phoneNumber: string
+}

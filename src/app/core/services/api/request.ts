@@ -1,5 +1,5 @@
 // Auth Requests
-import { Generator, Subscriber } from '@/core/models/model';
+import { BillCollectorProfile, Generator, GeneratorOwnerProfile, Subscriber } from '@/core/models/model';
 
 export interface SignInRequest {
     username: string;
@@ -28,3 +28,10 @@ export interface GetSubscribersQueryParams {
 export interface UpsertSubscriberRequest extends Subscriber {}
 
 export interface UpsertGeneratorRequest extends Generator {}
+
+export interface UpdateGeneratorOwnerProfileRequest extends GeneratorOwnerProfile {}
+
+export interface UpsertBillCollectorRequest extends BillCollectorProfile {
+    newPassword?: string;
+    confirmPassword?: string;
+}

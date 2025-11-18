@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -7,11 +7,13 @@ import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '@/core/services/layout.service';
 import { environment } from '../../../environments/environment';
 import { Toast } from 'primeng/toast';
+import { Menu } from 'primeng/menu';
+import { AuthService } from '@/core/services/auth.service';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator, Toast],
+    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator, Toast, Menu],
     template: ` <p-toast />
         <div class="layout-topbar">
             <div class="layout-topbar-logo-container">
@@ -61,36 +63,61 @@ import { Toast } from 'primeng/toast';
                     </div>
                 </div>
 
-                <button class="layout-topbar-menu-button layout-topbar-action" pStyleClass="@next" enterFromClass="hidden" enterActiveClass="animate-scalein" leaveToClass="hidden" leaveActiveClass="animate-fadeout" [hideOnOutsideClick]="true">
-                    <i class="pi pi-ellipsis-v"></i>
-                </button>
+                <!-- PROFILE MENU (dynamic) -->
+                <p-menu
+                    #profileMenuRef
+                    [model]="profileMenuWithLogout"
+                    [popup]="true"
+                    appendTo="body"
+                >
+                </p-menu>
 
-                <div class="layout-topbar-menu hidden lg:block">
-                    <div class="layout-topbar-menu-content">
-                        <button type="button" class="layout-topbar-action">
-                            <i class="pi pi-calendar"></i>
-                            <span>Calendar</span>
-                        </button>
-                        <button type="button" class="layout-topbar-action">
-                            <i class="pi pi-inbox"></i>
-                            <span>Messages</span>
-                        </button>
-                        <button type="button" class="layout-topbar-action">
-                            <i class="pi pi-user"></i>
-                            <span>Profile</span>
-                        </button>
-                    </div>
-                </div>
+                @if (profileMenuWithLogout.length) {
+                    <button
+                        type="button"
+                        class="layout-topbar-action"
+                        (click)="profileMenuRef.toggle($event)"
+                    >
+                        <i class="pi pi-user"></i>
+                    </button>
+                }
+
             </div>
         </div>`
 })
 export class AppTopbar {
     items!: MenuItem[];
+    @Input() profileMenu: MenuItem[] | null = null;
 
-    constructor(public layoutService: LayoutService) {}
+    get resolvedProfileMenu(): MenuItem[] {
+        return this.profileMenu ?? [];
+    }
+
+    get profileMenuWithLogout(): MenuItem[] {
+        const items = this.resolvedProfileMenu;
+        const result: MenuItem[] = [...items];
+
+        if (items.length) {
+            result.push({ separator: true });
+        }
+
+        result.push({
+            label: 'Logout',
+            icon: 'pi pi-sign-out',
+            command: () => this.logout()
+        });
+
+        return result;
+    }
+
+    constructor(public layoutService: LayoutService, public authService: AuthService) {}
 
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
+    }
+
+    async logout() {
+        await this.authService.logout();
     }
 
     appName: string = environment.appName;

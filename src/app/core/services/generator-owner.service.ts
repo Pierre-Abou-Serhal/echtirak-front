@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
 import {
-    GetSubscribersQueryParams,
+    GetSubscribersQueryParams, UpdateGeneratorOwnerProfileRequest, UpsertBillCollectorRequest,
     UpsertGeneratorRequest,
     UpsertSubscriberRequest
 } from '@/core/services/api/request';
@@ -10,7 +10,10 @@ import {
     GetGeneratorsResponse,
     GetSubscribersResponse,
     UpsertSubscriberResponse,
-    UpsertGeneratorResponse
+    UpsertGeneratorResponse,
+    UpdateGeneratorOwnerProfileResponse,
+    GetGeneratorOwnerProfileResponse,
+    GetBillCollectorForGOResponse, UpsertBillCollectorResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -33,5 +36,21 @@ export class GeneratorOwnerService {
 
     public upsertGenerator(request: UpsertGeneratorRequest): Observable<UpsertGeneratorResponse> {
         return this.apiService.post<UpsertGeneratorResponse>('/GeneratorOwner/Generator', request);
+    }
+
+    public getProfile():Observable<GetGeneratorOwnerProfileResponse> {
+        return this.apiService.get<GetGeneratorOwnerProfileResponse>('/GeneratorOwner/Profile');
+    }
+
+    public updateProfile(request: UpdateGeneratorOwnerProfileRequest): Observable<UpdateGeneratorOwnerProfileResponse> {
+        return this.apiService.post<UpdateGeneratorOwnerProfileResponse>('/GeneratorOwner/Profile', request);
+    }
+
+    public getBillCollectorForGO(){
+        return this.apiService.get<GetBillCollectorForGOResponse>('/GeneratorOwner/BillCollectorForGO');
+    }
+
+    public upsertBillCollector(request: UpsertBillCollectorRequest): Observable<UpsertBillCollectorResponse>  {
+        return this.apiService.post<UpsertBillCollectorResponse>('/GeneratorOwner/BillCollector', request);
     }
 }

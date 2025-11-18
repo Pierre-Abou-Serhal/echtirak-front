@@ -1,4 +1,4 @@
-import { Subscriber, User, Generator } from '@/core/models/model';
+import { Subscriber, User, Generator, GeneratorOwnerProfile, BillCollectorProfile } from '@/core/models/model';
 import { TokenPair } from '@/core/dtos/dto';
 
 // Auth Response
@@ -35,4 +35,20 @@ export interface GetGeneratorsResponse {
 
 export interface UpsertGeneratorResponse {
     generator: Generator;
+}
+
+export interface UpdateGeneratorOwnerProfileResponse {
+    profile: GeneratorOwnerProfile;
+}
+
+export interface GetGeneratorOwnerProfileResponse {
+    profile: GeneratorOwnerProfile;
+}
+
+export interface GetBillCollectorForGOResponse {
+    collectors: BillCollectorProfile[];
+}
+
+export interface UpsertBillCollectorResponse {
+    collector: BillCollectorProfile;
 }
