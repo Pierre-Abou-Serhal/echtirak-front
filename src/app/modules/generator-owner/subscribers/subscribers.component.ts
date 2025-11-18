@@ -135,7 +135,7 @@ export class SubscribersComponent implements OnInit {
                         return;
                     }
 
-                    const { items = [], pageNumber: apiPageNumber, pageSize, totalCount, totalPages, hasNext, hasPrevious } = page;
+                    const { items = [], pageNumber: apiPageNumber, pageSize, totalCount, hasNext } = page;
 
                     // Append items from this page to the list
                     this.subscribers = [...this.subscribers, ...items];
@@ -147,7 +147,7 @@ export class SubscribersComponent implements OnInit {
                     }
 
                     // Use server totalCount if available
-                    this.totalRecords = typeof totalCount === 'number' ? totalCount : this.subscribers.length;
+                    this.totalRecords = totalCount;
 
                     // Rely on API flag to know if more pages exist
                     this.hasMoreFromServer = hasNext;
@@ -332,7 +332,7 @@ export class SubscribersComponent implements OnInit {
                     if (!isCreatingSub) {
                         // Edit
                         this.subscribers[this.findIndexById(this.selectedSubscriber.id)] = this.selectedSubscriber;
-                        this.notificationService.success('Successful', 'Subscriber Updated')
+                        this.notificationService.success('Successful', 'Subscriber Updated');
                     } else {
                         // Add
                         this.selectedSubscriber.id = response.id;

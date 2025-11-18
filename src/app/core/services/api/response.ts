@@ -32,3 +32,7 @@ export interface UpsertSubscriberResponse extends Subscriber {}
 export interface GetGeneratorsResponse {
     generators: Generator[]
 }
+
+export interface UpsertGeneratorResponse {
+    generator: Generator;
+}

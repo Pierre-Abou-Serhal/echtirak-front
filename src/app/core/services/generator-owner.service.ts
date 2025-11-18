@@ -1,12 +1,16 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
-import { GetSubscribersQueryParams, UpsertSubscriberRequest } from '@/core/services/api/request';
+import {
+    GetSubscribersQueryParams,
+    UpsertGeneratorRequest,
+    UpsertSubscriberRequest
+} from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
     GetGeneratorsResponse,
     GetSubscribersResponse,
-    SignInResponse,
-    UpsertSubscriberResponse
+    UpsertSubscriberResponse,
+    UpsertGeneratorResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -25,5 +29,9 @@ export class GeneratorOwnerService {
 
     public getGenerators():Observable<GetGeneratorsResponse> {
         return this.apiService.get<GetGeneratorsResponse>('/GeneratorOwner/Generator');
+    }
+
+    public upsertGenerator(request: UpsertGeneratorRequest): Observable<UpsertGeneratorResponse> {
+        return this.apiService.post<UpsertGeneratorResponse>('/GeneratorOwner/Generator', request);
     }
 }

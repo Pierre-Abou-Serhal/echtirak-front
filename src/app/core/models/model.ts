@@ -22,7 +22,6 @@ export class Subscriber {
 
 export interface Generator {
     id: number,
-    generatorOwnerUserId: number,
     code: string,
     description: string,
     location: string
