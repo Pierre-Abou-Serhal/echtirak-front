@@ -1,0 +1,41 @@
+<div>
+    @if(availableDevices.length > 1) {
+        <!-- camera selector (optional) -->
+        <div class="camera-select">
+            <label>
+                Camera:
+                <select (change)="onDeviceSelectChange($event)">
+                    @for(device of availableDevices; track $index){
+                        <option [value]="device.deviceId">
+                            {{ device.label }}
+                        </option>
+                    }
+
+                </select>
+            </label>
+        </div>
+    }
+
+    <zxing-scanner
+        class="scanner-window"
+        [autostart]="true"
+        [autofocusEnabled]="true"
+        [formats]="allowedFormats"
+        [device]="currentDevice"
+        (scanSuccess)="onScanSuccess($event)"
+        (camerasFound)="onCamerasFound($event)"
+        (permissionResponse)="onPermissionResponse($event)">
+    </zxing-scanner>
+
+    @if(qrResult){
+        <div class="result">
+            <h3>Scanned QR:</h3>
+            <code>{{ qrResult }}</code>
+            <button type="button" (click)="clearResult()">Clear</button>
+        </div>
+    }
+</div>
+
+@if(!hasPermission){
+    <p>Please allow camera access to scan QR codes.</p>
+}
