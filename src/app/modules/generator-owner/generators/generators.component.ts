@@ -19,7 +19,8 @@ import { firstValueFrom } from 'rxjs';
     selector: 'app-generators.component',
     imports: [Button, TableModule, IconField, InputText, InputIcon, ButtonDirective, Dialog, Message, ReactiveFormsModule],
     templateUrl: './generators.component.html',
-    styleUrl: './generators.component.scss'
+    styleUrl: './generators.component.scss',
+    standalone: true
 })
 export class GeneratorsComponent implements OnInit {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);

@@ -1,6 +1,50 @@
-<div class="card">
-    <div class="font-semibold text-xl mb-4">Subscribers</div>
+<div class="font-semibold text-xl mb-4">Subscribers Statistics</div>
 
+<div class="grid grid-cols-12 gap-8 mb-4">
+    <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+        <div class="card mb-0">
+            <div class="flex justify-between mb-4">
+                <div>
+                    <span class="block text-muted-color font-medium mb-4">Total Subscribers</span>
+                    <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">ZIDA API</div>
+                </div>
+                <div class="flex items-center justify-center bg-blue-100 dark:bg-blue-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                    <i class="pi pi-users text-blue-500 text-xl!"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+        <div class="card mb-0">
+            <div class="flex justify-between mb-4">
+                <div>
+                    <span class="block text-muted-color font-medium mb-4">Active Subscribers</span>
+                    <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">ZIDA API</div>
+                </div>
+                <div class="flex items-center justify-center bg-green-100 dark:bg-green-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                    <i class="pi pi-verified text-green-500 text-xl!"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+        <div class="card mb-0">
+            <div class="flex justify-between mb-4">
+                <div>
+                    <span class="block text-muted-color font-medium mb-4">Incative Subscribers</span>
+                    <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">ZIDA API</div>
+                </div>
+                <div class="flex items-center justify-center bg-red-100 dark:bg-red-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                    <i class="pi pi-times-circle text-red-500 text-xl!"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="font-semibold text-xl mb-4">Subscribers List</div>
+
+<div class="card">
     <div class="mb-4">
         <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
         <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
@@ -12,7 +56,6 @@
         dataKey="id"
         [rows]="rows"
         [totalRecords]="totalRecords"
-        [globalFilterFields]="['phoneNumber', 'firstName', 'lastName', 'previousKva', 'subscriptionAmps', 'currentKva', 'electricMeterNumber', 'billingModeCode', 'statusCode']"
         responsiveLayout="scroll"
         [loading]="loading"
         rowHover
@@ -27,19 +70,66 @@
         (onPage)="pageChange($event)"
     >
         <ng-template #caption>
-            <div class="text-end pb-4">
-                <p-button icon="pi pi-plus" class="me-2" label="New" severity="info" (click)="openNew()" />
-                <p-button icon="pi pi-external-link" label="Export" (click)="exportToCsv()" />
+            <!-- Top row: New / Export / Download QR PDF -->
+            <div class="flex justify-between items-center flex-column sm:flex-row gap-3 pb-4">
+                <div class="flex flex-wrap items-center gap-2 ml-auto">
+                    <p-button
+                        icon="pi pi-plus"
+                        class="me-2"
+                        label="New"
+                        severity="info"
+                        (click)="openNew()"
+                    />
+
+                    <p-button
+                        icon="pi pi-external-link"
+                        label="Export CSV"
+                        (click)="exportToCsv()"
+                    />
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <p-select
+                            [options]="generators"
+                            [(ngModel)]="selectedGeneratorForQrPdf"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Select generator"
+                            class="w-full md:w-56"
+                        />
+
+                        <p-button
+                            label="Download QR Codes"
+                            icon="pi pi-download"
+                            severity="secondary"
+                            [disabled]="!selectedGeneratorForQrPdf"
+                            (click)="downloadSubscribersQrCodePdf()"
+                            [loading]="isDownloadingSubscribersQrCodePdf"
+                        />
+                    </div>
+                </div>
             </div>
 
-            <div class="flex justify-between items-center flex-column sm:flex-row">
-                <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt)"></button>
+            <!-- Second row: Clear + Search -->
+            <div class="flex justify-between items-center flex-column sm:flex-row gap-3">
+                <button
+                    pButton
+                    label="Clear"
+                    class="p-button-outlined mb-2"
+                    icon="pi pi-filter-slash"
+                    (click)="clear(dt)"
+                ></button>
+
                 <p-iconfield iconPosition="left" class="ml-auto">
                     <p-inputicon>
                         <i class="pi pi-search"></i>
                     </p-inputicon>
-                    <input pInputText type="text" [ngModel]="keyword"
-                           (ngModelChange)="onGlobalFilter(dt, $event)" placeholder="Search keyword" />
+                    <input
+                        pInputText
+                        type="text"
+                        [ngModel]="keyword"
+                        (ngModelChange)="onGlobalFilter(dt, $event)"
+                        placeholder="Search keyword"
+                    />
                 </p-iconfield>
             </div>
         </ng-template>
@@ -55,10 +145,10 @@
                     </div>
                 </th>
 
-                <th pSortableColumn="generator" style="min-width: 14rem">
+                <th pSortableColumn="generatorCode" style="min-width: 14rem">
                     <div class="flex justify-between items-center gap-2">
                         Generator
-                        <p-sortIcon field="generator" />
+                        <p-sortIcon field="generatorCode" />
                     </div>
                 </th>
 
@@ -76,6 +166,13 @@
                     </div>
                 </th>
 
+                <th pSortableColumn="lastName" style="min-width: 12rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Address
+                        <p-sortIcon field="address" />
+                    </div>
+                </th>
+
                 <th pSortableColumn="previousKva" style="min-width: 14rem">
                     <div class="flex justify-between items-center gap-2">
                         Previous KVA
@@ -90,13 +187,6 @@
                     </div>
                 </th>
 
-                <th pSortableColumn="subscriptionAmps" style="min-width: 16rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Subscription Amps
-                        <p-sortIcon field="subscriptionAmps" />
-                    </div>
-                </th>
-
                 <th pSortableColumn="electricMeterNumber" style="min-width: 18rem">
                     <div class="flex justify-between items-center gap-2">
                         Electric Meter Number
@@ -104,10 +194,17 @@
                     </div>
                 </th>
 
-                <th pSortableColumn="billingModeCode" style="min-width: 12rem">
+                <th pSortableColumn="subscriptionBillingModelId" style="min-width: 16rem">
                     <div class="flex justify-between items-center gap-2">
-                        Billing Mode
-                        <p-sortIcon field="billingModeCode" />
+                        Subscription Billing Mode
+                        <p-sortIcon field="subscriptionBillingModelId" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="overrideAmount" style="min-width: 16rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Override Amount
+                        <p-sortIcon field="overrideAmount" />
                     </div>
                 </th>
 
@@ -125,13 +222,18 @@
                     <p-tableCheckbox [value]="subscriber" />
                 </td>
                 <td>
-                    <p-button icon="pi pi-pencil" styleClass="p-button-sm" (click)="editSubscriber(subscriber)" severity="secondary" rounded />
+                    <div class="flex">
+                        <p-button icon="pi pi-qrcode" styleClass="p-button-sm me-2" (click)="previewSingleQrCode(subscriber)" severity="secondary" rounded />
+
+                        <p-button icon="pi pi-pencil" styleClass="p-button-sm" (click)="editSubscriber(subscriber)" severity="info" rounded />
+                    </div>
+
                 </td>
                 <td>
                     {{ subscriber.phoneNumber }}
                 </td>
                 <td>
-                    {{ subscriber.generatorId }}
+                    {{ subscriber.generatorCode }}
                 </td>
                 <td>
                     {{ subscriber.firstName }}
@@ -140,19 +242,22 @@
                     {{ subscriber.lastName }}
                 </td>
                 <td>
+                    {{ subscriber.address }}
+                </td>
+                <td>
                     {{ subscriber.previousKva }}
                 </td>
                 <td>
                     {{ subscriber.currentKva }}
                 </td>
                 <td>
-                    {{ subscriber.subscriptionAmps }}
-                </td>
-                <td>
                     {{ subscriber.electricMeterNumber }}
                 </td>
                 <td>
-                    {{ subscriber.billingModeCode }}
+                    {{ `${subscriber.billingModel} ${subscriber.subscriptionAmps} AMPs` }}
+                </td>
+                <td>
+                    {{ subscriber.overrideAmount }}
                 </td>
                 <td>
                     <p-tag [value]="subscriber.statusCode" [severity]="getSubscriberSeverity(subscriber.statusCode)" />
@@ -214,31 +319,79 @@
                         optionValue="value"
                         placeholder="Select a Generator"
                         [fluid]="true"
+                        (onChange)="onChangeGenerator(selectedSubscriber.generatorId)"
                     ></p-select>
-                    @if (submitted && !selectedSubscriber.phoneNumber) {
+                    @if (submitted && !selectedSubscriber.generatorId) {
                         <small class="text-red-500">Generator is required.</small>
                     }
                 </div>
 
-                <!-- Billing mode / Status: side by side -->
+                <!-- Subscription Billing Model / Billing fee: side by side -->
                 <div>
-                    <label for="dialogBillingMode" class="block text-sm font-semibold mb-2">
-                        Billing Mode
+                    <label for="dialogSubscriptionBillingModel" class="block text-sm font-semibold mb-2">
+                        Subscription Billing Model
                     </label>
                     <p-select
-                        [(ngModel)]="selectedSubscriber.billingModeCode"
-                        inputId="dialogBillingMode"
-                        [options]="billingModes"
+                        [(ngModel)]="selectedSubscriber.subscriptionBillingModelId"
+                        inputId="dialogSubscriptionBillingModel"
+                        [options]="filteredSubscriptionBillingModels"
                         optionLabel="label"
                         optionValue="value"
-                        placeholder="Select a Billing Mode"
+                        placeholder="Select a Subscription Billing Model"
                         [fluid]="true"
+                        (onChange)="onChangeSubscriptionBillingModel(selectedSubscriber.subscriptionBillingModelId)"
                     ></p-select>
-                    @if (submitted && !selectedSubscriber.billingModeCode) {
-                        <small class="text-red-500">Billing Mode is required.</small>
+                    @if (submitted && !selectedSubscriber.subscriptionBillingModelId) {
+                        <small class="text-red-500">Subscription Billing Model is required.</small>
                     }
                 </div>
 
+                <div>
+                    <label for="dialogBillingFee" class="block text-sm font-semibold mb-2">
+                        Billing Fee
+                    </label>
+                    <input
+                        type="text"
+                        pInputText
+                        id="dialogBillingFee"
+                        class="w-full"
+                        [(ngModel)]="subscriptionBillingFee"
+                        disabled
+                    />
+                </div>
+
+                <!-- Override Amount: full width -->
+                <div class="md:col-span-2">
+                    <label for="dialogOverrideAmount" class="block text-sm font-semibold mb-2">
+                        Override Amount
+                    </label>
+                    <p-inputnumber
+                        inputId="dialogOverrideAmount"
+                        [(ngModel)]="selectedSubscriber.overrideAmount"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                    ></p-inputnumber>
+                </div>
+
+                <!-- Address: full width -->
+                <div class="md:col-span-2">
+                    <label for="dialogAddress" class="block text-sm font-semibold mb-2">
+                        Address
+                    </label>
+                    <textarea
+                        pTextarea id="dialogAddress"
+                        [(ngModel)]="selectedSubscriber.address"
+                        required
+                        class="w-full"
+                    ></textarea>
+                    @if (submitted && !selectedSubscriber.address) {
+                        <small class="text-red-500">Address is required.</small>
+                    }
+                </div>
+
+                <!-- Status / Electric Meter Number: side by side -->
                 <div>
                     <label for="dialogStatus" class="block text-sm font-semibold mb-2">
                         Status
@@ -254,6 +407,23 @@
                     ></p-select>
                     @if (submitted && !selectedSubscriber.statusCode) {
                         <small class="text-red-500">Status is required.</small>
+                    }
+                </div>
+
+                <div>
+                    <label for="dialogElectricMeterNumber" class="block text-sm font-semibold mb-2">
+                        Electric Meter Number
+                    </label>
+                    <input
+                        type="text"
+                        pInputText
+                        id="dialogElectricMeterNumber"
+                        [(ngModel)]="selectedSubscriber.electricMeterNumber"
+                        required
+                        class="w-full"
+                    />
+                    @if (submitted && !selectedSubscriber.electricMeterNumber) {
+                        <small class="text-red-500">Electric Meter Number is required.</small>
                     }
                 </div>
 
@@ -292,48 +462,13 @@
                     }
                 </div>
 
-                <!-- Subscription Amps / Electric Meter: side by side -->
-                <div>
-                    <label for="dialogSubscriptionAmps" class="block text-sm font-semibold mb-2">
-                        Subscription Amps
-                    </label>
-                    <p-inputnumber
-                        id="dialogSubscriptionAmps"
-                        [(ngModel)]="selectedSubscriber.subscriptionAmps"
-                        mode="decimal"
-                        [minFractionDigits]="0"
-                        [maxFractionDigits]="4"
-                        class="w-full"
-                    ></p-inputnumber>
-                    @if (submitted && !selectedSubscriber.subscriptionAmps) {
-                        <small class="text-red-500">Subscription Amps is required.</small>
-                    }
-                </div>
-
-                <div>
-                    <label for="dialogElectricMeterNumber" class="block text-sm font-semibold mb-2">
-                        Electric Meter Number
-                    </label>
-                    <input
-                        type="text"
-                        pInputText
-                        id="dialogElectricMeterNumber"
-                        [(ngModel)]="selectedSubscriber.electricMeterNumber"
-                        required
-                        class="w-full"
-                    />
-                    @if (submitted && !selectedSubscriber.electricMeterNumber) {
-                        <small class="text-red-500">Electric Meter Number is required.</small>
-                    }
-                </div>
-
                 <!-- Previous / Current KVA: side by side -->
                 <div>
                     <label for="dialogPreviousKva" class="block text-sm font-semibold mb-2">
                         Previous KVA
                     </label>
                     <p-inputnumber
-                        id="dialogPreviousKva"
+                        inputId="dialogPreviousKva"
                         [(ngModel)]="selectedSubscriber.previousKva"
                         mode="decimal"
                         [minFractionDigits]="0"
@@ -350,7 +485,7 @@
                         Current KVA
                     </label>
                     <p-inputnumber
-                        id="dialogCurrentKva"
+                        inputId="dialogCurrentKva"
                         [(ngModel)]="selectedSubscriber.currentKva"
                         mode="decimal"
                         [minFractionDigits]="0"
@@ -369,6 +504,38 @@
             <div class="flex justify-end gap-2">
                 <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()"></p-button>
                 <p-button label="Save" icon="pi pi-check" (click)="saveSubscriber()" [loading]="isSubscriberSaving"></p-button>
+            </div>
+        </ng-template>
+    </p-dialog>
+
+    <!-- Single Qr-Code Dialog -->
+    <p-dialog
+        [(visible)]="isSingleQrCodeDialogOpen"
+        [style]="{ width: '300px' }"
+        header="Subscriber Qr-Code"
+        [modal]="true"
+    >
+        <ng-template #content>
+            <div class="flex justify-center">
+                @if (loadingSingleQr) {
+                    <p-skeleton width="200px" height="200px"></p-skeleton>
+                } @else if (singleQrCodeUrl) {
+                    <img
+                        [src]="singleQrCodeUrl"
+                        alt="Subscriber QR code"
+                        width="200"
+                        height="200"
+                        class="border border-surface-200 rounded-lg"
+                    />
+                }
+            </div>
+
+        </ng-template>
+
+        <ng-template #footer>
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancel" icon="pi pi-times" text (click)="hideQrCodeDialog()"></p-button>
+                <p-button label="Download" icon="pi pi-download" (click)="downloadSingleQrCode()" [loading]="isSubscriberSaving"></p-button>
             </div>
         </ng-template>
     </p-dialog>

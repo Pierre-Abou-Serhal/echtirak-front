@@ -32,6 +32,18 @@ export interface UpsertGeneratorRequest extends Generator {}
 export interface UpdateGeneratorOwnerProfileRequest extends GeneratorOwnerProfile {}
 
 export interface UpsertBillCollectorRequest extends BillCollectorProfile {
-    newPassword?: string;
+    password?: string;
     confirmPassword?: string;
+}
+
+export interface GetSubscriptionBillingModelQueryParams {
+    generatorId?: number;
+}
+
+export interface GetLookupQueryParams {
+    domain?: string;
+}
+
+export interface GetSubscribersQrCodePdfRequest {
+    generatorId: number;
 }

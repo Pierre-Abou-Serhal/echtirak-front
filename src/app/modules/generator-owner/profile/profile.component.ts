@@ -3,15 +3,12 @@ import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
-    GetGeneratorOwnerProfileResponse,
-    GetGeneratorsResponse, UpdateGeneratorOwnerProfileResponse,
-    UpsertGeneratorResponse
+    GetGeneratorOwnerProfileResponse
 } from '@/core/services/api/response';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
-import { UpdateGeneratorOwnerProfileRequest, UpsertGeneratorRequest } from '@/core/services/api/request';
+import { UpdateGeneratorOwnerProfileRequest } from '@/core/services/api/request';
 import { firstValueFrom } from 'rxjs';
 import { Button } from 'primeng/button';
-import { ProgressSpinner } from 'primeng/progressspinner';
 import { Skeleton } from 'primeng/skeleton';
 import { Avatar } from 'primeng/avatar';
 import { NotificationService } from '@/core/services/notification.service';
@@ -20,7 +17,8 @@ import { NotificationService } from '@/core/services/notification.service';
     selector: 'app-profile.component',
     imports: [InputText, Message, ReactiveFormsModule, Button, Skeleton, Avatar],
     templateUrl: './profile.component.html',
-    styleUrl: './profile.component.scss'
+    styleUrl: './profile.component.scss',
+    standalone: true
 })
 export class ProfileComponent implements OnInit {
     generatorOwnerService: GeneratorOwnerService = inject(GeneratorOwnerService);

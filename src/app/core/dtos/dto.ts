@@ -12,7 +12,12 @@ export interface AuthSession {
     refreshToken: string;
 }
 
-export interface SelectOption {
+export interface SelectOptionNumValue {
     label: string;
-    value: string | number;
+    value: number;
+}
+
+export interface SelectOptionStrValue {
+    label: string;
+    value: string;
 }

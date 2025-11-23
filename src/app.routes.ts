@@ -30,6 +30,16 @@ export const appRoutes: Routes = [
                     import('./app/modules/generator-owner/generator-owner.routes')
                         .then((route) => route.GENERATOR_OWNER_ROUTES)
             },
+            {
+                path: 'bill-collector',
+                canMatch: [roleMatchGuard],
+                data: {
+                    roles: [UserRole.BILL_COLLECTOR]
+                },
+                loadChildren: () =>
+                    import('./app/modules/bill-collector/bill-collector.routes')
+                        .then((route) => route.BILL_COLLECTOR_ROUTES)
+            },
         ]
     },
     {

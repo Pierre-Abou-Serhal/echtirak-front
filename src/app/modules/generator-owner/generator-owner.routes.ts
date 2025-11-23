@@ -5,6 +5,7 @@ import { GeneratorsComponent } from '@/modules/generator-owner/generators/genera
 import { GENERATOR_OWNER_PROFILE_MENU } from '@/modules/generator-owner/generator-owner-profile.menu';
 import { ProfileComponent } from '@/modules/generator-owner/profile/profile.component';
 import { BillCollectorComponent } from '@/modules/generator-owner/bill-collector/bill-collector.component';
+import { SmsTemplatesComponent } from '@/modules/generator-owner/sms-templates/sms-templates.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -18,6 +19,7 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             { path: 'generators', component: GeneratorsComponent },
             { path: 'profile', component: ProfileComponent },
             { path: 'bill-collectors', component: BillCollectorComponent },
+            { path: 'sms-templates', component: SmsTemplatesComponent },
         ]
     }
 ] as Routes;

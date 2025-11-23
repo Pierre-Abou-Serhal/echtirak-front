@@ -6,6 +6,7 @@ export const GENERATOR_OWNER_MENU: MenuItem[] = [
             { label: 'Subscribers', icon: 'pi pi-users', routerLink: ['/app/generator-owner/subscribers'] },
             { label: 'Generators', icon: 'pi pi-bolt', routerLink: ['/app/generator-owner/generators'] },
             { label: 'Bill Collectors', icon: 'pi pi-users', routerLink: ['/app/generator-owner/bill-collectors'] },
+            { label: 'SMS Templates', icon: 'pi pi-envelope', routerLink: ['/app/generator-owner/sms-templates'] },
         ]
     }
 ];

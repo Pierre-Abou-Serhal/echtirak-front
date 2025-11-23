@@ -15,7 +15,14 @@ export enum BillStatus {
     PAID = "PAID",
 }
 
-export enum BillingMode {
-    FIXED = "FIXED",
-    METERED = "METERED",
+export enum BillingModel {
+    FIXED = "Fixed",
+    METERED = "Metered",
+}
+
+export enum LookupDomain {
+    BILL_STATUS = "BILL_STATUS",
+    BILLING_MODE = "BILLING_MODE",
+    SUBSCRIBER_STATUS = "SUBSCRIBER_STATUS",
+    USER_ROLE = "USER_ROLE",
 }

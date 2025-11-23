@@ -1,7 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
 import {
-    GetSubscribersQueryParams, UpdateGeneratorOwnerProfileRequest, UpsertBillCollectorRequest,
+    GetLookupQueryParams, GetSubscribersQrCodePdfRequest,
+    GetSubscribersQueryParams,
+    GetSubscriptionBillingModelQueryParams,
+    UpdateGeneratorOwnerProfileRequest,
+    UpsertBillCollectorRequest,
     UpsertGeneratorRequest,
     UpsertSubscriberRequest
 } from '@/core/services/api/request';
@@ -13,7 +17,11 @@ import {
     UpsertGeneratorResponse,
     UpdateGeneratorOwnerProfileResponse,
     GetGeneratorOwnerProfileResponse,
-    GetBillCollectorForGOResponse, UpsertBillCollectorResponse
+    GetBillCollectorForGOResponse,
+    UpsertBillCollectorResponse,
+    GetSmsTemplatesResponse,
+    GetSubscriptionBillingModelResponse,
+    GetLookupResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -52,5 +60,30 @@ export class GeneratorOwnerService {
 
     public upsertBillCollector(request: UpsertBillCollectorRequest): Observable<UpsertBillCollectorResponse>  {
         return this.apiService.post<UpsertBillCollectorResponse>('/GeneratorOwner/BillCollector', request);
+    }
+
+    public getSmsTemplate():Observable<GetSmsTemplatesResponse> {
+        return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SMSTemplates');
+    }
+
+    public getSubscriptionBillingModel(queryParams: GetSubscriptionBillingModelQueryParams): Observable<GetSubscriptionBillingModelResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetSubscriptionBillingModelResponse>('/GeneratorOwner/SubscriptionBillingModel', {params: params});
+    }
+
+    public getLookup(queryParams: GetLookupQueryParams) : Observable<GetLookupResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetLookupResponse>('/GeneratorOwner/Lookup', {params: params});
+    }
+
+    public getSubscriberQrCode(subscriberId: number): Observable<Blob> {
+        const path = `/GeneratorOwner/Subscriber/${subscriberId}/QrCode`;
+        return this.apiService.getBlob(path);
+    }
+
+    public getSubscribersQrCodePdf(request: GetSubscribersQrCodePdfRequest) {
+        return this.apiService.postBlob('/GeneratorOwner/Subscribers/QrCodePdf', request);
     }
 }

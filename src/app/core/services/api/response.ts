@@ -1,4 +1,11 @@
-import { Subscriber, User, Generator, GeneratorOwnerProfile, BillCollectorProfile } from '@/core/models/model';
+import {
+    Subscriber,
+    User,
+    Generator,
+    GeneratorOwnerProfile,
+    BillCollectorProfile,
+    SmsTemplate, SubscriptionBillingModel, Lookup
+} from '@/core/models/model';
 import { TokenPair } from '@/core/dtos/dto';
 
 // Auth Response
@@ -51,4 +58,16 @@ export interface GetBillCollectorForGOResponse {
 
 export interface UpsertBillCollectorResponse {
     collector: BillCollectorProfile;
+}
+
+export interface GetSmsTemplatesResponse {
+    templates: SmsTemplate[];
+}
+
+export interface GetSubscriptionBillingModelResponse {
+    models: SubscriptionBillingModel[];
+}
+
+export interface GetLookupResponse {
+    items: Lookup[];
 }

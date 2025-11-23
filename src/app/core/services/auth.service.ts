@@ -76,7 +76,7 @@ export class AuthService {
                 await this.router.navigateByUrl('/app/generator-owner/subscribers');
                 break;
             case UserRole.BILL_COLLECTOR:
-                await this.router.navigateByUrl('/app/bill-collector/test');
+                await this.router.navigateByUrl('/app/bill-collector/subscribers');
                 break;
             case UserRole.ADMIN:
                 await this.router.navigateByUrl('/app/admin/test');

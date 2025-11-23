@@ -17,22 +17,23 @@ import { Message } from 'primeng/message';
 import { InputText } from 'primeng/inputtext';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { NotificationService } from '@/core/services/notification.service';
-import { BillCollectorProfile, Generator } from '@/core/models/model';
+import { BillCollectorProfile } from '@/core/models/model';
 import {
     GetBillCollectorForGOResponse, UpsertBillCollectorResponse
 } from '@/core/services/api/response';
 import * as Papa from 'papaparse';
 import { UpsertBillCollectorRequest } from '@/core/services/api/request';
 import { firstValueFrom } from 'rxjs';
+import { Password } from 'primeng/password';
 
 @Component({
     selector: 'app-bill-collector.component',
-    imports: [Button, TableModule, IconField, InputIcon, Dialog, ReactiveFormsModule, Message, InputText],
+    imports: [Button, TableModule, IconField, InputIcon, Dialog, ReactiveFormsModule, Message, InputText, Password],
     templateUrl: './bill-collector.component.html',
-    styleUrl: './bill-collector.component.scss'
+    styleUrl: './bill-collector.component.scss',
+    standalone: true
 })
 export class BillCollectorComponent {
-
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly notificationService = inject(NotificationService);
 
@@ -56,7 +57,7 @@ export class BillCollectorComponent {
                 lastName: [null, [Validators.required]],
                 phoneNumber: [null, [Validators.required]],
                 newPassword: [null],
-                confirmPassword: [null],
+                confirmPassword: [null]
             },
             {
                 validators: [this.passwordsValidator()]
@@ -215,25 +216,22 @@ export class BillCollectorComponent {
 
         let upsertBillCollectorRequest: UpsertBillCollectorRequest = {
             id: this.selectedBillCollectorId,
-            userId: this.selectedBillCollectorId,
-            username: this.billCollectorForm.get('description')?.value,
-            firstName: this.billCollectorForm.get('description')?.value,
-            lastName: this.billCollectorForm.get('location')?.value,
-            phoneNumber: this.billCollectorForm.get('location')?.value,
-            newPassword: this.billCollectorForm.get('location')?.value,
-            confirmPassword: this.billCollectorForm.get('location')?.value,
+            username: this.billCollectorForm.get('username')?.value,
+            firstName: this.billCollectorForm.get('firstName')?.value,
+            lastName: this.billCollectorForm.get('lastName')?.value,
+            phoneNumber: this.billCollectorForm.get('phoneNumber')?.value,
+            password: this.billCollectorForm.get('newPassword')?.value
         };
 
         try {
             const response: UpsertBillCollectorResponse = await firstValueFrom(this.generatorOwnerService.upsertBillCollector(upsertBillCollectorRequest));
 
             let notificationMsg: string;
-            if(this.selectedBillCollectorId === -1) {
+            if (this.selectedBillCollectorId === -1) {
                 // Add
                 this.billCollectors.push(response.collector);
                 notificationMsg = 'Added';
-            }
-            else {
+            } else {
                 // Edit
                 this.billCollectors[this.findIndexById(response.collector.id)] = response.collector;
                 notificationMsg = 'Updated';
@@ -241,9 +239,7 @@ export class BillCollectorComponent {
 
             this.billCollectors = [...this.billCollectors];
 
-            this.notificationService.success(
-                'Successful',
-                `Bill Collector ${notificationMsg}`);
+            this.notificationService.success('Successful', `Bill Collector ${notificationMsg}`);
 
             this.isBillCollectorSaving = false;
             this.isBillCollectorDialogOpen = false;

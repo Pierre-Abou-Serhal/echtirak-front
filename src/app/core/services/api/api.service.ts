@@ -1,5 +1,5 @@
 import { map, Observable } from 'rxjs';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
 @Injectable({
@@ -31,6 +31,33 @@ export class ApiService {
         return this.httpClient
             .delete<ApiResponse<T>>(path, { headers })
             .pipe(map(response => response.data));
+    }
+
+    getBlob(
+        path: string,
+        options?: { headers?: HttpHeaders; params?: HttpParams }
+    ): Observable<Blob> {
+        const { headers, params } = options ?? {};
+        return this.httpClient.get(path, {
+            headers,
+            params,
+            responseType: 'blob'
+        });
+    }
+
+    postBlob(
+        path: string,
+        body: any,
+        options?: { headers?: HttpHeaders; params?: HttpParams }
+    ): Observable<HttpResponse<Blob>> {
+        const { headers, params } = options ?? {};
+
+        return this.httpClient.post(path, body, {
+            headers,
+            params,
+            responseType: 'blob',
+            observe: 'response'
+        });
     }
 
     buildParams(params: any) : HttpParams {

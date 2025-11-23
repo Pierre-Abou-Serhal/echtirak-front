@@ -5,24 +5,32 @@ import { IconField } from 'primeng/iconfield';
 import { FormsModule } from '@angular/forms';
 import { Button, ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Generator, Subscriber } from '@/core/models/model';
+import { Generator, Lookup, Subscriber, SubscriptionBillingModel } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import * as Papa from 'papaparse';
-import { GetGeneratorsResponse, GetSubscribersResponse, UpsertSubscriberResponse } from '@/core/services/api/response';
+import {
+    GetGeneratorsResponse, GetLookupResponse,
+    GetSubscribersResponse,
+    GetSubscriptionBillingModelResponse,
+    UpsertSubscriberResponse
+} from '@/core/services/api/response';
 import { Tag } from 'primeng/tag';
-import { BillingMode, SubscriberStatus } from '@/core/enums/enum';
+import { BillingModel, LookupDomain, SubscriberStatus } from '@/core/enums/enum';
 import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
 import { NotificationService } from '@/core/services/notification.service';
-import { SelectOption } from '@/core/dtos/dto';
+import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
 import { InputNumber } from 'primeng/inputnumber';
+import { Textarea } from 'primeng/textarea';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
     selector: 'app-subscribers',
     standalone: true,
-    imports: [TableModule, InputIcon, IconField, FormsModule, ButtonDirective, InputText, Button, Tag, Dialog, Select, InputNumber],
+    imports: [TableModule, InputIcon, IconField, FormsModule, ButtonDirective, InputText, Button, Tag, Dialog, Select, InputNumber, Textarea, Skeleton],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss'
 })
@@ -58,18 +66,70 @@ export class SubscribersComponent implements OnInit {
     isSubscriberDialogOpen: boolean = false;
     selectedSubscriber: Subscriber = new Subscriber();
     submitted: boolean = false;
-    subscriberStatuses: SelectOption[] = [
-        { label: 'Active', value: SubscriberStatus.ACTIVE },
-        { label: 'Inactive', value: SubscriberStatus.INACTIVE }
-    ];
-    billingModes: SelectOption[] = [
-        { label: 'Metered', value: BillingMode.METERED },
-        { label: 'Fixed', value: BillingMode.FIXED },
-    ]
+
+    subscriberStatuses: SelectOptionStrValue[] = [];
+    generators: SelectOptionNumValue[] = [];
+    filteredSubscriptionBillingModels: SelectOptionNumValue[] = [];
+
+    subscriptionBillingModels: SubscriptionBillingModel[] = [];
+
+    subscriptionBillingFee: string = '';
+
     isSubscriberSaving: boolean = false;
-    generators: SelectOption[] = [];
+
+    // Single QR-Code Dialog:
+    isSingleQrCodeDialogOpen: boolean = false;
+    private sanitizer = inject(DomSanitizer);
+    singleQrCodeUrl?: SafeUrl;
+    singleQrCodeBlob?: Blob;
+    loadingSingleQr = false;
+
+    // Multiple Qr-Code PDF
+    isDownloadingSubscribersQrCodePdf: boolean = false;
+    selectedGeneratorForQrPdf?: number | undefined;
+    generatorsLoading: boolean = true;
 
     ngOnInit(): void {
+        // Fetch generators drop down items
+        this.generatorOwnerService.getGenerators().subscribe({
+            next: (response: GetGeneratorsResponse) => {
+                this.generators = response.generators.map((generator: Generator) => ({
+                    value: generator.id,
+                    label: generator.code
+                }));
+            },
+            error: (err) => {
+                console.log(err);
+                this.generators = [];
+                this.generatorsLoading = false;
+            }
+        });
+
+        // Fetch Subscription Billing Models to use it for drop down items
+        this.generatorOwnerService.getSubscriptionBillingModel({}).subscribe({
+            next: (response: GetSubscriptionBillingModelResponse) => {
+                this.subscriptionBillingModels = response.models;
+            },
+            error: (err) => {
+                console.log(err);
+                this.subscriptionBillingModels = [];
+            }
+        });
+
+        // Fetch subscriber statuses drop down items
+        this.generatorOwnerService.getLookup({ domain: LookupDomain.SUBSCRIBER_STATUS }).subscribe({
+            next: (response: GetLookupResponse) => {
+                this.subscriberStatuses = response.items.map((lookup: Lookup) => ({
+                    value: lookup.code,
+                    label: lookup.description
+                }));
+            },
+            error: (err) => {
+                console.log(err);
+                this.subscriberStatuses = [];
+            }
+        });
+
         // Stream of search terms → reset state → load first API page
         this.search$
             .pipe(
@@ -98,21 +158,6 @@ export class SubscribersComponent implements OnInit {
 
         // Initial load (empty search)
         this.search$.next('');
-
-        this.generatorOwnerService.getGenerators().subscribe({
-            next: (response: GetGeneratorsResponse) => {
-                response.generators.forEach((generator: Generator) => {
-                    this.generators.push({
-                       value: generator.id,
-                       label: generator.code
-                    });
-                });
-            },
-            error: (err) => {
-                console.log(err);
-                this.generators = [];
-            }
-        })
     }
 
     // =========================
@@ -295,11 +340,15 @@ export class SubscribersComponent implements OnInit {
         this.selectedSubscriber = new Subscriber();
         this.submitted = false;
         this.isSubscriberDialogOpen = true;
+        this.filteredSubscriptionBillingModels = [];
+        this.subscriptionBillingFee = '';
     }
 
     editSubscriber(subscriber: Subscriber) {
         this.selectedSubscriber = { ...subscriber };
         this.isSubscriberDialogOpen = true;
+        this.filterSubscriptionBillingModels(this.selectedSubscriber.generatorId);
+        this.subscriptionBillingFee = this.getSubscriptionBillingFee(this.selectedSubscriber.subscriptionBillingModelId);
     }
 
     hideDialog() {
@@ -324,46 +373,160 @@ export class SubscribersComponent implements OnInit {
         this.isSubscriberSaving = true;
 
         if (this.isSubscriberValid()) {
-            let isCreatingSub = this.selectedSubscriber.id === 0;
-            this.generatorOwnerService.upsertSubscriber({
-                ...this.selectedSubscriber
-            }).subscribe({
-                next: (response: UpsertSubscriberResponse) => {
-                    if (!isCreatingSub) {
-                        // Edit
-                        this.subscribers[this.findIndexById(this.selectedSubscriber.id)] = this.selectedSubscriber;
-                        this.notificationService.success('Successful', 'Subscriber Updated');
-                    } else {
-                        // Add
-                        this.selectedSubscriber.id = response.id;
-                        this.subscribers.push(this.selectedSubscriber);
-                        this.notificationService.success('Successful', 'Subscriber Created');
-                    }
+            let isCreatingSub = this.selectedSubscriber.id === -1;
+            this.generatorOwnerService
+                .upsertSubscriber({
+                    ...this.selectedSubscriber
+                })
+                .subscribe({
+                    next: (response: UpsertSubscriberResponse) => {
+                        this.selectedSubscriber = response;
 
-                    this.subscribers = [...this.subscribers];
-                    this.isSubscriberDialogOpen = false;
-                    this.selectedSubscriber = new Subscriber();
-                    this.isSubscriberSaving = false;
-                },
-                error: (err) => {
-                    console.log(err);
-                    this.isSubscriberSaving = false;
-                }
-            });
+                        if (!isCreatingSub) {
+                            // Edit
+                            this.subscribers[this.findIndexById(this.selectedSubscriber.id)] = this.selectedSubscriber;
+                            this.notificationService.success('Successful', 'Subscriber Updated');
+                        } else {
+                            // Add
+                            this.subscribers.push(this.selectedSubscriber);
+                            this.notificationService.success('Successful', 'Subscriber Created');
+                        }
+
+                        this.subscribers = [...this.subscribers];
+                        this.isSubscriberDialogOpen = false;
+                        this.selectedSubscriber = new Subscriber();
+                        this.isSubscriberSaving = false;
+                    },
+                    error: (err) => {
+                        console.log(err);
+                        this.isSubscriberSaving = false;
+                    }
+                });
         } else {
             this.isSubscriberSaving = false;
         }
     }
 
     isSubscriberValid() {
-        return this.selectedSubscriber.phoneNumber.length > 0 &&
+        return (
+            this.selectedSubscriber.phoneNumber.length > 0 &&
+            this.selectedSubscriber.generatorId > 0 &&
+            this.selectedSubscriber.subscriptionBillingModelId > 0 &&
             this.selectedSubscriber.firstName.length > 0 &&
             this.selectedSubscriber.lastName.length > 0 &&
-            this.selectedSubscriber.subscriptionAmps > 0 &&
+            this.selectedSubscriber.address.length > 0 &&
             this.selectedSubscriber.previousKva > 0 &&
             this.selectedSubscriber.currentKva > 0 &&
             this.selectedSubscriber.electricMeterNumber.length > 0 &&
-            this.selectedSubscriber.billingModeCode.length > 0 &&
             this.selectedSubscriber.statusCode.length > 0
+        );
+    }
+
+    filterSubscriptionBillingModels(generatorId: number) {
+        this.filteredSubscriptionBillingModels = this.subscriptionBillingModels
+            .filter((model: SubscriptionBillingModel) => model.generatorId === generatorId)
+            .map(
+                (model): SelectOptionNumValue => ({
+                    label: `${model.model} ${model.subscriptionAmps} AMPs`,
+                    value: model.id
+                })
+            );
+    }
+
+    getSubscriptionBillingFee(subscriptionBillingModelId: number): string {
+        let model = this.subscriptionBillingModels.find((model) => model.id === subscriptionBillingModelId);
+        console.log(model);
+        if (!model) return '';
+
+        return model.model === BillingModel.FIXED ? model.amountFixed.toString() : model.amountPerKva.toString();
+    }
+
+    onChangeGenerator(generatorId: number) {
+        this.selectedSubscriber.subscriptionBillingModelId = 0;
+        this.subscriptionBillingFee = '';
+        this.filterSubscriptionBillingModels(generatorId);
+    }
+
+    onChangeSubscriptionBillingModel(subscriptionBillingModelId: number) {
+        this.subscriptionBillingFee = this.getSubscriptionBillingFee(subscriptionBillingModelId);
+    }
+
+    previewSingleQrCode(subscriber: Subscriber) {
+        this.selectedSubscriber = { ...subscriber };
+        this.loadSingleQrCode(subscriber.id);
+    }
+
+    loadSingleQrCode(subscriberId: number) {
+        this.isSingleQrCodeDialogOpen = true;
+        this.loadingSingleQr = true;
+
+        this.generatorOwnerService.getSubscriberQrCode(subscriberId).subscribe({
+            next: (blob) => {
+                this.singleQrCodeBlob = blob;
+                const url = URL.createObjectURL(blob);
+                this.singleQrCodeUrl = this.sanitizer.bypassSecurityTrustUrl(url);
+                this.loadingSingleQr = false;
+            },
+            error: (err) => {
+                console.error('QR code load failed', err);
+                this.isSingleQrCodeDialogOpen = true;
+                this.loadingSingleQr = false;
+            }
+        });
+    }
+
+    hideQrCodeDialog() {
+        this.isSingleQrCodeDialogOpen = false;
+        this.loadingSingleQr = false;
+    }
+
+    downloadSingleQrCode() {
+        if (!this.singleQrCodeBlob) {
+            return;
+        }
+
+        const url = URL.createObjectURL(this.singleQrCodeBlob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `subscriber-${this.selectedSubscriber.id}-qrcode.png`; // filename
+        a.click();
+
+        URL.revokeObjectURL(url);
+    }
+
+    downloadSubscribersQrCodePdf() {
+        this.isDownloadingSubscribersQrCodePdf = true;
+
+        if(!this.selectedGeneratorForQrPdf) {
+            this.isDownloadingSubscribersQrCodePdf = false;
+            return;
+        }
+
+        this.generatorOwnerService.getSubscribersQrCodePdf({generatorId: this.selectedGeneratorForQrPdf}).subscribe({
+            next: (response) => {
+                const blob = response.body!;
+                const contentDisposition = response.headers.get('content-disposition') ?? '';
+                let fileName = 'file.pdf';
+
+                const match = /filename="?([^"]+)"?/i.exec(contentDisposition);
+                if (match?.[1]) {
+                    fileName = match[1];
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                this.isDownloadingSubscribersQrCodePdf = false;
+            },
+            error: (err) => {
+                console.error('PDF download failed', err);
+                this.isDownloadingSubscribersQrCodePdf = false;
+            }
+        });
     }
 }

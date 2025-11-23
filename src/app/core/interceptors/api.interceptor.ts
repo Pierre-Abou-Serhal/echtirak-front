@@ -121,7 +121,7 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
             }
 
             // ---------- other errors (or 401 without refresh token) ----------
-            if (apiError.status === 400) {
+            if (apiError.status === 400 || apiError.status === 500) {
                 notify.error(apiError.title, apiError.detail);
             }
 

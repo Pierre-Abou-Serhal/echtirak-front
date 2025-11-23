@@ -12,11 +12,12 @@ import { SignInRequest } from '@/core/services/api/request';
 import { SignInResponse } from '@/core/services/api/response';
 import { firstValueFrom } from 'rxjs';
 import { Message } from 'primeng/message';
+import { NgOptimizedImage } from '@angular/common';
 
 @Component({
     selector: 'app-sign-in',
     standalone: true,
-    imports: [ButtonModule, InputTextModule, PasswordModule, FormsModule, RouterModule, RippleModule, AppFloatingConfigurator, ReactiveFormsModule, Message],
+    imports: [ButtonModule, InputTextModule, PasswordModule, FormsModule, RouterModule, RippleModule, AppFloatingConfigurator, ReactiveFormsModule, Message, NgOptimizedImage],
     templateUrl: './sign-in.component.html',
     styleUrl: './sign-in.component.scss'
 })
