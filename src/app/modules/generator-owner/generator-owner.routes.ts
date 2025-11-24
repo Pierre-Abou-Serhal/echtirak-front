@@ -6,6 +6,10 @@ import { GENERATOR_OWNER_PROFILE_MENU } from '@/modules/generator-owner/generato
 import { ProfileComponent } from '@/modules/generator-owner/profile/profile.component';
 import { BillCollectorComponent } from '@/modules/generator-owner/bill-collector/bill-collector.component';
 import { SmsTemplatesComponent } from '@/modules/generator-owner/sms-templates/sms-templates.component';
+import { BillsComponent } from '@/modules/generator-owner/bills/bills.component';
+import {
+    SubscriptionBillingModelComponent
+} from '@/modules/generator-owner/subscription-billing-model/subscription-billing-model.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -20,6 +24,8 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             { path: 'profile', component: ProfileComponent },
             { path: 'bill-collectors', component: BillCollectorComponent },
             { path: 'sms-templates', component: SmsTemplatesComponent },
+            { path: 'bills', component: BillsComponent },
+            { path: 'subscription-billing-model', component: SubscriptionBillingModelComponent },
         ]
     }
 ] as Routes;

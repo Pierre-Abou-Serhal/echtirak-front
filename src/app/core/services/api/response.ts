@@ -4,7 +4,7 @@ import {
     Generator,
     GeneratorOwnerProfile,
     BillCollectorProfile,
-    SmsTemplate, SubscriptionBillingModel, Lookup
+    SmsTemplate, SubscriptionBillingModel, Lookup, Bill
 } from '@/core/models/model';
 import { TokenPair } from '@/core/dtos/dto';
 
@@ -70,4 +70,35 @@ export interface GetSubscriptionBillingModelResponse {
 
 export interface GetLookupResponse {
     items: Lookup[];
+}
+
+export interface GenerateBillsResponse {
+    bills: Bill[];
+}
+
+export interface AcceptBillsResponse {
+    success: boolean;
+    billsInserted: number
+}
+
+export interface GenerateAllBillsResponse {
+    bills: Bill[];
+}
+
+export interface GetBillsResponse {
+    page: GetBillsPage;
+}
+
+export interface GetBillsPage {
+    items: Bill[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface UpsertSubscriptionBillingModelResponse {
+    model: SubscriptionBillingModel;
 }

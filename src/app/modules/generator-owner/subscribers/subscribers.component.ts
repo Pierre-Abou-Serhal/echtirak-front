@@ -97,6 +97,7 @@ export class SubscribersComponent implements OnInit {
                     value: generator.id,
                     label: generator.code
                 }));
+                this.generatorsLoading = false;
             },
             error: (err) => {
                 console.log(err);

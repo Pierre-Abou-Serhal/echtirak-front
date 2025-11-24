@@ -1,13 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
 import {
+    AcceptBillsRequest, GenerateAllBillsRequest,
+    GenerateBillsRequest, GetBillsQueryParams,
     GetLookupQueryParams, GetSubscribersQrCodePdfRequest,
     GetSubscribersQueryParams,
     GetSubscriptionBillingModelQueryParams,
     UpdateGeneratorOwnerProfileRequest,
     UpsertBillCollectorRequest,
     UpsertGeneratorRequest,
-    UpsertSubscriberRequest
+    UpsertSubscriberRequest, UpsertSubscriptionBillingModelRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -21,7 +23,11 @@ import {
     UpsertBillCollectorResponse,
     GetSmsTemplatesResponse,
     GetSubscriptionBillingModelResponse,
-    GetLookupResponse
+    GetLookupResponse,
+    GenerateBillsResponse,
+    AcceptBillsResponse,
+    GetBillsResponse,
+    UpsertSubscriptionBillingModelResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -66,12 +72,6 @@ export class GeneratorOwnerService {
         return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SMSTemplates');
     }
 
-    public getSubscriptionBillingModel(queryParams: GetSubscriptionBillingModelQueryParams): Observable<GetSubscriptionBillingModelResponse> {
-        let params = this.apiService.buildParams(queryParams);
-
-        return this.apiService.get<GetSubscriptionBillingModelResponse>('/GeneratorOwner/SubscriptionBillingModel', {params: params});
-    }
-
     public getLookup(queryParams: GetLookupQueryParams) : Observable<GetLookupResponse> {
         let params = this.apiService.buildParams(queryParams);
 
@@ -85,5 +85,33 @@ export class GeneratorOwnerService {
 
     public getSubscribersQrCodePdf(request: GetSubscribersQrCodePdfRequest) {
         return this.apiService.postBlob('/GeneratorOwner/Subscribers/QrCodePdf', request);
+    }
+
+    public generateBills(request: GenerateBillsRequest): Observable<GenerateBillsResponse> {
+        return this.apiService.post<GenerateBillsResponse>('/GeneratorOwner/GenerateBills', request);
+    }
+
+    public acceptBills(request: AcceptBillsRequest): Observable<AcceptBillsResponse> {
+        return this.apiService.post<AcceptBillsResponse>('/GeneratorOwner/AcceptBills', request);
+    }
+
+    public generateAllBills(request: GenerateAllBillsRequest): Observable<GenerateBillsResponse> {
+        return this.apiService.post<GenerateBillsResponse>('/GeneratorOwner/GenerateAllBills', request);
+    }
+
+    public getBills(queryParams: GetBillsQueryParams): Observable<GetBillsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetBillsResponse>('/GeneratorOwner/GetBills', {params: params});
+    }
+
+    public upsertSubscriptionBillingModel(request: UpsertSubscriptionBillingModelRequest): Observable<UpsertSubscriptionBillingModelResponse> {
+        return this.apiService.post<UpsertSubscriptionBillingModelResponse>('/GeneratorOwner/SubscriptionBillingModel', request);
+    }
+
+    public getSubscriptionBillingModel(queryParams: GetSubscriptionBillingModelQueryParams): Observable<GetSubscriptionBillingModelResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetSubscriptionBillingModelResponse>('/GeneratorOwner/SubscriptionBillingModel', {params: params});
     }
 }

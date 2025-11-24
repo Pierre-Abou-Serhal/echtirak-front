@@ -61,7 +61,7 @@ export interface SmsTemplate {
 export interface SubscriptionBillingModel {
     id: number;
     generatorId: number;
-    generatorCode: string;
+    generatorCode?: string;
     model: string;
     subscriptionAmps: number;
     amountFixed: number;
@@ -73,4 +73,25 @@ export interface Lookup {
     domain: string;
     code: string;
     description: string;
+}
+
+export interface Bill {
+    id: number;
+    subscriberId: number;
+    subscriberFirstName: string;
+    subscriberLastName: string;
+    generatorId: number;
+    generatorCode: string;
+    billDate: string;
+    amount: number;
+    currencyCode: string;
+    statusCode: string;
+    statusDescription: string;
+    previousKva: number;
+    currentKva: number;
+    subscriptionAmps: number;
+    kvaFee: number;
+    subscriptionFeeVar: number;
+    subscriptionFeeFixed: number;
+    notes: string;
 }

@@ -1,1 +1,20 @@
-<p>bills.component works!</p>
+<div class="card">
+    <p-tabs value="0">
+        <p-tablist>
+            <p-tab value="0">Bills List</p-tab>
+            <p-tab value="1">Single Bill Generation</p-tab>
+            <p-tab value="2">Bulk Bill Generation</p-tab>
+        </p-tablist>
+        <p-tabpanels>
+            <p-tabpanel value="0">
+                <app-bills-list-component></app-bills-list-component>
+            </p-tabpanel>
+            <p-tabpanel value="1">
+                <app-single-bill-generation-component></app-single-bill-generation-component>
+            </p-tabpanel>
+            <p-tabpanel value="2">
+                <app-bulk-bill-generation-component></app-bulk-bill-generation-component>
+            </p-tabpanel>
+        </p-tabpanels>
+    </p-tabs>
+</div>
