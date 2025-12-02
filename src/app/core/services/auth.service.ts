@@ -73,7 +73,7 @@ export class AuthService {
 
         switch (userRole) {
             case UserRole.GENERATOR_OWNER:
-                await this.router.navigateByUrl('/app/generator-owner/subscribers');
+                await this.router.navigateByUrl('/app/generator-owner/dashboard');
                 break;
             case UserRole.BILL_COLLECTOR:
                 await this.router.navigateByUrl('/app/bill-collector/subscribers');
@@ -112,7 +112,7 @@ export class AuthService {
         const role = this.getRole();
         switch (role) {
             case UserRole.GENERATOR_OWNER:
-                return router.createUrlTree(['/app/generator-owner/subscribers']);
+                return router.createUrlTree(['/app/generator-owner/dashboard']);
             case UserRole.BILL_COLLECTOR:
                 return router.createUrlTree(['/app/bill-collector']);
             case UserRole.ADMIN:

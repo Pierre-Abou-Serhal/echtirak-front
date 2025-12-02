@@ -1,0 +1,4883 @@
+{
+	"info": {
+		"_postman_id": "23bfdc68-70f0-4dd6-84b2-1c739720cbcd",
+		"name": "Echtirak API",
+		"description": "Collection covering Auth, Subscriber, Generator Owner, Admin, and Wallet endpoints.\n\n**Recent Changes:**\n- **Update Bill**: Added endpoint to update bills by canceling old bill and creating new one with modified values\n- **Warning Messages**: Added endpoint to fetch dynamic warning messages for Generator Owners (e.g., insufficient balance)\n- **Admin Upsert Generator Owner**: Now includes all pricing and wallet fields when creating new Generator Owners\n- **Admin Wallet Management**: Added wallet top-up, cap override, view balance, and view transactions endpoints for admins\n- **Admin Generator Owner Management**: Added check status and deactivate endpoints for Generator Owners\n- **Wallet System**: Added wallet management endpoints (Balance, Transactions, Forecast) for Generator Owners\n- **Admin Reactivate**: Added endpoint to reactivate deactivated Generator Owners (requires top-up after deactivation)\n- **SMS System**: Added SMS template management (Admin) and SMS campaign management (Generator Owner)\n- **Subscriber Responses**: Now include descriptive fields (GeneratorCode, BillingModeDescription, StatusDescription, CreatedByUsername, ModifiedByUsername)\n- **Bill Collector Responses**: Now include `username` field from tbl_User\n- **Generator Owner Profile**: Update endpoint now supports updating username and password. Get endpoint returns username.\n- **Subscriber Upsert**: Added mandatory `address` field for new subscribers (INSERT operations). Address is optional for updates.\n- **Bill Collector Upsert**: Now requires `username` and `password` fields. Creates user account in `tbl_User` table automatically.\n- **Bill Responses**: Now include `statusDescription` from tbl_Lookup\n\n**Variables:**\n- `baseUrl`: API root (default http://localhost:5010)\n- `username` / `password`: credentials for sign-in\n- `token`: populated automatically after successful SignIn\n\nEach request includes example success/failure payloads with real-world scenarios.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32901910"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Sign In (Generator Owner)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Sign-in succeeded\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var json = pm.response.json();",
+									"var accessToken = json?.data?.token?.accessToken;",
+									"if (accessToken) {",
+									"    pm.collectionVariables.set(\"token\", accessToken);",
+									"    console.log(\"Access token stored in collection variable\");",
+									"} else {",
+									"    console.warn(\"No access token in response\");",
+									"}",
+									"var refreshToken = json?.data?.token?.refreshToken;",
+									"if (refreshToken) {",
+									"    pm.collectionVariables.set(\"refreshToken\", refreshToken);",
+									"    console.log(\"Refresh token stored in collection variable\");",
+									"} else {",
+									"    console.warn(\"No refresh token in response\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/Auth/SignIn",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"SignIn"
+							]
+						},
+						"description": "Authenticates a user and returns tokens. On success, the access token is stored in the `token` collection variable for downstream requests."
+					},
+					"response": [
+						{
+							"name": "200 OK - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": ""
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"correlationId\": \"e5a0b483-...\",\n  \"message\": \"Signed in successfully.\",\n  \"data\": {\n    \"user\": {\n      \"id\": 101,\n      \"username\": \"GO1\",\n      \"userRoleCode\": \"GENERATOR_OWNER\"\n    },\n    \"token\": {\n      \"accessToken\": \"ey...\",\n      \"refreshToken\": \"p6...\"\n    }\n  }\n}"
+						},
+						{
+							"name": "400 BadRequest - Validation",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Auth/SignIn",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Auth",
+										"SignIn"
+									]
+								},
+								"description": "Authenticates a user and returns tokens. On success, the access token is stored in the `token` collection variable for downstream requests."
+							},
+							"code": 400,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"Username\": [\"The Username field is required.\"]\n  }\n}"
+						},
+						{
+							"name": "401 Unauthorized - Invalid credentials",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Auth/SignIn",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Auth",
+										"SignIn"
+									]
+								},
+								"description": "Authenticates a user and returns tokens. On success, the access token is stored in the `token` collection variable for downstream requests."
+							},
+							"code": 401,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"title\": \"Authentication failed.\",\n  \"status\": 401,\n  \"detail\": \"Invalid username or password.\",\n  \"correlationId\": \"...\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Refresh succeeded\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var json = pm.response.json();",
+									"var accessToken = json?.data?.accessToken;",
+									"if (accessToken) {",
+									"    pm.collectionVariables.set(\"token\", accessToken);",
+									"    console.log(\"Access token updated from refresh\");",
+									"} else {",
+									"    console.warn(\"No access token in refresh response\");",
+									"}",
+									"var refreshToken = json?.data?.refreshToken;",
+									"if (refreshToken) {",
+									"    pm.collectionVariables.set(\"refreshToken\", refreshToken);",
+									"    console.log(\"Refresh token rotated\");",
+									"} else {",
+									"    console.warn(\"No refresh token returned\");",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/Auth/RefreshToken",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"RefreshToken"
+							]
+						},
+						"description": "Exchanges a valid refresh token for a new access/refresh token pair. Use after the access token expires."
+					},
+					"response": [
+						{
+							"name": "200 OK - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Auth/RefreshToken",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Auth",
+										"RefreshToken"
+									]
+								},
+								"description": "Exchanges a valid refresh token for a new access/refresh token pair. Use after the access token expires."
+							},
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"correlationId\": \"e5a0b483-...\",\n  \"message\": \"Token refreshed successfully.\",\n  \"data\": {\n    \"accessToken\": \"ey...\",\n    \"refreshToken\": \"n9...\"\n  }\n}"
+						},
+						{
+							"name": "400 BadRequest - Validation",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Auth/RefreshToken",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Auth",
+										"RefreshToken"
+									]
+								},
+								"description": "Exchanges a valid refresh token for a new access/refresh token pair. Use after the access token expires."
+							},
+							"code": 400,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"RefreshToken\": [\"Refresh token is required.\"]\n  }\n}"
+						},
+						{
+							"name": "401 Unauthorized - Expired/consumed",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Auth/RefreshToken",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Auth",
+										"RefreshToken"
+									]
+								},
+								"description": "Exchanges a valid refresh token for a new access/refresh token pair. Use after the access token expires."
+							},
+							"code": 401,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Refresh token is invalid or expired.\",\n  \"correlationId\": \"...\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Logout succeeded\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// Clear tokens so accidental reuse doesn't happen",
+									"pm.collectionVariables.unset(\"token\");",
+									"pm.collectionVariables.unset(\"refreshToken\");"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"allSessions\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/Auth/Logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"Logout"
+							]
+						},
+						"description": "Revokes the provided refresh token. Set `allSessions` to true to revoke all tokens for the signed-in user."
+					},
+					"response": [
+						{
+							"name": "200 OK - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"allSessions\": false\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Auth/Logout",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Auth",
+										"Logout"
+									]
+								},
+								"description": "Revokes the provided refresh token. Set `allSessions` to true to revoke all tokens for the signed-in user."
+							},
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"correlationId\": \"e5a0b483-...\",\n  \"message\": \"Logged out successfully.\",\n  \"data\": null\n}"
+						},
+						{
+							"name": "401 Unauthorized - Missing/expired access token",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"allSessions\": false\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Auth/Logout",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Auth",
+										"Logout"
+									]
+								},
+								"description": "Revokes the provided refresh token. Set `allSessions` to true to revoke all tokens for the signed-in user."
+							},
+							"code": 401,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Authentication token is missing or invalid.\",\n  \"correlationId\": \"...\"\n}"
+						},
+						{
+							"name": "400 BadRequest - Validation",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"allSessions\": false\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Auth/Logout",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Auth",
+										"Logout"
+									]
+								},
+								"description": "Revokes the provided refresh token. Set `allSessions` to true to revoke all tokens for the signed-in user."
+							},
+							"code": 400,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"RefreshToken\": [\"Refresh token is required.\"]\n  }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Generator Owner",
+			"item": [
+				{
+					"name": "Profile",
+					"item": [
+						{
+							"name": "Get Profile",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/Profile",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"Profile"
+									]
+								},
+								"description": "Returns the generator owner's profile for the signed-in user."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Profile",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Profile"
+											]
+										},
+										"description": "Returns the generator owner's profile for the signed-in user."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Generator owner profile retrieved successfully.\",\n  \"data\": {\n    \"profile\": {\n      \"id\": 11,\n      \"userId\": 101,\n      \"firstName\": \"Rami\",\n      \"lastName\": \"Haddad\",\n      \"businessName\": \"Power Co 01\",\n      \"phoneNumber\": \"+96176111222\",\n      \"username\": \"go01\"\n    }\n  }\n}"
+								},
+								{
+									"name": "401 Unauthorized - Missing token",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Profile",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Profile"
+											]
+										},
+										"description": "Returns the generator owner's profile for the signed-in user."
+									},
+									"code": 401,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "Upsert Profile",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"Rami\",\n  \"lastName\": \"Haddad111\",\n  \"businessName\": \"Power Co 01\",\n  \"phoneNumber\": \"+96176111222\",\n  \"username\": \"go01\",    // optional - updates tbl_User\n  \"password\": \"Password123!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/Profile",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"Profile"
+									]
+								},
+								"description": "Send `id = -1` to insert or the returned profile id to update."
+							},
+							"response": [
+								{
+									"name": "200 OK - Insert/Update success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"firstName\": \"Rami\",\n  \"lastName\": \"Haddad111\",\n  \"businessName\": \"Power Co 01\",\n  \"phoneNumber\": \"+96176111222\",\n  \"username\": \"go01\",    // optional - updates tbl_User\n  \"password\": \"Password123!\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Profile",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Profile"
+											]
+										},
+										"description": "Send `id = -1` to insert or the returned profile id to update."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Generator owner profile updated successfully.\",\n  \"data\": {\n    \"profile\": {\n      \"id\": 11,\n      \"userId\": 101,\n      \"firstName\": \"Rami\",\n      \"lastName\": \"Haddad\",\n      \"businessName\": \"Power Co 01\",\n      \"phoneNumber\": \"+96176111222\",\n      \"username\": \"go01\"\n    }\n  }\n}"
+								},
+								{
+									"name": "400 BadRequest - Validation",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"firstName\": \"Rami\",\n  \"lastName\": \"Haddad111\",\n  \"businessName\": \"Power Co 01\",\n  \"phoneNumber\": \"+96176111222\",\n  \"username\": \"go01\",    // optional - updates tbl_User\n  \"password\": \"Password123!\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Profile",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Profile"
+											]
+										},
+										"description": "Send `id = -1` to insert or the returned profile id to update."
+									},
+									"code": 400,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Dashboard & warning Messages",
+					"item": [
+						{
+							"name": "Get Dashboard Statistics",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/Dashboard",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"Dashboard"
+									]
+								},
+								"description": "Returns comprehensive dashboard statistics for the authenticated Generator Owner, including subscriber counts (active/inactive), bill statistics (pending/paid/overdue with amounts), consumption metrics (total KVA, averages), and recent activity (last 7 days)."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Dashboard",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Dashboard"
+											]
+										},
+										"description": "Returns comprehensive dashboard statistics for the authenticated Generator Owner."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"message\": \"Dashboard statistics retrieved successfully.\",\n  \"data\": {\n    \"subscribers\": {\n      \"total\": 1250,\n      \"active\": 1180,\n      \"inactive\": 70,\n      \"newThisMonth\": 45,\n      \"newThisWeek\": 12\n    },\n    \"bills\": {\n      \"total\": 3450,\n      \"pending\": 280,\n      \"paid\": 2950,\n      \"overdue\": 220,\n      \"totalRevenue\": 125000.50,\n      \"pendingAmount\": 15200.75,\n      \"overdueAmount\": 11800.25,\n      \"thisMonth\": {\n        \"count\": 320,\n        \"revenue\": 14500.00\n      },\n      \"lastMonth\": {\n        \"count\": 310,\n        \"revenue\": 14200.00\n      }\n    },\n    \"consumption\": {\n      \"totalKva\": 15230.50,\n      \"averageKvaPerSubscriber\": 12.18,\n      \"totalKvaThisMonth\": 1250.30\n    },\n    \"recentActivity\": {\n      \"newSubscribersLast7Days\": 12,\n      \"billsGeneratedLast7Days\": 85,\n      \"billsPaidLast7Days\": 92\n    }\n  }\n}"
+								},
+								{
+									"name": "401 Unauthorized - Missing token",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Dashboard",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Dashboard"
+											]
+										},
+										"description": "Returns comprehensive dashboard statistics for the authenticated Generator Owner."
+									},
+									"code": 401,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Unable to resolve user id from token.\"\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Warning Messages",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/WarningMessages",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"WarningMessages"
+									]
+								},
+								"description": "Retrieves warning messages for the Generator Owner. Messages are dynamically generated based on various conditions (e.g., insufficient balance for next billing cycle). Returns an array of warning messages with message codes and compact text suitable for popup display."
+							},
+							"response": [
+								{
+									"name": "200 OK - With Warnings",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/WarningMessages",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"WarningMessages"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Warning messages retrieved successfully.\",\n  \"data\": {\n    \"messages\": [\n      {\n        \"messageCode\": \"INSUFFICIENT_BALANCE\",\n        \"message\": \"Balance insufficient for next billing cycle ($100.60) billed in 5 days. Shortfall: $19.10. Add funds to avoid service interruption.\"\n      }\n    ]\n  }\n}"
+								},
+								{
+									"name": "200 OK - No Warnings",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/WarningMessages",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"WarningMessages"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Warning messages retrieved successfully.\",\n  \"data\": {\n    \"messages\": []\n  }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Currency & Configs",
+					"item": [
+						{
+							"name": "Upsert Currency Rates",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"rates\": [\n    {\n      \"id\": -1,\n      \"fromCurrencyCode\": \"USD\",\n      \"toCurrencyCode\": \"LBP\",\n      \"date\": \"2025-11-15\",\n      \"rate\": 89500.50\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/CurrencyRates",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"CurrencyRates"
+									]
+								},
+								"description": "Bulk insert/update currency rates for the signed-in generator owner."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"rates\": [\n    {\n      \"id\": -1,\n      \"fromCurrencyCode\": \"USD\",\n      \"toCurrencyCode\": \"LBP\",\n      \"date\": \"2025-11-15\",\n      \"rate\": 89500.50\n    }\n  ]\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/CurrencyRates",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"CurrencyRates"
+											]
+										},
+										"description": "Bulk insert/update currency rates for the signed-in generator owner."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Currency rates saved successfully.\",\n  \"data\": {\n    \"rates\": [\n      {\n        \"id\": 991,\n        \"generatorOwnerUserId\": 101,\n        \"fromCurrencyCode\": \"USD\",\n        \"toCurrencyCode\": \"LBP\",\n        \"date\": \"2025-11-15\",\n        \"rate\": 89500.5\n      }\n    ]\n  }\n}"
+								},
+								{
+									"name": "400 BadRequest - Validation",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"rates\": [\n    {\n      \"id\": -1,\n      \"fromCurrencyCode\": \"USD\",\n      \"toCurrencyCode\": \"LBP\",\n      \"date\": \"2025-11-15\",\n      \"rate\": 89500.50\n    }\n  ]\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/CurrencyRates",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"CurrencyRates"
+											]
+										},
+										"description": "Bulk insert/update currency rates for the signed-in generator owner."
+									},
+									"code": 400,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "Get Currency Rates",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/CurrencyRates?fromCurrencyCode=USD&toCurrencyCode=LBP&dateFrom=2025-11-01&dateTo=2025-11-30",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"CurrencyRates"
+									],
+									"query": [
+										{
+											"key": "fromCurrencyCode",
+											"value": "USD"
+										},
+										{
+											"key": "toCurrencyCode",
+											"value": "LBP"
+										},
+										{
+											"key": "dateFrom",
+											"value": "2025-11-01"
+										},
+										{
+											"key": "dateTo",
+											"value": "2025-11-30"
+										}
+									]
+								},
+								"description": "Fetches currency rates filtered by optional codes/date ranges."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/CurrencyRates?fromCurrencyCode=USD&toCurrencyCode=LBP&dateFrom=2025-11-01&dateTo=2025-11-30",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"CurrencyRates"
+											],
+											"query": [
+												{
+													"key": "fromCurrencyCode",
+													"value": "USD"
+												},
+												{
+													"key": "toCurrencyCode",
+													"value": "LBP"
+												},
+												{
+													"key": "dateFrom",
+													"value": "2025-11-01"
+												},
+												{
+													"key": "dateTo",
+													"value": "2025-11-30"
+												}
+											]
+										},
+										"description": "Fetches currency rates filtered by optional codes/date ranges."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Currency rates retrieved successfully.\",\n  \"data\": {\n    \"rates\": [\n      {\n        \"id\": 991,\n        \"fromCurrencyCode\": \"USD\",\n        \"toCurrencyCode\": \"LBP\",\n        \"date\": \"2025-11-15\",\n        \"rate\": 89500.5\n      }\n    ]\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Currencies",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/Currency",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"Currency"
+									]
+								},
+								"description": "Lists all currencies. No authentication required if endpoint stays public."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Currency",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Currency"
+											]
+										},
+										"description": "Lists all currencies. No authentication required if endpoint stays public."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Currencies retrieved successfully.\",\n  \"data\": {\n    \"currencies\": [\n      { \"id\": 1, \"code\": \"USD\", \"name\": \"US Dollar\" },\n      { \"id\": 2, \"code\": \"LBP\", \"name\": \"Lebanese Pound\" }\n    ]\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Configs",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/Configs",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"Configs"
+									]
+								},
+								"description": "Returns all configuration values for the signed-in generator owner."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Configs",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Configs"
+											]
+										},
+										"description": "Returns all configuration values for the signed-in generator owner."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Configuration values retrieved successfully.\",\n  \"data\": {\n    \"items\": [\n      { \"id\": 101, \"code\": \"KVA_RATE\", \"value\": \"1.75\" }\n    ]\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Upsert Config",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": -1,\n  \"code\": \"KVA_RATE\",\n  \"description\": \"Price per delta\",\n  \"value\": \"1.80\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/Configs",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"Configs"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": -1,\n  \"code\": \"KVA_RATE\",\n  \"description\": \"Price per delta\",\n  \"value\": \"1.80\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Configs",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Configs"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Configuration saved successfully.\",\n  \"data\": {\n    \"item\": {\n      \"id\": 201,\n      \"code\": \"KVA_RATE\",\n      \"value\": \"1.80\"\n    }\n  }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Generators",
+					"item": [
+						{
+							"name": "Upsert Generator",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": -1,\n  \"code\": \"GO01-GEN04\",\n  \"description\": \"New standby generator\",\n  \"location\": \"Hazmieh\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/Generator",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"Generator"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": -1,\n  \"code\": \"GO01-GEN04\",\n  \"description\": \"New standby generator\",\n  \"location\": \"Hazmieh\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Generator",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Generator"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Generator saved successfully.\",\n  \"data\": {\n    \"generator\": {\n      \"id\": 77,\n      \"code\": \"GO01-GEN04\",\n      \"description\": \"New standby generator\",\n      \"location\": \"Hazmieh\"\n    }\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Generators",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/Generator",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"Generator"
+									]
+								},
+								"description": "Lists all generators belonging to the signed-in owner."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Generator",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Generator"
+											]
+										},
+										"description": "Lists all generators belonging to the signed-in owner."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Generators retrieved successfully.\",\n  \"data\": {\n    \"generators\": [\n      { \"id\": 1, \"code\": \"GO01-GEN01\", \"description\": \"Primary\", \"location\": \"Achrafieh\" }\n    ]\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Lookup",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/Lookup?domain=BILL_STATUS",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"Lookup"
+									],
+									"query": [
+										{
+											"key": "domain",
+											"value": "BILL_STATUS"
+										}
+									]
+								},
+								"description": "Retrieves lookup entries for the provided domain."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Lookup?domain=BILL_STATUS",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Lookup"
+											],
+											"query": [
+												{
+													"key": "domain",
+													"value": "BILL_STATUS"
+												}
+											]
+										},
+										"description": "Retrieves lookup entries for the provided domain."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Lookup values retrieved successfully.\",\n  \"data\": {\n    \"items\": [\n      { \"domain\": \"BILL_STATUS\", \"code\": \"PENDING\", \"name\": \"Pending\" }\n    ]\n  }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Bills",
+					"item": [
+						{
+							"name": "Billing Models",
+							"item": [
+								{
+									"name": "Get Subscription Billing Models",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/SubscriptionBillingModel?generatorId=1",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"SubscriptionBillingModel"
+											],
+											"query": [
+												{
+													"key": "generatorId",
+													"value": "1",
+													"description": "Optional: Filter by generator ID"
+												}
+											]
+										},
+										"description": "Retrieves all billing models for the authenticated generator owner. Can optionally filter by generator ID."
+									},
+									"response": []
+								},
+								{
+									"name": "Upsert Subscription Billing Model",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": -1,\n  \"generatorId\": 1,\n  \"model\": \"Fixed\",\n  \"subscriptionAmps\": 5,\n  \"amountFixed\": 100,\n  \"amountPerKva\": 0\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/SubscriptionBillingModel",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"SubscriptionBillingModel"
+											]
+										},
+										"description": "Creates or updates a subscription billing model. Model must be 'Metered' or 'Fixed'. For Fixed billing, amountPerKva should be 0."
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Bill Generation",
+							"item": [
+								{
+									"name": "Generate All Bills (Auto - All Active Subscribers)",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorId\": 1\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/GenerateAllBills",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"GenerateAllBills"
+											]
+										},
+										"description": "Automatically generates bill previews for ALL ACTIVE subscribers belonging to the specified generator. Requires generatorId in request body. Bills are calculated but NOT inserted into the database. Supports bulk operations (20k+ subscribers)."
+									},
+									"response": []
+								},
+								{
+									"name": "Generate Bills (Preview - Specific Subscribers)",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorId\": 1,\n  \"subscriberIds\": [1, 2, 3, 4, 5]\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/GenerateBills",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"GenerateBills"
+											]
+										},
+										"description": "Generates bill previews for a list of subscriber IDs from a SPECIFIC GENERATOR. Bills are calculated but NOT inserted into the database. Requires generatorId to ensure bills are only generated for subscribers of that generator. Supports bulk operations (up to 20k+ subscribers)."
+									},
+									"response": []
+								},
+								{
+									"name": "Accept Bills (Insert)",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"bills\": [\n    {\n      \"subscriberId\": 1,\n      \"subscriberFirstName\": \"John\",\n      \"subscriberLastName\": \"Doe\",\n      \"generatorOwnerUserId\": 2,\n      \"generatorId\": 3,\n      \"generatorCode\": \"GO01-GEN01\",\n      \"billDate\": \"2025-11-21T10:00:00\",\n      \"amount\": 250.50,\n      \"currencyCode\": \"USD\",\n      \"previousKva\": 100.00,\n      \"currentKva\": 120.00,\n      \"subscriptionAmps\": 5,\n      \"kvaFee\": 200.00,\n      \"subscriptionFeeVar\": 0,\n      \"subscriptionFeeFixed\": 50.00,\n      \"notes\": \"Metered billing - 5 amps\",\n      \"statusCode\": \"PENDING\"\n    }\n  ]\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/AcceptBills",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"AcceptBills"
+											]
+										},
+										"description": "Accepts and inserts bills into the database. Use this after reviewing bills from GenerateBills endpoint. Supports bulk operations (up to 20k+ bills)."
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Billing",
+							"item": [
+								{
+									"name": "Get Bills",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/GetBills?pageNumber=1&pageSize=25&statusCode=PENDING&billDateFrom=2025-11-01T00:00:00Z&billDateTo=2025-11-30T23:59:59Z",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"GetBills"
+											],
+											"query": [
+												{
+													"key": "pageNumber",
+													"value": "1",
+													"description": "Page number (starts at 1)"
+												},
+												{
+													"key": "pageSize",
+													"value": "25",
+													"description": "Number of items per page (max 200)"
+												},
+												{
+													"key": "generatorId",
+													"value": "",
+													"description": "Optional: Filter by generator ID",
+													"disabled": true
+												},
+												{
+													"key": "subscriberId",
+													"value": "",
+													"description": "Optional: Filter by subscriber ID",
+													"disabled": true
+												},
+												{
+													"key": "subscriberFirstName",
+													"value": "",
+													"description": "Optional: Filter by subscriber first name (prefix match)",
+													"disabled": true
+												},
+												{
+													"key": "subscriberLastName",
+													"value": "",
+													"description": "Optional: Filter by subscriber last name (prefix match)",
+													"disabled": true
+												},
+												{
+													"key": "subscriberPhoneNumber",
+													"value": "",
+													"description": "Optional: Filter by subscriber phone number (contains match)",
+													"disabled": true
+												},
+												{
+													"key": "subscriberName",
+													"value": "",
+													"description": "Optional: Filter by subscriber full name (contains match)",
+													"disabled": true
+												},
+												{
+													"key": "statusCode",
+													"value": "PENDING",
+													"description": "Optional: Filter by bill status (PENDING, PAID, OVERDUE, etc.)"
+												},
+												{
+													"key": "currencyCode",
+													"value": "",
+													"description": "Optional: Filter by currency code (e.g., USD, LBP)",
+													"disabled": true
+												},
+												{
+													"key": "billDateFrom",
+													"value": "2025-11-01T00:00:00Z",
+													"description": "Optional: Filter bills from this date (inclusive)"
+												},
+												{
+													"key": "billDateTo",
+													"value": "2025-11-30T23:59:59Z",
+													"description": "Optional: Filter bills up to this date (inclusive)"
+												},
+												{
+													"key": "createdAtFrom",
+													"value": "",
+													"description": "Optional: Filter by bill creation date from (inclusive)",
+													"disabled": true
+												},
+												{
+													"key": "createdAtTo",
+													"value": "",
+													"description": "Optional: Filter by bill creation date to (inclusive)",
+													"disabled": true
+												},
+												{
+													"key": "amountFrom",
+													"value": "",
+													"description": "Optional: Filter by minimum bill amount",
+													"disabled": true
+												},
+												{
+													"key": "amountTo",
+													"value": "",
+													"description": "Optional: Filter by maximum bill amount",
+													"disabled": true
+												},
+												{
+													"key": "previousKva",
+													"value": "",
+													"description": "Optional: Filter by previous KVA reading (exact match)",
+													"disabled": true
+												},
+												{
+													"key": "currentKva",
+													"value": "",
+													"description": "Optional: Filter by current KVA reading (exact match)",
+													"disabled": true
+												},
+												{
+													"key": "subscriptionAmps",
+													"value": "",
+													"description": "Optional: Filter by subscription amps (exact match)",
+													"disabled": true
+												},
+												{
+													"key": "modifiedBy",
+													"value": "",
+													"description": "Optional: Filter by user ID who last modified the bill",
+													"disabled": true
+												},
+												{
+													"key": "keyword",
+													"value": "",
+													"description": "Optional: General keyword search across multiple fields (subscriber name, phone, generator code, status, amount, etc.)",
+													"disabled": true
+												}
+											]
+										},
+										"description": "Retrieves paged bills with comprehensive filtering options. Supports filtering by subscriber details, bill dates, amounts, KVA readings, status, currency, and more. Includes keyword search across multiple fields. All filters are optional and can be combined."
+									},
+									"response": [
+										{
+											"name": "200 OK - Success",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/GetBills?pageNumber=1&pageSize=25&statusCode=PENDING&billDateFrom=2025-11-01T00:00:00Z&billDateTo=2025-11-30T23:59:59Z",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"GetBills"
+													],
+													"query": [
+														{
+															"key": "pageNumber",
+															"value": "1"
+														},
+														{
+															"key": "pageSize",
+															"value": "25"
+														},
+														{
+															"key": "statusCode",
+															"value": "PENDING"
+														},
+														{
+															"key": "billDateFrom",
+															"value": "2025-11-01T00:00:00Z"
+														},
+														{
+															"key": "billDateTo",
+															"value": "2025-11-30T23:59:59Z"
+														}
+													]
+												},
+												"description": "Retrieves paged bills with comprehensive filtering options. Supports filtering by subscriber details, bill dates, amounts, KVA readings, status, currency, and more. Includes keyword search across multiple fields. All filters are optional and can be combined."
+											},
+											"code": 200,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Bills retrieved successfully.\",\n  \"data\": {\n    \"page\": {\n      \"items\": [\n        {\n          \"id\": 501,\n          \"subscriberId\": 512,\n          \"subscriberFirstName\": \"Lina\",\n          \"subscriberLastName\": \"Nasr\",\n          \"generatorOwnerUserId\": 2,\n          \"generatorId\": 1,\n          \"generatorCode\": \"GEN-01\",\n          \"billDate\": \"2025-11-15T00:00:00Z\",\n          \"amount\": 120.55,\n          \"currencyCode\": \"USD\",\n          \"statusCode\": \"PENDING\",\n          \"statusDescription\": \"Pending Payment\",\n          \"previousKva\": 10.50,\n          \"currentKva\": 12.30,\n          \"subscriptionAmps\": 60.00,\n          \"kvaFee\": 15.75,\n          \"subscriptionFeeVar\": 5.25,\n          \"subscriptionFeeFixed\": 25.00,\n          \"notes\": \"Monthly billing cycle\"\n        }\n      ],\n      \"pageNumber\": 1,\n      \"pageSize\": 25,\n      \"totalCount\": 142,\n      \"totalPages\": 6,\n      \"hasNext\": true,\n      \"hasPrevious\": false\n    }\n  }\n}"
+										}
+									]
+								},
+								{
+									"name": "Update Bill",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"billId\": 501,\n  \"amount\": 150.00,\n  \"currentKva\": 13.50,\n  \"notes\": \"Updated bill with corrected KVA reading\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/UpdateBill",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"UpdateBill"
+											]
+										},
+										"description": "Updates a bill by canceling the old one and creating a new one with modified values. The old bill's status is set to CANCELED, and the new bill's GeneratedFrom field points to the old bill ID. Returns both the old (canceled) and new bills."
+									},
+									"response": [
+										{
+											"name": "200 OK - Success",
+											"originalRequest": {
+												"method": "PUT",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"billId\": 501,\n  \"amount\": 150.00,\n  \"currentKva\": 13.50,\n  \"notes\": \"Updated bill with corrected KVA reading\"\n}"
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/UpdateBill",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"UpdateBill"
+													]
+												}
+											},
+											"code": 200,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Bill updated successfully.\",\n  \"data\": {\n    \"response\": {\n      \"oldBill\": {\n        \"id\": 501,\n        \"subscriberId\": 512,\n        \"subscriberFirstName\": \"Lina\",\n        \"subscriberLastName\": \"Nasr\",\n        \"generatorOwnerUserId\": 2,\n        \"generatorId\": 1,\n        \"generatorCode\": \"GEN-01\",\n        \"billDate\": \"2025-11-15T00:00:00Z\",\n        \"amount\": 120.55,\n        \"currencyCode\": \"USD\",\n        \"statusCode\": \"CANCELED\",\n        \"previousKva\": 10.50,\n        \"currentKva\": 12.30,\n        \"subscriptionAmps\": 60.00,\n        \"kvaFee\": 15.75,\n        \"subscriptionFeeVar\": 5.25,\n        \"subscriptionFeeFixed\": 25.00,\n        \"notes\": \"Monthly billing cycle\",\n        \"generatedFrom\": null\n      },\n      \"newBill\": {\n        \"id\": 502,\n        \"subscriberId\": 512,\n        \"subscriberFirstName\": \"Lina\",\n        \"subscriberLastName\": \"Nasr\",\n        \"generatorOwnerUserId\": 2,\n        \"generatorId\": 1,\n        \"generatorCode\": \"GEN-01\",\n        \"billDate\": \"2025-11-15T00:00:00Z\",\n        \"amount\": 150.00,\n        \"currencyCode\": \"USD\",\n        \"statusCode\": \"PENDING\",\n        \"previousKva\": 10.50,\n        \"currentKva\": 13.50,\n        \"subscriptionAmps\": 60.00,\n        \"kvaFee\": 15.75,\n        \"subscriptionFeeVar\": 5.25,\n        \"subscriptionFeeFixed\": 25.00,\n        \"notes\": \"Updated bill with corrected KVA reading\",\n        \"generatedFrom\": 501\n      }\n    }\n  }\n}"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Bill Collectors",
+					"item": [
+						{
+							"name": "Upsert Bill Collector",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": 12,\n  \"username\": \"bc_karim_mansour2\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Karim1\",\n  \"lastName\": \"Mansour1\",\n  \"phoneNumber\": \"+96170888771\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/BillCollector",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"BillCollector"
+									]
+								},
+								"description": "**Recent Change:** Now requires `username` and `password` fields. The stored procedure automatically creates a user account in `tbl_User` table with role `BILL_COLLECTOR`.\n\n**For INSERT (`id = -1`):**\n- `username` (required): Unique username for the bill collector\n- `password` (required): Password for login (will be hashed server-side)\n- `firstName`, `lastName`, `phoneNumber` (all required)\n\n**For UPDATE (`id > 0`):**\n- `username` (required): Can update username (must be unique)\n- `password` (optional): Only updates if provided; otherwise keeps existing password\n- `firstName`, `lastName`, `phoneNumber` (all required)"
+							},
+							"response": [
+								{
+									"name": "200 OK - Insert Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": 12,\n  \"username\": \"bc_karim_mansour2\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Karim1\",\n  \"lastName\": \"Mansour1\",\n  \"phoneNumber\": \"+96170888771\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/BillCollector",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"BillCollector"
+											]
+										},
+										"description": "**Recent Change:** Now requires `username` and `password` fields. The stored procedure automatically creates a user account in `tbl_User` table with role `BILL_COLLECTOR`.\n\n**For INSERT (`id = -1`):**\n- `username` (required): Unique username for the bill collector\n- `password` (required): Password for login (will be hashed server-side)\n- `firstName`, `lastName`, `phoneNumber` (all required)\n\n**For UPDATE (`id > 0`):**\n- `username` (required): Can update username (must be unique)\n- `password` (optional): Only updates if provided; otherwise keeps existing password\n- `firstName`, `lastName`, `phoneNumber` (all required)"
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"message\": \"Bill collector saved successfully.\",\n  \"data\": {\n    \"collector\": {\n      \"id\": 88,\n      \"userId\": 250,\n      \"generatorOwnerUserId\": 101,\n      \"firstName\": \"Karim\",\n      \"lastName\": \"Mansour\",\n      \"phoneNumber\": \"+96170888777\",\n      \"username\": \"bc_karim_mansour\",\n      \"createdAt\": \"2025-11-20T15:30:45Z\"\n    }\n  }\n}"
+								},
+								{
+									"name": "200 OK - Update Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": 12,\n  \"username\": \"bc_karim_mansour2\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Karim1\",\n  \"lastName\": \"Mansour1\",\n  \"phoneNumber\": \"+96170888771\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/BillCollector",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"BillCollector"
+											]
+										},
+										"description": "**Recent Change:** Now requires `username` and `password` fields. The stored procedure automatically creates a user account in `tbl_User` table with role `BILL_COLLECTOR`.\n\n**For INSERT (`id = -1`):**\n- `username` (required): Unique username for the bill collector\n- `password` (required): Password for login (will be hashed server-side)\n- `firstName`, `lastName`, `phoneNumber` (all required)\n\n**For UPDATE (`id > 0`):**\n- `username` (required): Can update username (must be unique)\n- `password` (optional): Only updates if provided; otherwise keeps existing password\n- `firstName`, `lastName`, `phoneNumber` (all required)"
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Bill collector saved successfully.\",\n  \"data\": {\n    \"collector\": {\n      \"id\": 88,\n      \"userId\": 250,\n      \"generatorOwnerUserId\": 101,\n      \"firstName\": \"Karim\",\n      \"lastName\": \"Mansour\",\n      \"phoneNumber\": \"+96170888777\",\n      \"username\": \"bc_karim_mansour\",\n      \"createdAt\": \"2025-11-20T15:30:45Z\"\n    }\n  }\n}"
+								},
+								{
+									"name": "400 BadRequest - Missing Password (Insert)",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": 12,\n  \"username\": \"bc_karim_mansour2\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Karim1\",\n  \"lastName\": \"Mansour1\",\n  \"phoneNumber\": \"+96170888771\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/BillCollector",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"BillCollector"
+											]
+										},
+										"description": "**Recent Change:** Now requires `username` and `password` fields. The stored procedure automatically creates a user account in `tbl_User` table with role `BILL_COLLECTOR`.\n\n**For INSERT (`id = -1`):**\n- `username` (required): Unique username for the bill collector\n- `password` (required): Password for login (will be hashed server-side)\n- `firstName`, `lastName`, `phoneNumber` (all required)\n\n**For UPDATE (`id > 0`):**\n- `username` (required): Can update username (must be unique)\n- `password` (optional): Only updates if provided; otherwise keeps existing password\n- `firstName`, `lastName`, `phoneNumber` (all required)"
+									},
+									"code": 400,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"Password\": [\"Password is mandatory for new bill collectors.\"]\n  }\n}"
+								},
+								{
+									"name": "409 Conflict - Username Already Exists",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": 12,\n  \"username\": \"bc_karim_mansour2\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Karim1\",\n  \"lastName\": \"Mansour1\",\n  \"phoneNumber\": \"+96170888771\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/BillCollector",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"BillCollector"
+											]
+										},
+										"description": "**Recent Change:** Now requires `username` and `password` fields. The stored procedure automatically creates a user account in `tbl_User` table with role `BILL_COLLECTOR`.\n\n**For INSERT (`id = -1`):**\n- `username` (required): Unique username for the bill collector\n- `password` (required): Password for login (will be hashed server-side)\n- `firstName`, `lastName`, `phoneNumber` (all required)\n\n**For UPDATE (`id > 0`):**\n- `username` (required): Can update username (must be unique)\n- `password` (optional): Only updates if provided; otherwise keeps existing password\n- `firstName`, `lastName`, `phoneNumber` (all required)"
+									},
+									"code": 409,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"code\": \"BILL_COLLECTOR_ERROR\",\n  \"message\": \"Username already exists.\",\n  \"correlationId\": \"...\"\n}"
+								},
+								{
+									"name": "409 Conflict - Password Required",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": 12,\n  \"username\": \"bc_karim_mansour2\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Karim1\",\n  \"lastName\": \"Mansour1\",\n  \"phoneNumber\": \"+96170888771\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/BillCollector",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"BillCollector"
+											]
+										},
+										"description": "**Recent Change:** Now requires `username` and `password` fields. The stored procedure automatically creates a user account in `tbl_User` table with role `BILL_COLLECTOR`.\n\n**For INSERT (`id = -1`):**\n- `username` (required): Unique username for the bill collector\n- `password` (required): Password for login (will be hashed server-side)\n- `firstName`, `lastName`, `phoneNumber` (all required)\n\n**For UPDATE (`id > 0`):**\n- `username` (required): Can update username (must be unique)\n- `password` (optional): Only updates if provided; otherwise keeps existing password\n- `firstName`, `lastName`, `phoneNumber` (all required)"
+									},
+									"code": 409,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"code\": \"BILL_COLLECTOR_ERROR\",\n  \"message\": \"Password is mandatory for new bill collectors.\",\n  \"correlationId\": \"...\"\n}"
+								},
+								{
+									"name": "401 Unauthorized - Missing/Invalid Token",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": 12,\n  \"username\": \"bc_karim_mansour2\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Karim1\",\n  \"lastName\": \"Mansour1\",\n  \"phoneNumber\": \"+96170888771\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/BillCollector",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"BillCollector"
+											]
+										},
+										"description": "**Recent Change:** Now requires `username` and `password` fields. The stored procedure automatically creates a user account in `tbl_User` table with role `BILL_COLLECTOR`.\n\n**For INSERT (`id = -1`):**\n- `username` (required): Unique username for the bill collector\n- `password` (required): Password for login (will be hashed server-side)\n- `firstName`, `lastName`, `phoneNumber` (all required)\n\n**For UPDATE (`id > 0`):**\n- `username` (required): Can update username (must be unique)\n- `password` (optional): Only updates if provided; otherwise keeps existing password\n- `firstName`, `lastName`, `phoneNumber` (all required)"
+									},
+									"code": 401,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Authentication token is missing or invalid.\",\n  \"correlationId\": \"...\"\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Bill Collectors",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/BillCollectorForGO",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"BillCollectorForGO"
+									]
+								},
+								"description": "Returns all bill collectors linked to the signed-in generator owner."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/BillCollectorForGO",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"BillCollectorForGO"
+											]
+										},
+										"description": "Returns all bill collectors linked to the signed-in generator owner."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Bill collectors retrieved successfully.\",\n  \"data\": {\n    \"collectors\": [\n      { \"id\": 88, \"userId\": 250, \"generatorOwnerUserId\": 101, \"firstName\": \"Karim\", \"lastName\": \"Mansour\", \"phoneNumber\": \"+96170888777\", \"username\": \"bc_karim_mansour\", \"createdAt\": \"2025-11-20T15:30:45Z\" }\n    ]\n  }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "SMS",
+					"item": [
+						{
+							"name": "Get SMS Templates",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/SmsTemplates",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"SmsTemplates"
+									]
+								},
+								"description": "Returns all SMS templates assigned to the generator owner. Read-only endpoint."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/SmsTemplates",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"SmsTemplates"
+											]
+										},
+										"description": "Returns all SMS templates assigned to the generator owner. Read-only endpoint."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"SMS templates retrieved successfully.\",\n  \"data\": {\n    \"templates\": [\n      {\n        \"id\": 1,\n        \"name\": \"Bill Arrived Notification\",\n        \"nameAr\": \"إشعار وصول الفاتورة\",\n        \"body\": \"Dear {SubscriberName}, your bill for {BillMonth} has arrived. Amount: {BillAmount} {CurrencyCode}. View: {BillViewUrl}\",\n        \"bodyAr\": \"عزيزي {SubscriberName}، وصلت فاتورتك لشهر {BillMonth}. المبلغ: {BillAmount} {CurrencyCode}. عرض: {BillViewUrl}\",\n        \"language\": \"BOTH\",\n        \"isActive\": true,\n        \"templateVariables\": [\"SubscriberName\", \"BillMonth\", \"BillAmount\", \"CurrencyCode\", \"BillViewUrl\"]\n      }\n    ]\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get SMS Campaigns",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/SmsCampaigns?pageNumber=1&pageSize=25&status=PENDING",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"SmsCampaigns"
+									],
+									"query": [
+										{
+											"key": "pageNumber",
+											"value": "1",
+											"description": "Page number (starts at 1)"
+										},
+										{
+											"key": "pageSize",
+											"value": "25",
+											"description": "Items per page (1-100)"
+										},
+										{
+											"key": "status",
+											"value": "PENDING",
+											"description": "Filter by campaign status (PENDING, PROCESSING, COMPLETED, FAILED)"
+										}
+									]
+								},
+								"description": "Lists SMS campaigns for the generator owner with pagination and filtering."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/SmsCampaigns?pageNumber=1&pageSize=25&status=PENDING",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"SmsCampaigns"
+											],
+											"query": [
+												{
+													"key": "pageNumber",
+													"value": "1"
+												},
+												{
+													"key": "pageSize",
+													"value": "25"
+												},
+												{
+													"key": "status",
+													"value": "PENDING"
+												}
+											]
+										},
+										"description": "Lists SMS campaigns for the generator owner with pagination and filtering."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"SMS campaigns retrieved successfully.\",\n  \"data\": {\n    \"page\": {\n      \"items\": [\n        {\n          \"id\": 1,\n          \"campaignName\": \"Monthly Bill Reminder\",\n          \"selectionCriteriaType\": \"ALL_ACTIVE\",\n          \"status\": \"PENDING\",\n          \"totalSubscribers\": 150,\n          \"totalSmsSent\": 0,\n          \"totalSmsDelivered\": 0,\n          \"totalSmsFailed\": 0,\n          \"totalSmsPending\": 0,\n          \"createdAt\": \"2025-11-25T10:00:00Z\"\n        }\n      ],\n      \"pageNumber\": 1,\n      \"pageSize\": 25,\n      \"totalCount\": 5\n    }\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Create SMS Campaign",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"templateId\": 1,\n  \"campaignName\": \"Monthly Bill Reminder\",\n  \"selectionCriteriaType\": \"ALL_ACTIVE\",\n  \"customSubscriberIds\": null,\n  \"language\": \"AUTO\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/SmsCampaigns",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"SmsCampaigns"
+									]
+								},
+								"description": "Creates a new SMS campaign. If selectionCriteriaType is 'CUSTOM', provide customSubscriberIds array. Language can be 'EN', 'AR', or 'AUTO'."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"templateId\": 1,\n  \"campaignName\": \"Monthly Bill Reminder\",\n  \"selectionCriteriaType\": \"ALL_ACTIVE\",\n  \"customSubscriberIds\": null,\n  \"language\": \"AUTO\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/SmsCampaigns",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"SmsCampaigns"
+											]
+										},
+										"description": "Creates a new SMS campaign. If selectionCriteriaType is 'CUSTOM', provide customSubscriberIds array. Language can be 'EN', 'AR', or 'AUTO'."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"SMS campaign created successfully.\",\n  \"data\": {\n    \"campaign\": {\n      \"id\": 1,\n      \"campaignName\": \"Monthly Bill Reminder\",\n      \"selectionCriteriaType\": \"ALL_ACTIVE\",\n      \"status\": \"PENDING\",\n      \"totalSubscribers\": 150,\n      \"createdAt\": \"2025-11-25T10:00:00Z\"\n    }\n  }\n}"
+								},
+								{
+									"name": "400 BadRequest - Custom selection without IDs",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"templateId\": 1,\n  \"campaignName\": \"Custom Campaign\",\n  \"selectionCriteriaType\": \"CUSTOM\",\n  \"customSubscriberIds\": null,\n  \"language\": \"AUTO\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/SmsCampaigns",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"SmsCampaigns"
+											]
+										},
+										"description": "Creates a new SMS campaign. If selectionCriteriaType is 'CUSTOM', provide customSubscriberIds array. Language can be 'EN', 'AR', or 'AUTO'."
+									},
+									"code": 400,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Custom subscriber IDs are required when selection criteria type is CUSTOM.\",\n  \"errors\": []\n}"
+								}
+							]
+						},
+						{
+							"name": "Get SMS Campaign Details",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/GeneratorOwner/SmsCampaigns/1?pageNumber=1&pageSize=25&status=DELIVERED&phoneNumber=&subscriberName=",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"GeneratorOwner",
+										"SmsCampaigns",
+										"1"
+									],
+									"query": [
+										{
+											"key": "pageNumber",
+											"value": "1",
+											"description": "Page number for messages (starts at 1)"
+										},
+										{
+											"key": "pageSize",
+											"value": "25",
+											"description": "Items per page (1-100)"
+										},
+										{
+											"key": "status",
+											"value": "DELIVERED",
+											"description": "Filter messages by status (PENDING, SENT, DELIVERED, FAILED)"
+										},
+										{
+											"key": "phoneNumber",
+											"value": "",
+											"description": "Filter by phone number (partial match)"
+										},
+										{
+											"key": "subscriberName",
+											"value": "",
+											"description": "Filter by subscriber name (partial match)"
+										}
+									]
+								},
+								"description": "Returns campaign details, statistics, and paginated messages in a single response."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/SmsCampaigns/1?pageNumber=1&pageSize=25&status=DELIVERED&phoneNumber=&subscriberName=",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"SmsCampaigns",
+												"1"
+											],
+											"query": [
+												{
+													"key": "pageNumber",
+													"value": "1"
+												},
+												{
+													"key": "pageSize",
+													"value": "25"
+												},
+												{
+													"key": "status",
+													"value": "DELIVERED"
+												},
+												{
+													"key": "phoneNumber",
+													"value": ""
+												},
+												{
+													"key": "subscriberName",
+													"value": ""
+												}
+											]
+										},
+										"description": "Returns campaign details, statistics, and paginated messages in a single response."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"SMS campaign details retrieved successfully.\",\n  \"data\": {\n    \"campaign\": {\n      \"id\": 1,\n      \"campaignName\": \"Monthly Bill Reminder\",\n      \"selectionCriteriaType\": \"ALL_ACTIVE\",\n      \"status\": \"COMPLETED\",\n      \"createdAt\": \"2025-11-25T10:00:00Z\",\n      \"startedAt\": \"2025-11-25T10:05:00Z\",\n      \"completedAt\": \"2025-11-25T10:15:00Z\",\n      \"template\": {\n        \"id\": 1,\n        \"name\": \"Bill Arrived Notification\",\n        \"nameAr\": \"إشعار وصول الفاتورة\"\n      }\n    },\n    \"statistics\": {\n      \"totalSubscribers\": 150,\n      \"totalSmsSent\": 150,\n      \"totalSmsDelivered\": 145,\n      \"totalSmsFailed\": 3,\n      \"totalSmsPending\": 2,\n      \"deliveryRate\": 96.67,\n      \"failureRate\": 2.0,\n      \"pendingRate\": 1.33,\n      \"statusBreakdown\": {\n        \"DELIVERED\": 145,\n        \"FAILED\": 3,\n        \"PENDING\": 2\n      }\n    },\n    \"messages\": {\n      \"items\": [\n        {\n          \"id\": 1,\n          \"campaignId\": 1,\n          \"subscriberId\": 501,\n          \"subscriberName\": \"Lina Nasr\",\n          \"phoneNumber\": \"+96176123456\",\n          \"messageBody\": \"Dear Lina Nasr, your bill for November 2025 has arrived. Amount: 250.50 USD. View: https://example.com/bills/ABC123\",\n          \"status\": \"DELIVERED\",\n          \"statusDescription\": \"Delivered\",\n          \"sentAt\": \"2025-11-25T10:05:30Z\",\n          \"deliveredAt\": \"2025-11-25T10:05:45Z\"\n        }\n      ],\n      \"pageNumber\": 1,\n      \"pageSize\": 25,\n      \"totalCount\": 150\n    }\n  }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Subscriber",
+					"item": [
+						{
+							"name": "Management",
+							"item": [
+								{
+									"name": "Get Subscribers - By Keyword",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/GetSubscribers?pageNumber=1&pageSize=25&keyword=Nasr",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"GetSubscribers"
+											],
+											"query": [
+												{
+													"key": "pageNumber",
+													"value": "1",
+													"description": "Page number (starts at 1)"
+												},
+												{
+													"key": "pageSize",
+													"value": "25",
+													"description": "Items per page (1-100)"
+												},
+												{
+													"key": "keyword",
+													"value": "Nasr",
+													"description": "Search across all fields (name, phone, address, ID, etc.)"
+												}
+											]
+										},
+										"description": "Search subscribers using a keyword that matches across multiple fields: name, phone, address, meter number, IDs, etc. Requires GeneratorOwner token."
+									},
+									"response": [
+										{
+											"name": "200 OK - Keyword Search Success",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/GetSubscribers?pageNumber=1&pageSize=25&keyword=Nasr",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"GetSubscribers"
+													],
+													"query": [
+														{
+															"key": "pageNumber",
+															"value": "1",
+															"description": "Page number (starts at 1)"
+														},
+														{
+															"key": "pageSize",
+															"value": "25",
+															"description": "Items per page (1-100)"
+														},
+														{
+															"key": "keyword",
+															"value": "Nasr",
+															"description": "Search across all fields (name, phone, address, ID, etc.)"
+														}
+													]
+												},
+												"description": "Search subscribers using a keyword that matches across multiple fields: name, phone, address, meter number, IDs, etc. Requires GeneratorOwner token."
+											},
+											"code": 200,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"correlationId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"message\": \"Subscribers retrieved successfully.\",\n  \"data\": {\n    \"page\": {\n      \"items\": [\n        {\n          \"id\": 501,\n          \"generatorId\": 1,\n          \"generatorCode\": \"GEN-01\",\n          \"phoneNumber\": \"+96176123456\",\n          \"firstName\": \"Lina\",\n          \"lastName\": \"Nasr\",\n          \"address\": \"Beirut, Achrafieh, Building 123\",\n          \"previousKva\": 10.5,\n          \"subscriptionAmps\": 60,\n          \"currentKva\": 12.3,\n          \"electricMeterNumber\": \"EM-123456\",\n          \"billingModeCode\": \"METERED\",\n          \"billingModeDomain\": \"BILLING_MODE\",\n          \"billingModeDescription\": \"Metered Billing\",\n          \"statusCode\": \"ACTIVE\",\n          \"statusDomain\": \"SUBSCRIBER_STATUS\",\n          \"statusDescription\": \"Active Subscriber\",\n          \"createdAt\": \"2025-11-15T12:34:56Z\",\n          \"createdBy\": 101,\n          \"createdByUsername\": \"go01\",\n          \"modifiedAt\": null,\n          \"modifiedBy\": null,\n          \"modifiedByUsername\": null,\n          \"totalCount\": 5\n        }\n      ],\n      \"pageNumber\": 1,\n      \"pageSize\": 25,\n      \"totalCount\": 5,\n      \"totalPages\": 1,\n      \"hasNext\": false,\n      \"hasPrevious\": false\n    }\n  }\n}"
+										},
+										{
+											"name": "401 Unauthorized - Missing token",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/GetSubscribers?pageNumber=1&pageSize=25&keyword=Nasr",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"GetSubscribers"
+													],
+													"query": [
+														{
+															"key": "pageNumber",
+															"value": "1",
+															"description": "Page number (starts at 1)"
+														},
+														{
+															"key": "pageSize",
+															"value": "25",
+															"description": "Items per page (1-100)"
+														},
+														{
+															"key": "keyword",
+															"value": "Nasr",
+															"description": "Search across all fields (name, phone, address, ID, etc.)"
+														}
+													]
+												},
+												"description": "Search subscribers using a keyword that matches across multiple fields: name, phone, address, meter number, IDs, etc. Requires GeneratorOwner token."
+											},
+											"code": 401,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Authentication token is missing or invalid.\",\n  \"correlationId\": \"...\"\n}"
+										},
+										{
+											"name": "400 BadRequest - Invalid page size",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/GetSubscribers?pageNumber=1&pageSize=25&keyword=Nasr",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"GetSubscribers"
+													],
+													"query": [
+														{
+															"key": "pageNumber",
+															"value": "1",
+															"description": "Page number (starts at 1)"
+														},
+														{
+															"key": "pageSize",
+															"value": "25",
+															"description": "Items per page (1-100)"
+														},
+														{
+															"key": "keyword",
+															"value": "Nasr",
+															"description": "Search across all fields (name, phone, address, ID, etc.)"
+														}
+													]
+												},
+												"description": "Search subscribers using a keyword that matches across multiple fields: name, phone, address, meter number, IDs, etc. Requires GeneratorOwner token."
+											},
+											"code": 400,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"PageSize\": [\"Page size must be between 1 and 100.\"]\n  }\n}"
+										}
+									]
+								},
+								{
+									"name": "Get Subscribers - By Address",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/GetSubscribers?pageNumber=1&pageSize=25&address=Address 78",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"GetSubscribers"
+											],
+											"query": [
+												{
+													"key": "pageNumber",
+													"value": "1"
+												},
+												{
+													"key": "pageSize",
+													"value": "25"
+												},
+												{
+													"key": "address",
+													"value": "Address 78",
+													"description": "Filter by address (partial match)"
+												}
+											]
+										},
+										"description": "Filter subscribers by address. Supports partial matching. Requires GeneratorOwner token."
+									},
+									"response": [
+										{
+											"name": "200 OK - Address Filter Success",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/GetSubscribers?pageNumber=1&pageSize=25&address=Address 78",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"GetSubscribers"
+													],
+													"query": [
+														{
+															"key": "pageNumber",
+															"value": "1"
+														},
+														{
+															"key": "pageSize",
+															"value": "25"
+														},
+														{
+															"key": "address",
+															"value": "Address 78",
+															"description": "Filter by address (partial match)"
+														}
+													]
+												},
+												"description": "Filter subscribers by address. Supports partial matching. Requires GeneratorOwner token."
+											},
+											"code": 200,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Subscribers retrieved successfully.\",\n  \"data\": {\n    \"page\": {\n      \"items\": [\n        {\n          \"id\": 502,\n          \"generatorId\": 1,\n          \"phoneNumber\": \"+96176123457\",\n          \"firstName\": \"Ali\",\n          \"lastName\": \"Khalil\",\n          \"address\": \"Beirut, Achrafieh, Building 456\",\n          \"subscriptionAmps\": 80,\n          \"currentKva\": 15.2,\n          \"electricMeterNumber\": \"EM-123457\",\n          \"statusCode\": \"ACTIVE\",\n          \"createdAt\": \"2025-11-14T10:20:30Z\",\n          \"createdBy\": 101,\n          \"totalCount\": 12\n        }\n      ],\n      \"pageNumber\": 1,\n      \"pageSize\": 25,\n      \"totalCount\": 12,\n      \"totalPages\": 1,\n      \"hasNext\": false,\n      \"hasPrevious\": false\n    }\n  }\n}"
+										}
+									]
+								},
+								{
+									"name": "Get Subscribers - By Phone & Name",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/Subscriber/GetSubscribers?pageNumber=1&pageSize=25&phoneNumber=+961&firstName=Lina&lastName=Nasr",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Subscriber",
+												"GetSubscribers"
+											],
+											"query": [
+												{
+													"key": "pageNumber",
+													"value": "1"
+												},
+												{
+													"key": "pageSize",
+													"value": "25"
+												},
+												{
+													"key": "phoneNumber",
+													"value": "+961",
+													"description": "Filter by phone number (partial match)"
+												},
+												{
+													"key": "firstName",
+													"value": "Lina",
+													"description": "Filter by first name (starts with)"
+												},
+												{
+													"key": "lastName",
+													"value": "Nasr",
+													"description": "Filter by last name (starts with)"
+												}
+											]
+										},
+										"description": "Filter subscribers by phone number (partial) and name (prefix match). All filters are combined with AND logic. Requires GeneratorOwner token."
+									},
+									"response": [
+										{
+											"name": "200 OK - Combined Filters Success",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/Subscriber/GetSubscribers?pageNumber=1&pageSize=25&phoneNumber=+961&firstName=Lina&lastName=Nasr",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"Subscriber",
+														"GetSubscribers"
+													],
+													"query": [
+														{
+															"key": "pageNumber",
+															"value": "1"
+														},
+														{
+															"key": "pageSize",
+															"value": "25"
+														},
+														{
+															"key": "phoneNumber",
+															"value": "+961",
+															"description": "Filter by phone number (partial match)"
+														},
+														{
+															"key": "firstName",
+															"value": "Lina",
+															"description": "Filter by first name (starts with)"
+														},
+														{
+															"key": "lastName",
+															"value": "Nasr",
+															"description": "Filter by last name (starts with)"
+														}
+													]
+												},
+												"description": "Filter subscribers by phone number (partial) and name (prefix match). All filters are combined with AND logic. Requires GeneratorOwner token."
+											},
+											"code": 200,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Subscribers retrieved successfully.\",\n  \"data\": {\n    \"page\": {\n      \"items\": [\n        {\n          \"id\": 501,\n          \"generatorId\": 1,\n          \"phoneNumber\": \"+96176123456\",\n          \"firstName\": \"Lina\",\n          \"lastName\": \"Nasr\",\n          \"address\": \"Beirut, Achrafieh, Building 123\",\n          \"subscriptionAmps\": 60,\n          \"currentKva\": 12.3,\n          \"electricMeterNumber\": \"EM-123456\",\n          \"statusCode\": \"ACTIVE\",\n          \"createdAt\": \"2025-11-15T12:34:56Z\",\n          \"createdBy\": 101,\n          \"totalCount\": 1\n        }\n      ],\n      \"pageNumber\": 1,\n      \"pageSize\": 25,\n      \"totalCount\": 1,\n      \"totalPages\": 1,\n      \"hasNext\": false,\n      \"hasPrevious\": false\n    }\n  }\n}"
+										}
+									]
+								},
+								{
+									"name": "Get Subscribers - All Filters",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/GetSubscribers?pageNumber=1&pageSize=100&generatorId=1&subscriptionAmps=63.28&statusCode=ACTIVE",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"GetSubscribers"
+											],
+											"query": [
+												{
+													"key": "pageNumber",
+													"value": "1"
+												},
+												{
+													"key": "pageSize",
+													"value": "100"
+												},
+												{
+													"key": "generatorId",
+													"value": "1",
+													"description": "Filter by specific generator"
+												},
+												{
+													"key": "subscriptionAmps",
+													"value": "63.28",
+													"description": "Filter by subscription amperage (exact match)"
+												},
+												{
+													"key": "statusCode",
+													"value": "ACTIVE",
+													"description": "Filter by status code"
+												},
+												{
+													"key": "createdAtFrom",
+													"value": "2025-11-01T00:00:00Z",
+													"description": "Filter by creation date range (from)",
+													"disabled": true
+												},
+												{
+													"key": "createdAtTo",
+													"value": "2025-11-30T23:59:59Z",
+													"description": "Filter by creation date range (to)",
+													"disabled": true
+												}
+											]
+										},
+										"description": "Example using multiple filters: generator, subscription amps, status, and date range. All filters are combined with AND logic. Requires GeneratorOwner token."
+									},
+									"response": [
+										{
+											"name": "200 OK - Advanced Filters Success",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/GetSubscribers?pageNumber=1&pageSize=100&generatorId=1&subscriptionAmps=63.28&statusCode=ACTIVE",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"GetSubscribers"
+													],
+													"query": [
+														{
+															"key": "pageNumber",
+															"value": "1"
+														},
+														{
+															"key": "pageSize",
+															"value": "100"
+														},
+														{
+															"key": "generatorId",
+															"value": "1",
+															"description": "Filter by specific generator"
+														},
+														{
+															"key": "subscriptionAmps",
+															"value": "63.28",
+															"description": "Filter by subscription amperage (exact match)"
+														},
+														{
+															"key": "statusCode",
+															"value": "ACTIVE",
+															"description": "Filter by status code"
+														},
+														{
+															"key": "createdAtFrom",
+															"value": "2025-11-01T00:00:00Z",
+															"description": "Filter by creation date range (from)",
+															"disabled": true
+														},
+														{
+															"key": "createdAtTo",
+															"value": "2025-11-30T23:59:59Z",
+															"description": "Filter by creation date range (to)",
+															"disabled": true
+														}
+													]
+												},
+												"description": "Example using multiple filters: generator, subscription amps, status, and date range. All filters are combined with AND logic. Requires GeneratorOwner token."
+											},
+											"code": 200,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Subscribers retrieved successfully.\",\n  \"data\": {\n    \"page\": {\n      \"items\": [\n        {\n          \"id\": 503,\n          \"generatorId\": 1,\n          \"phoneNumber\": \"+96176123458\",\n          \"firstName\": \"Maya\",\n          \"lastName\": \"Said\",\n          \"address\": \"Beirut, Hamra, Street 789\",\n          \"subscriptionAmps\": 60,\n          \"currentKva\": 12.0,\n          \"electricMeterNumber\": \"EM-123458\",\n          \"billingModeCode\": \"FLAT_RATE\",\n          \"statusCode\": \"ACTIVE\",\n          \"createdAt\": \"2025-11-15T08:15:22Z\",\n          \"createdBy\": 101,\n          \"totalCount\": 8\n        }\n      ],\n      \"pageNumber\": 1,\n      \"pageSize\": 25,\n      \"totalCount\": 8,\n      \"totalPages\": 1,\n      \"hasNext\": false,\n      \"hasPrevious\": false\n    }\n  }\n}"
+										}
+									]
+								},
+								{
+									"name": "Upsert Subscriber (Insert/Update)",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": -1,\n  \"generatorId\": 1,\n  \"phoneNumber\": \"+96176123456\",\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Nasr\",\n  \"address\": \"Beirut, Achrafieh, Building 123, Floor 5\",\n  \"previousKva\": 10.5,\n  \"subscriptionAmps\": 60,\n  \"currentKva\": 12.3,\n  \"electricMeterNumber\": \"EM-123456\",\n  \"billingModeCode\": \"METERED\",\n  \"statusCode\": \"ACTIVE\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/UpsertSubscriber",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"UpsertSubscriber"
+											]
+										},
+										"description": "**Recent Change:** `address` field is now **mandatory for new subscribers** (INSERT operations when `id = -1`). For updates, `address` is optional.\n\n- Send `id = -1` (or omit) to insert a new subscriber\n- Provide a positive `id` to update an existing subscriber\n- All fields except `address` (on update) are required"
+									},
+									"response": [
+										{
+											"name": "200 OK - Insert Success",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"id\": -1,\n  \"generatorId\": 1,\n  \"phoneNumber\": \"+96176123456\",\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Nasr\",\n  \"address\": \"Beirut, Achrafieh, Building 123, Floor 5\",\n  \"previousKva\": 10.5,\n  \"subscriptionAmps\": 60,\n  \"currentKva\": 12.3,\n  \"electricMeterNumber\": \"EM-123456\",\n  \"billingModeCode\": \"METERED\",\n  \"statusCode\": \"ACTIVE\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/UpsertSubscriber",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"UpsertSubscriber"
+													]
+												},
+												"description": "**Recent Change:** `address` field is now **mandatory for new subscribers** (INSERT operations when `id = -1`). For updates, `address` is optional.\n\n- Send `id = -1` (or omit) to insert a new subscriber\n- Provide a positive `id` to update an existing subscriber\n- All fields except `address` (on update) are required"
+											},
+											"code": 200,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"correlationId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"message\": \"Subscriber saved successfully.\",\n  \"data\": {\n    \"id\": 512,\n    \"generatorId\": 1,\n    \"generatorCode\": \"GEN-01\",\n    \"phoneNumber\": \"+96176123456\",\n    \"firstName\": \"Lina\",\n    \"lastName\": \"Nasr\",\n    \"address\": \"Beirut, Achrafieh, Building 123, Floor 5\",\n    \"previousKva\": 10.5,\n    \"subscriptionAmps\": 60,\n    \"currentKva\": 12.3,\n    \"electricMeterNumber\": \"EM-123456\",\n    \"billingModeCode\": \"METERED\",\n    \"billingModeDomain\": \"BILLING_MODE\",\n    \"billingModeDescription\": \"Metered Billing\",\n    \"statusCode\": \"ACTIVE\",\n    \"statusDomain\": \"SUBSCRIBER_STATUS\",\n    \"statusDescription\": \"Active Subscriber\",\n    \"createdAt\": \"2025-11-15T14:22:00Z\",\n    \"createdBy\": 101,\n    \"createdByUsername\": \"go01\",\n    \"modifiedAt\": null,\n    \"modifiedBy\": null,\n    \"modifiedByUsername\": null\n  }\n}"
+										},
+										{
+											"name": "200 OK - Update Success",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"id\": -1,\n  \"generatorId\": 1,\n  \"phoneNumber\": \"+96176123456\",\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Nasr\",\n  \"address\": \"Beirut, Achrafieh, Building 123, Floor 5\",\n  \"previousKva\": 10.5,\n  \"subscriptionAmps\": 60,\n  \"currentKva\": 12.3,\n  \"electricMeterNumber\": \"EM-123456\",\n  \"billingModeCode\": \"METERED\",\n  \"statusCode\": \"ACTIVE\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/UpsertSubscriber",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"UpsertSubscriber"
+													]
+												},
+												"description": "**Recent Change:** `address` field is now **mandatory for new subscribers** (INSERT operations when `id = -1`). For updates, `address` is optional.\n\n- Send `id = -1` (or omit) to insert a new subscriber\n- Provide a positive `id` to update an existing subscriber\n- All fields except `address` (on update) are required"
+											},
+											"code": 200,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Subscriber saved successfully.\",\n  \"data\": {\n    \"id\": 512,\n    \"generatorId\": 1,\n    \"phoneNumber\": \"+96176123456\",\n    \"firstName\": \"Lina\",\n    \"lastName\": \"Nasr\",\n    \"address\": \"Beirut, Achrafieh, Building 123, Floor 5\",\n    \"previousKva\": 11.0,\n    \"subscriptionAmps\": 60,\n    \"currentKva\": 13.5,\n    \"electricMeterNumber\": \"EM-123456\",\n    \"billingModeCode\": \"METERED\",\n    \"statusCode\": \"PAUSED\",\n    \"createdAt\": \"2025-11-15T14:22:00Z\",\n    \"createdBy\": 101,\n    \"modifiedAt\": \"2025-11-16T09:00:00Z\",\n    \"modifiedBy\": 101\n  }\n}"
+										},
+										{
+											"name": "400 BadRequest - Missing Address (Insert)",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"id\": -1,\n  \"generatorId\": 1,\n  \"phoneNumber\": \"+96176123456\",\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Nasr\",\n  \"address\": \"Beirut, Achrafieh, Building 123, Floor 5\",\n  \"previousKva\": 10.5,\n  \"subscriptionAmps\": 60,\n  \"currentKva\": 12.3,\n  \"electricMeterNumber\": \"EM-123456\",\n  \"billingModeCode\": \"METERED\",\n  \"statusCode\": \"ACTIVE\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/UpsertSubscriber",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"UpsertSubscriber"
+													]
+												},
+												"description": "**Recent Change:** `address` field is now **mandatory for new subscribers** (INSERT operations when `id = -1`). For updates, `address` is optional.\n\n- Send `id = -1` (or omit) to insert a new subscriber\n- Provide a positive `id` to update an existing subscriber\n- All fields except `address` (on update) are required"
+											},
+											"code": 400,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"Address\": [\"Address is mandatory for new subscribers.\"]\n  }\n}"
+										},
+										{
+											"name": "400 BadRequest - Validation Error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"id\": -1,\n  \"generatorId\": 1,\n  \"phoneNumber\": \"+96176123456\",\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Nasr\",\n  \"address\": \"Beirut, Achrafieh, Building 123, Floor 5\",\n  \"previousKva\": 10.5,\n  \"subscriptionAmps\": 60,\n  \"currentKva\": 12.3,\n  \"electricMeterNumber\": \"EM-123456\",\n  \"billingModeCode\": \"METERED\",\n  \"statusCode\": \"ACTIVE\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/UpsertSubscriber",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"UpsertSubscriber"
+													]
+												},
+												"description": "**Recent Change:** `address` field is now **mandatory for new subscribers** (INSERT operations when `id = -1`). For updates, `address` is optional.\n\n- Send `id = -1` (or omit) to insert a new subscriber\n- Provide a positive `id` to update an existing subscriber\n- All fields except `address` (on update) are required"
+											},
+											"code": 400,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"PhoneNumber\": [\"The PhoneNumber field is required.\"],\n    \"FirstName\": [\"The FirstName field is required.\"]\n  }\n}"
+										},
+										{
+											"name": "409 Conflict - Business Error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"id\": -1,\n  \"generatorId\": 1,\n  \"phoneNumber\": \"+96176123456\",\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Nasr\",\n  \"address\": \"Beirut, Achrafieh, Building 123, Floor 5\",\n  \"previousKva\": 10.5,\n  \"subscriptionAmps\": 60,\n  \"currentKva\": 12.3,\n  \"electricMeterNumber\": \"EM-123456\",\n  \"billingModeCode\": \"METERED\",\n  \"statusCode\": \"ACTIVE\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/UpsertSubscriber",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"UpsertSubscriber"
+													]
+												},
+												"description": "**Recent Change:** `address` field is now **mandatory for new subscribers** (INSERT operations when `id = -1`). For updates, `address` is optional.\n\n- Send `id = -1` (or omit) to insert a new subscriber\n- Provide a positive `id` to update an existing subscriber\n- All fields except `address` (on update) are required"
+											},
+											"code": 409,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"code\": \"SUBSCRIBER_UPSERT_ERROR\",\n  \"message\": \"Address is mandatory for new subscribers.\",\n  \"correlationId\": \"...\"\n}"
+										},
+										{
+											"name": "401 Unauthorized - Missing/Invalid Token",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{token}}"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"id\": -1,\n  \"generatorId\": 1,\n  \"phoneNumber\": \"+96176123456\",\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Nasr\",\n  \"address\": \"Beirut, Achrafieh, Building 123, Floor 5\",\n  \"previousKva\": 10.5,\n  \"subscriptionAmps\": 60,\n  \"currentKva\": 12.3,\n  \"electricMeterNumber\": \"EM-123456\",\n  \"billingModeCode\": \"METERED\",\n  \"statusCode\": \"ACTIVE\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/GeneratorOwner/UpsertSubscriber",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"GeneratorOwner",
+														"UpsertSubscriber"
+													]
+												},
+												"description": "**Recent Change:** `address` field is now **mandatory for new subscribers** (INSERT operations when `id = -1`). For updates, `address` is optional.\n\n- Send `id = -1` (or omit) to insert a new subscriber\n- Provide a positive `id` to update an existing subscriber\n- All fields except `address` (on update) are required"
+											},
+											"code": 401,
+											"_postman_previewlanguage": "Text",
+											"header": [],
+											"cookie": [],
+											"body": "{\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Authentication token is missing or invalid.\",\n  \"correlationId\": \"...\"\n}"
+										}
+									]
+								},
+								{
+									"name": "Get Subscriber QR Code (PNG)",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Subscriber/7204/QrCode",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Subscriber",
+												"7204",
+												"QrCode"
+											]
+										},
+										"description": "Generates a QR code PNG image for a single subscriber. The QR code contains a URL that redirects bill collectors to the subscriber details page. The QR code includes the Echtirak logo in the center and the Electric Meter Number below it."
+									},
+									"response": []
+								},
+								{
+									"name": "Generate Subscribers QR Code PDF",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorId\": 1\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/GeneratorOwner/Subscribers/QrCodePdf",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"GeneratorOwner",
+												"Subscribers",
+												"QrCodePdf"
+											]
+										},
+										"description": "Generates a PDF document with QR codes for ALL subscribers under the specified generator. Each subscriber gets one page with their QR code (including logo and meter number), subscriber details (name, address, generator code), and subscriber ID. Perfect for printing and placing next to electric meters."
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Generator Owners",
+					"item": [
+						{
+							"name": "Get Generator Owners",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/GeneratorOwner",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"GeneratorOwner"
+									]
+								},
+								"description": "Lists all generator owners. Requires admin token."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/GeneratorOwner",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"GeneratorOwner"
+											]
+										},
+										"description": "Lists all generator owners. Requires admin token."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Generator owners retrieved successfully.\",\n  \"data\": {\n    \"owners\": [\n      { \"id\": 101, \"username\": \"go01\", \"firstName\": \"Rami\", \"lastName\": \"Haddad\" }\n    ]\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Upsert Generator Owner",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": -1,\n  \"username\": \"go11\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Rahme\",\n  \"businessName\": \"Power Co 11\",\n  \"phoneNumber\": \"+96170111222\",\n  \"fixedPlatformFeeMonthly\": 10.00,\n  \"pricePerSubscriberMonthly\": 5.00,\n  \"pricePerSms\": 0.10,\n  \"isYearlyPayment\": false,\n  \"yearlyDiscountFixedFee\": null,\n  \"yearlyDiscountPerSubscriber\": null,\n  \"yearlyDiscountPerSms\": null,\n  \"freeTrialMonths\": 0,\n  \"freeTrialEnabled\": true,\n  \"billingCycleDays\": 30,\n  \"billingStartDate\": null,\n  \"initialBalance\": 0.00,\n  \"overrideWalletCap\": null,\n  \"overrideCapReason\": null\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/GeneratorOwner",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"GeneratorOwner"
+									]
+								},
+								"description": "Creates or updates a generator owner. Password is optional when updating."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": -1,\n  \"username\": \"go11\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Rahme\",\n  \"businessName\": \"Power Co 11\",\n  \"phoneNumber\": \"+96170111222\",\n  \"fixedPlatformFeeMonthly\": 10.00,\n  \"pricePerSubscriberMonthly\": 5.00,\n  \"pricePerSms\": 0.10,\n  \"isYearlyPayment\": false,\n  \"yearlyDiscountFixedFee\": null,\n  \"yearlyDiscountPerSubscriber\": null,\n  \"yearlyDiscountPerSms\": null,\n  \"freeTrialMonths\": 0,\n  \"freeTrialEnabled\": true,\n  \"billingCycleDays\": 30,\n  \"billingStartDate\": null,\n  \"initialBalance\": 0.00,\n  \"overrideWalletCap\": null,\n  \"overrideCapReason\": null\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/GeneratorOwner",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"GeneratorOwner"
+											]
+										},
+										"description": "Creates or updates a generator owner. Password is optional when updating."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Generator owner saved successfully.\",\n  \"data\": {\n    \"owner\": {\n      \"id\": 111,\n      \"username\": \"go11\",\n      \"firstName\": \"Lina\",\n      \"lastName\": \"Rahme\",\n      \"businessName\": \"Power Co 11\",\n      \"phoneNumber\": \"+96170111222\"\n    }\n  }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "SMS Templates",
+					"item": [
+						{
+							"name": "Get SMS Templates",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/SmsTemplates?generatorOwnerUserId=",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"SmsTemplates"
+									],
+									"query": [
+										{
+											"key": "generatorOwnerUserId",
+											"value": "",
+											"description": "Optional: Filter by generator owner user ID"
+										}
+									]
+								},
+								"description": "Lists all SMS templates. Admin-only endpoint. Optionally filter by generator owner user ID."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/SmsTemplates",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"SmsTemplates"
+											]
+										},
+										"description": "Lists all SMS templates. Admin-only endpoint. Optionally filter by generator owner user ID."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"SMS templates retrieved successfully.\",\n  \"data\": {\n    \"templates\": [\n      {\n        \"id\": 1,\n        \"generatorOwnerUserId\": 101,\n        \"name\": \"Bill Arrived Notification\",\n        \"nameAr\": \"إشعار وصول الفاتورة\",\n        \"body\": \"Dear {SubscriberName}, your bill for {BillMonth} has arrived. Amount: {BillAmount} {CurrencyCode}. View: {BillViewUrl}\",\n        \"bodyAr\": \"عزيزي {SubscriberName}، وصلت فاتورتك لشهر {BillMonth}. المبلغ: {BillAmount} {CurrencyCode}. عرض: {BillViewUrl}\",\n        \"language\": \"BOTH\",\n        \"isActive\": true,\n        \"templateVariables\": [\"SubscriberName\", \"BillMonth\", \"BillAmount\", \"CurrencyCode\", \"BillViewUrl\"],\n        \"createdAt\": \"2025-11-25T10:00:00Z\"\n      }\n    ]\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Upsert SMS Template",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": null,\n  \"generatorOwnerUserId\": 101,\n  \"name\": \"Bill Arrived Notification\",\n  \"nameAr\": \"إشعار وصول الفاتورة\",\n  \"body\": \"Dear {SubscriberName}, your bill for {BillMonth} has arrived. Amount: {BillAmount} {CurrencyCode}. View: {BillViewUrl}\",\n  \"bodyAr\": \"عزيزي {SubscriberName}، وصلت فاتورتك لشهر {BillMonth}. المبلغ: {BillAmount} {CurrencyCode}. عرض: {BillViewUrl}\",\n  \"language\": \"BOTH\",\n  \"isActive\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/SmsTemplates",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"SmsTemplates"
+									]
+								},
+								"description": "Creates or updates an SMS template. Send id=null to create, or provide id to update. Admin-only endpoint."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": null,\n  \"generatorOwnerUserId\": 101,\n  \"name\": \"Bill Arrived Notification\",\n  \"nameAr\": \"إشعار وصول الفاتورة\",\n  \"body\": \"Dear {SubscriberName}, your bill for {BillMonth} has arrived. Amount: {BillAmount} {CurrencyCode}. View: {BillViewUrl}\",\n  \"bodyAr\": \"عزيزي {SubscriberName}، وصلت فاتورتك لشهر {BillMonth}. المبلغ: {BillAmount} {CurrencyCode}. عرض: {BillViewUrl}\",\n  \"language\": \"BOTH\",\n  \"isActive\": true\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/SmsTemplates",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"SmsTemplates"
+											]
+										},
+										"description": "Creates or updates an SMS template. Send id=null to create, or provide id to update. Admin-only endpoint."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"SMS template saved successfully.\",\n  \"data\": {\n    \"template\": {\n      \"id\": 1,\n      \"generatorOwnerUserId\": 101,\n      \"name\": \"Bill Arrived Notification\",\n      \"nameAr\": \"إشعار وصول الفاتورة\",\n      \"body\": \"Dear {SubscriberName}, your bill for {BillMonth} has arrived. Amount: {BillAmount} {CurrencyCode}. View: {BillViewUrl}\",\n      \"bodyAr\": \"عزيزي {SubscriberName}، وصلت فاتورتك لشهر {BillMonth}. المبلغ: {BillAmount} {CurrencyCode}. عرض: {BillViewUrl}\",\n      \"language\": \"BOTH\",\n      \"isActive\": true,\n      \"templateVariables\": [\"SubscriberName\", \"BillMonth\", \"BillAmount\", \"CurrencyCode\", \"BillViewUrl\"],\n      \"createdAt\": \"2025-11-25T10:00:00Z\"\n    }\n  }\n}"
+								},
+								{
+									"name": "400 BadRequest - Validation",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"id\": null,\n  \"generatorOwnerUserId\": 101,\n  \"name\": \"\",\n  \"body\": \"Test\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/SmsTemplates",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"SmsTemplates"
+											]
+										},
+										"description": "Creates or updates an SMS template. Send id=null to create, or provide id to update. Admin-only endpoint."
+									},
+									"code": 400,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Validation failed.\",\n  \"errors\": [\n    \"Name is required.\",\n    \"Body is required.\"\n  ]\n}"
+								}
+							]
+						},
+						{
+							"name": "Delete SMS Template",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/SmsTemplates/1",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"SmsTemplates",
+										"1"
+									]
+								},
+								"description": "Deletes an SMS template by ID. Admin-only endpoint."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/SmsTemplates/1",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"SmsTemplates",
+												"1"
+											]
+										},
+										"description": "Deletes an SMS template by ID. Admin-only endpoint."
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"SMS template deleted successfully.\",\n  \"data\": null\n}"
+								},
+								{
+									"name": "404 Not Found",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/SmsTemplates/999",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"SmsTemplates",
+												"999"
+											]
+										},
+										"description": "Deletes an SMS template by ID. Admin-only endpoint."
+									},
+									"code": 404,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"SMS template not found.\",\n  \"errors\": []\n}"
+								}
+							]
+						},
+						{
+							"name": "Reactivate Generator Owner",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"reason\": \"Top-up completed, account reactivated\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/GeneratorOwner/Reactivate",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"GeneratorOwner",
+										"Reactivate"
+									]
+								},
+								"description": "Reactivate a deactivated Generator Owner. Requires that a top-up has been made after deactivation. Withdraws funds from last pending billing cycle if exists."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"reason\": \"Top-up completed, account reactivated\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/GeneratorOwner/Reactivate",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"GeneratorOwner",
+												"Reactivate"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Generator Owner reactivated successfully.\",\n  \"data\": {\n    \"response\": {\n      \"generatorOwnerUserId\": 101,\n      \"previousStatus\": \"DEACTIVATED\",\n      \"newStatus\": \"ACTIVE\",\n      \"pendingBillingCycleAmount\": 150.00,\n      \"newBalance\": 350.00,\n      \"reactivatedAt\": \"2025-11-29T10:00:00Z\"\n    }\n  }\n}"
+								},
+								{
+									"name": "400 BadRequest - No Top-up",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"reason\": null\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/GeneratorOwner/Reactivate",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"GeneratorOwner",
+												"Reactivate"
+											]
+										}
+									},
+									"code": 400,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Cannot reactivate: No top-up found after deactivation. Please add funds to your wallet first.\",\n  \"errors\": []\n}"
+								}
+							]
+						},
+						{
+							"name": "Check Generator Owner Status",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/GeneratorOwner/101/Status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"GeneratorOwner",
+										"101",
+										"Status"
+									]
+								},
+								"description": "Check the current status of a Generator Owner (ACTIVE, DEACTIVATED, SUSPENDED) and whether they can use the platform."
+							},
+							"response": [
+								{
+									"name": "200 OK - Active",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/GeneratorOwner/101/Status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"GeneratorOwner",
+												"101",
+												"Status"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Status retrieved successfully.\",\n  \"data\": {\n    \"status\": {\n      \"generatorOwnerUserId\": 101,\n      \"statusCode\": \"ACTIVE\",\n      \"canUsePlatform\": true\n    }\n  }\n}"
+								},
+								{
+									"name": "200 OK - Deactivated",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/GeneratorOwner/101/Status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"GeneratorOwner",
+												"101",
+												"Status"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Status retrieved successfully.\",\n  \"data\": {\n    \"status\": {\n      \"generatorOwnerUserId\": 101,\n      \"statusCode\": \"DEACTIVATED\",\n      \"canUsePlatform\": false\n    }\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Deactivate Generator Owner",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"reason\": \"Manual deactivation by admin\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/GeneratorOwner/Deactivate",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"GeneratorOwner",
+										"Deactivate"
+									]
+								},
+								"description": "Manually deactivate a Generator Owner account. Revokes all refresh tokens and sets status to DEACTIVATED."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"reason\": \"Manual deactivation by admin\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/GeneratorOwner/Deactivate",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"GeneratorOwner",
+												"Deactivate"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Generator Owner deactivated successfully.\",\n  \"data\": {\n    \"response\": {\n      \"generatorOwnerUserId\": 101,\n      \"statusCode\": \"DEACTIVATED\",\n      \"deactivatedAt\": \"2025-11-29T10:00:00Z\",\n      \"reason\": \"Manual deactivation by admin\"\n    }\n  }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Wallet Management",
+					"item": [
+						{
+							"name": "Top Up Wallet",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"amount\": 500.00,\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"referenceNumber\": \"TXN-2025-11-29-001\",\n  \"notes\": \"Top-up via bank transfer\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/Wallet/TopUp",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"Wallet",
+										"TopUp"
+									]
+								},
+								"description": "Add funds to a Generator Owner's wallet. Validates wallet cap before processing. If referenceNumber is not provided, it will be set to the TopUpId."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"amount\": 500.00,\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"referenceNumber\": \"TXN-2025-11-29-001\",\n  \"notes\": \"Top-up via bank transfer\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/Wallet/TopUp",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"Wallet",
+												"TopUp"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Wallet topped up successfully.\",\n  \"data\": {\n    \"topUp\": {\n      \"topUpId\": 1,\n      \"walletTransactionId\": 1,\n      \"generatorOwnerUserId\": 101,\n      \"amount\": 500.00,\n      \"newBalance\": 500.00,\n      \"paymentMethod\": \"BANK_TRANSFER\",\n      \"referenceNumber\": \"TXN-2025-11-29-001\",\n      \"processedAt\": \"2025-11-29T10:00:00Z\"\n    }\n  }\n}"
+								},
+								{
+									"name": "400 BadRequest - Exceeds Cap",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"amount\": 2000.00,\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"referenceNumber\": \"TXN-2025-11-29-002\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/Wallet/TopUp",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"Wallet",
+												"TopUp"
+											]
+										}
+									},
+									"code": 400,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Top-up amount would exceed wallet cap. Current balance: 500.00, Cap: 1000.00, Attempted top-up: 2000.00\",\n  \"errors\": []\n}"
+								}
+							]
+						},
+						{
+							"name": "Set Wallet Cap Override",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"overrideCap\": 2000.00,\n  \"reason\": \"Special approval for high-volume customer\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/Wallet/SetCapOverride",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"Wallet",
+										"SetCapOverride"
+									]
+								},
+								"description": "Set or remove a wallet cap override for a Generator Owner. Set overrideCap to null to remove override and use default cap. Cannot set cap below current balance."
+							},
+							"response": [
+								{
+									"name": "200 OK - Set Override",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"overrideCap\": 2000.00,\n  \"reason\": \"Special approval for high-volume customer\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/Wallet/SetCapOverride",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"Wallet",
+												"SetCapOverride"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Wallet cap override set successfully.\",\n  \"data\": {\n    \"capOverride\": {\n      \"generatorOwnerUserId\": 101,\n      \"oldCap\": null,\n      \"newOverrideCap\": 2000.00,\n      \"effectiveCap\": 2000.00,\n      \"reason\": \"Special approval for high-volume customer\",\n      \"setByUserId\": 1,\n      \"setAt\": \"2025-11-29T10:00:00Z\"\n    }\n  }\n}"
+								},
+								{
+									"name": "200 OK - Remove Override",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"overrideCap\": null,\n  \"reason\": \"Reverting to default cap\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/Wallet/SetCapOverride",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"Wallet",
+												"SetCapOverride"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Wallet cap override set successfully.\",\n  \"data\": {\n    \"capOverride\": {\n      \"generatorOwnerUserId\": 101,\n      \"oldCap\": 2000.00,\n      \"newOverrideCap\": null,\n      \"effectiveCap\": 1000.00,\n      \"reason\": \"Reverting to default cap\",\n      \"setByUserId\": 1,\n      \"setAt\": \"2025-11-29T10:00:00Z\"\n    }\n  }\n}"
+								},
+								{
+									"name": "400 BadRequest - Below Balance",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"generatorOwnerUserId\": 101,\n  \"overrideCap\": 100.00,\n  \"reason\": \"Test\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/Wallet/SetCapOverride",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"Wallet",
+												"SetCapOverride"
+											]
+										}
+									},
+									"code": 400,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Cannot set wallet cap below current balance. Current balance: 500.00\",\n  \"errors\": []\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Generator Owner Wallet Balance",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/Wallet/Balance/101",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"Wallet",
+										"Balance",
+										"101"
+									]
+								},
+								"description": "View a Generator Owner's wallet balance, projected charges, and cap information. Admin-only endpoint."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/Wallet/Balance/101",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"Wallet",
+												"Balance",
+												"101"
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Balance retrieved successfully.\",\n  \"data\": {\n    \"balance\": {\n      \"balance\": 500.00,\n      \"projectedNextCycleCharge\": 150.00,\n      \"availableBalance\": 350.00,\n      \"effectiveCap\": 1000.00,\n      \"defaultCap\": 1000.00,\n      \"overrideCap\": null,\n      \"daysUntilNextBilling\": 15,\n      \"nextBillingDate\": \"2025-12-15T00:00:00Z\",\n      \"warningMessage\": null\n    }\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Generator Owner Wallet Transactions",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/Admin/Wallet/Transactions/101?pageNumber=1&pageSize=25",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Admin",
+										"Wallet",
+										"Transactions",
+										"101"
+									],
+									"query": [
+										{
+											"key": "pageNumber",
+											"value": "1",
+											"description": "Page number (default: 1)"
+										},
+										{
+											"key": "pageSize",
+											"value": "25",
+											"description": "Page size (default: 25, max: 100)"
+										},
+										{
+											"key": "fromDate",
+											"value": "",
+											"description": "Optional: Filter from date (ISO 8601)",
+											"disabled": true
+										},
+										{
+											"key": "toDate",
+											"value": "",
+											"description": "Optional: Filter to date (ISO 8601)",
+											"disabled": true
+										},
+										{
+											"key": "type",
+											"value": "",
+											"description": "Optional: Filter by transaction type (TOPUP, MONTHLY_BILLING, SMS_CAMPAIGN, SMS_REFUND, MANUAL_ADJUSTMENT)",
+											"disabled": true
+										}
+									]
+								},
+								"description": "View paginated wallet transaction history for a Generator Owner. Supports filtering by date range and transaction type. Admin-only endpoint."
+							},
+							"response": [
+								{
+									"name": "200 OK - Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{token}}"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/Admin/Wallet/Transactions/101?pageNumber=1&pageSize=25",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"Admin",
+												"Wallet",
+												"Transactions",
+												"101"
+											],
+											"query": [
+												{
+													"key": "pageNumber",
+													"value": "1"
+												},
+												{
+													"key": "pageSize",
+													"value": "25"
+												}
+											]
+										}
+									},
+									"code": 200,
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n  \"correlationId\": \"...\",\n  \"message\": \"Transactions retrieved successfully.\",\n  \"data\": {\n    \"page\": {\n      \"items\": [\n        {\n          \"id\": 1,\n          \"timestamp\": \"2025-11-29T10:00:00Z\",\n          \"type\": \"TOPUP\",\n          \"typeDescription\": \"Wallet top-up\",\n          \"quantity\": null,\n          \"unitPrice\": null,\n          \"totalAmount\": 500.00,\n          \"balanceAfter\": 500.00,\n          \"refId\": \"TXN-2025-11-29-001\",\n          \"description\": \"Top-up via BANK_TRANSFER\"\n        },\n        {\n          \"id\": 2,\n          \"timestamp\": \"2025-11-30T08:00:00Z\",\n          \"type\": \"MONTHLY_BILLING\",\n          \"typeDescription\": \"Monthly billing cycle charge\",\n          \"quantity\": 10,\n          \"unitPrice\": 5.00,\n          \"totalAmount\": -150.00,\n          \"balanceAfter\": 350.00,\n          \"refId\": \"1\",\n          \"description\": \"Monthly billing - 10 subscribers\"\n        }\n      ],\n      \"pageNumber\": 1,\n      \"pageSize\": 25,\n      \"totalCount\": 2\n    }\n  }\n}"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Wallet",
+			"item": [
+				{
+					"name": "Get Balance",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/Wallet/Balance",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"Wallet",
+								"Balance"
+							]
+						},
+						"description": "Get current wallet balance, projected next cycle charges, and cap information. Returns warning message if balance won't cover next billing cycle."
+					},
+					"response": [
+						{
+							"name": "200 OK - Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/Wallet/Balance",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Wallet",
+										"Balance"
+									]
+								}
+							},
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"correlationId\": \"e5a0b483-...\",\n  \"message\": \"Balance retrieved successfully.\",\n  \"data\": {\n    \"balance\": {\n      \"balance\": 500.00,\n      \"projectedNextCycleCharge\": 150.00,\n      \"availableBalance\": 350.00,\n      \"effectiveCap\": 1000.00,\n      \"defaultCap\": 1000.00,\n      \"overrideCap\": null,\n      \"daysUntilNextBilling\": 15,\n      \"nextBillingDate\": \"2025-12-15T00:00:00Z\",\n      \"warningMessage\": null\n    }\n  }\n}"
+						},
+						{
+							"name": "200 OK - With Warning",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/Wallet/Balance",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Wallet",
+										"Balance"
+									]
+								}
+							},
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"correlationId\": \"e5a0b483-...\",\n  \"message\": \"Balance retrieved successfully.\",\n  \"data\": {\n    \"balance\": {\n      \"balance\": 100.00,\n      \"projectedNextCycleCharge\": 150.00,\n      \"availableBalance\": -50.00,\n      \"effectiveCap\": 1000.00,\n      \"defaultCap\": 1000.00,\n      \"overrideCap\": null,\n      \"daysUntilNextBilling\": 5,\n      \"nextBillingDate\": \"2025-12-05T00:00:00Z\",\n      \"warningMessage\": \"Your current balance will not cover the next billing cycle. Please add funds to avoid service interruption.\"\n    }\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/Wallet/Transactions?pageNumber=1&pageSize=25",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"Wallet",
+								"Transactions"
+							],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "pageSize",
+									"value": "25",
+									"description": "Page size (default: 25, max: 100)"
+								},
+								{
+									"key": "fromDate",
+									"value": "",
+									"description": "Optional: Filter from date (ISO 8601)",
+									"disabled": true
+								},
+								{
+									"key": "toDate",
+									"value": "",
+									"description": "Optional: Filter to date (ISO 8601)",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "",
+									"description": "Optional: Filter by transaction type (TOPUP, MONTHLY_BILLING, SMS_CAMPAIGN, SMS_REFUND, MANUAL_ADJUSTMENT)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated wallet transaction history. Supports filtering by date range and transaction type."
+					},
+					"response": [
+						{
+							"name": "200 OK - Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/Wallet/Transactions?pageNumber=1&pageSize=25",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Wallet",
+										"Transactions"
+									],
+									"query": [
+										{
+											"key": "pageNumber",
+											"value": "1"
+										},
+										{
+											"key": "pageSize",
+											"value": "25"
+										}
+									]
+								}
+							},
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"correlationId\": \"e5a0b483-...\",\n  \"message\": \"Transactions retrieved successfully.\",\n  \"data\": {\n    \"page\": {\n      \"items\": [\n        {\n          \"id\": 1,\n          \"timestamp\": \"2025-11-29T10:00:00Z\",\n          \"type\": \"TOPUP\",\n          \"typeDescription\": \"Wallet top-up\",\n          \"quantity\": null,\n          \"unitPrice\": null,\n          \"totalAmount\": 500.00,\n          \"balanceAfter\": 500.00,\n          \"refId\": 1,\n          \"description\": \"Top-up via bank transfer\"\n        },\n        {\n          \"id\": 2,\n          \"timestamp\": \"2025-11-30T08:00:00Z\",\n          \"type\": \"MONTHLY_BILLING\",\n          \"typeDescription\": \"Monthly billing cycle charge\",\n          \"quantity\": 10,\n          \"unitPrice\": 5.00,\n          \"totalAmount\": -150.00,\n          \"balanceAfter\": 350.00,\n          \"refId\": 1,\n          \"description\": \"Monthly billing - 10 subscribers\"\n        },\n        {\n          \"id\": 3,\n          \"timestamp\": \"2025-12-01T14:00:00Z\",\n          \"type\": \"SMS_CAMPAIGN\",\n          \"typeDescription\": \"SMS campaign charge\",\n          \"quantity\": 100,\n          \"unitPrice\": 0.10,\n          \"totalAmount\": -10.00,\n          \"balanceAfter\": 340.00,\n          \"refId\": 5,\n          \"description\": \"SMS Campaign \\\"New Year Promotion\\\" upfront charge - 100 SMS\"\n        }\n      ],\n      \"pageNumber\": 1,\n      \"pageSize\": 25,\n      \"totalCount\": 3,\n      \"totalPages\": 1,\n      \"hasNext\": false,\n      \"hasPrevious\": false\n    }\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Forecast Cost",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subscriberCount\": 5,\n  \"smsCount\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/Wallet/Forecast",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"Wallet",
+								"Forecast"
+							]
+						},
+						"description": "Forecast the cost of adding subscribers or sending SMS. Returns cost breakdown and whether the operation is affordable based on current balance."
+					},
+					"response": [
+						{
+							"name": "200 OK - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"subscriberCount\": 5,\n  \"smsCount\": null\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Wallet/Forecast",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Wallet",
+										"Forecast"
+									]
+								}
+							},
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"correlationId\": \"e5a0b483-...\",\n  \"message\": \"Forecast calculated successfully.\",\n  \"data\": {\n    \"forecast\": {\n      \"forecastedCost\": 25.00,\n      \"currentAvailableBalance\": 350.00,\n      \"newAvailableBalance\": 325.00,\n      \"isAffordable\": true,\n      \"warningMessage\": null,\n      \"message\": \"Adding 5 subscriber(s) will increase your monthly billing by $25.00.\"\n    }\n  }\n}"
+						},
+						{
+							"name": "200 OK - With Warning",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"subscriberCount\": 20,\n  \"smsCount\": null\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Wallet/Forecast",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Wallet",
+										"Forecast"
+									]
+								}
+							},
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"correlationId\": \"e5a0b483-...\",\n  \"message\": \"Forecast calculated successfully.\",\n  \"data\": {\n    \"forecast\": {\n      \"forecastedCost\": 100.00,\n      \"currentAvailableBalance\": 50.00,\n      \"newAvailableBalance\": -50.00,\n      \"isAffordable\": false,\n      \"warningMessage\": \"Your balance will not cover the next billing cycle after this operation. Please add funds to avoid service interruption.\",\n      \"message\": \"Adding 20 subscriber(s) will increase your monthly billing by $100.00.\"\n    }\n  }\n}"
+						},
+						{
+							"name": "200 OK - SMS Forecast",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"subscriberCount\": null,\n  \"smsCount\": 500\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/Wallet/Forecast",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"Wallet",
+										"Forecast"
+									]
+								}
+							},
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"correlationId\": \"e5a0b483-...\",\n  \"message\": \"Forecast calculated successfully.\",\n  \"data\": {\n    \"forecast\": {\n      \"forecastedCost\": 50.00,\n      \"currentAvailableBalance\": 350.00,\n      \"newAvailableBalance\": 300.00,\n      \"isAffordable\": true,\n      \"warningMessage\": null,\n      \"message\": \"Sending 500 SMS will cost $50.00.\"\n    }\n  }\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5010"
+		},
+		{
+			"key": "username",
+			"value": "go01"
+		},
+		{
+			"key": "password",
+			"value": "Password123!"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "refreshToken",
+			"value": ""
+		}
+	]
+}

@@ -47,9 +47,6 @@ export class BillsListComponent implements OnInit {
             billDateFrom: currentDate,
             billDateTo: currentDate
         };
-
-        this.billSearchFilter.billDateFrom = new Date('2025-11-23');
-        this.billSearchFilter.billDateTo = new Date('2025-11-23');
     }
 
     bills: Bill[] = [];
@@ -324,7 +321,6 @@ export class BillsListComponent implements OnInit {
 
     // Search filter functions
     applyFilters() {
-        console.log('clicked');
         this.search$.next(this.billSearchFilter);
     }
 

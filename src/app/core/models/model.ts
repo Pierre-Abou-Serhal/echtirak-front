@@ -55,7 +55,12 @@ export interface BillCollectorProfile {
 export interface SmsTemplate {
     id: number;
     name: string;
+    nameAr: string;
     body: string;
+    bodyAr: string;
+    language: string;
+    isActive: boolean;
+    templateVariables: string[];
 }
 
 export interface SubscriptionBillingModel {
@@ -94,4 +99,31 @@ export interface Bill {
     subscriptionFeeVar: number;
     subscriptionFeeFixed: number;
     notes: string;
+}
+
+
+export interface SmsCampaign {
+    id: number;
+    campaignName: string;
+    selectionCriteriaType: string;
+    status: string;
+    totalSubscribers: number;
+    totalSmsSent: number;
+    totalSmsDelivered: number;
+    totalSmsFailed: number;
+    totalSmsPending: number;
+    createdAt: string;
+}
+
+export interface SmsMessage {
+    id: number;
+    campaignId: number;
+    subscriberId: number;
+    subscriberName: string;
+    phoneNumber: string;
+    messageBody: string;
+    status: string;
+    statusDescription: string;
+    sentAt?: string;
+    deliveredAt?: string ;
 }

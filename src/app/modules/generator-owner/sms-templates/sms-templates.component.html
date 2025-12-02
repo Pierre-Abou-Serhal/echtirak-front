@@ -1,13 +1,12 @@
 <div class="flex flex-col">
+    <h1 class="text-3xl font-bold mb-4">
+        SMS Templates
+        <p class="text-sm text-surface-500 mt-1">
+            See how your templates will be sent to customers
+        </p>
+    </h1>
+
     <div class="card">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <div class="font-semibold text-2xl">SMS Templates</div>
-                <p class="text-sm text-surface-500 mt-1">
-                    See how your templates will be sent to customers
-                </p>
-            </div>
-        </div>
 
         <div class="grid grid-cols-12 gap-4">
             <!-- LOADING STATE: skeleton cards -->
@@ -42,9 +41,8 @@
                     </div>
                 }
             }
-
-            <!-- LOADED STATE: real data cards -->
             @else {
+                <!-- LOADED STATE: real data cards -->
                 @for (item of smsTemplates; track item.id) {
                     <div class="col-span-12 sm:col-span-6 lg:col-span-4">
                         <article

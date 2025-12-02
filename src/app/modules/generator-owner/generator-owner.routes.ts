@@ -1,4 +1,5 @@
 import { SubscribersComponent } from '@/modules/generator-owner/subscribers/subscribers.component';
+import { DashboardComponent } from '@/modules/generator-owner/dashboard/dashboard.component';
 import { Routes } from '@angular/router';
 import { GENERATOR_OWNER_MENU } from '@/modules/generator-owner/generator-owner.menu';
 import { GeneratorsComponent } from '@/modules/generator-owner/generators/generators.component';
@@ -10,6 +11,8 @@ import { BillsComponent } from '@/modules/generator-owner/bills/bills.component'
 import {
     SubscriptionBillingModelComponent
 } from '@/modules/generator-owner/subscription-billing-model/subscription-billing-model.component';
+import { SmsCampaignsListComponent } from './sms-campaigns/sms-campaigns-list/sms-campaigns-list.component';
+import { SmsCampaignDetailsComponent } from './sms-campaigns/sms-campaign-details/sms-campaign-details.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -19,6 +22,9 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             profileMenu: GENERATOR_OWNER_PROFILE_MENU
         },
         children: [
+            { path: 'dashboard', component: DashboardComponent },
+            { path: 'sms-campaigns', component: SmsCampaignsListComponent },
+            { path: 'sms-campaigns/:id', component: SmsCampaignDetailsComponent },
             { path: 'subscribers', component: SubscribersComponent },
             { path: 'generators', component: GeneratorsComponent },
             { path: 'profile', component: ProfileComponent },

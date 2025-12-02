@@ -81,3 +81,29 @@ export interface GetBillsQueryParams {
 }
 
 export interface UpsertSubscriptionBillingModelRequest extends SubscriptionBillingModel {}
+
+export interface CreateSmsCampaignRequest {
+    templateId: number;
+    campaignName: string;
+    selectionCriteriaType: string;
+    customSubscriberIds?: number[];
+    language: string;
+}
+
+
+export interface GetSmsCampaignsQueryParams{
+    pageNumber: number;
+    pageSize: number;
+    status?: string;
+    fromDate?: string;
+    ToDate?: string;
+}
+
+export interface GetSmsCampaignDetailsQueryParams {
+    id: number;
+    pageNumber: number;
+    pageSize: number;
+    status?: string;
+    phoneNumber?: string;
+    subscriberName?: string;
+}

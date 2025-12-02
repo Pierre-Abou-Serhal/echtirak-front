@@ -1,0 +1,282 @@
+<div class="p-4">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold">SMS Campaigns</h1>
+        <p-button label="Create Campaign" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+    </div>
+    <div class="card">
+
+        <!-- FILTERS BAR -->
+        <div class="mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <!-- Bill Date From -->
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2" for="filterBillDateFrom">
+                        Bill Date From
+                    </label>
+                    <p-datepicker
+                        inputId="filterBillDateFrom"
+                        [(ngModel)]="smsCampaignSearchFilter.fromDate"
+                        [showIcon]="true"
+                        [iconDisplay]="'input'"
+                        dateFormat="yy-mm-dd"
+                        appendTo="body"
+                        class="w-full"
+                    ></p-datepicker>
+                </div>
+
+                <!-- Bill Date To -->
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2" for="filterBillDateTo">
+                        Bill Date To
+                    </label>
+                    <p-datepicker
+                        inputId="filterBillDateTo"
+                        [(ngModel)]="smsCampaignSearchFilter.toDate"
+                        [showIcon]="true"
+                        [iconDisplay]="'input'"
+                        dateFormat="yy-mm-dd"
+                        appendTo="body"
+                        class="w-full"
+                    ></p-datepicker>
+                </div>
+
+                <!-- Status -->
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2" for="filterStatus">
+                        Status
+                    </label>
+                    <p-select
+                        inputId="filterStatus"
+                        class="w-full"
+                        [options]="smsCampaignStatuses"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="All statuses"
+                        [showClear]="true"
+                        [(ngModel)]="smsCampaignSearchFilter.status"
+                        [loading]="isSmsCampaignStatusesLoading"
+                    ></p-select>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-end gap-2">
+                    <p-button
+                        label="Apply"
+                        icon="pi pi-filter"
+                        (click)="applyFilters()"
+                        [loading]="loading"
+                    ></p-button>
+
+                    <p-button
+                        label="Reset"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        text
+                        (click)="resetFilters()"
+                    ></p-button>
+                </div>
+
+            </div>
+        </div>
+        <div class="mb-4">
+            <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
+            <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
+            <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
+        </div>
+
+        <p-table
+            #dt
+            [value]="campaigns"
+            dataKey="id"
+            [rows]="rows"
+            [totalRecords]="totalRecords"
+            responsiveLayout="scroll"
+            [loading]="loading"
+            rowHover
+            showGridlines
+            paginator
+            stripedRows
+            [first]="first"
+            [rowsPerPageOptions]="rowsPerPageOptions"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+            [(selection)]="selectedCampaigns"
+            (onPage)="pageChange($event)"
+            [globalFilterFields]="['campaignName', 'totalSubscribers', 'totalSmsSent', 'totalSmsDelivered', 'totalSmsFailed', 'createdAt', 'status']"
+        >
+            <ng-template #caption>
+                <!-- Export To CSV -->
+                <div class="flex justify-between items-center flex-column sm:flex-row gap-3 pb-4">
+                    <div class="flex flex-wrap items-center gap-2 ml-auto">
+                        <p-button
+                            icon="pi pi-external-link"
+                            label="Export CSV"
+                            (click)="exportToCsv()"
+                        />
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center flex-column sm:flex-row">
+                    <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt)"></button>
+                    <p-iconfield iconPosition="left" class="ml-auto">
+                        <p-inputicon>
+                            <i class="pi pi-search"></i>
+                        </p-inputicon>
+                        <input
+                            pInputText
+                            type="text"
+                            [(ngModel)]="keyword"
+                            (ngModelChange)="onGlobalFilter(dt, $event)"
+                            placeholder="Search keyword"
+                        />
+                    </p-iconfield>
+                </div>
+
+            </ng-template>
+            <ng-template #header>
+                <tr>
+                    <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+                    <th style="width: 4rem"></th>
+
+                    <th pSortableColumn="name">
+                        <div class="flex justify-between items-center gap-2">
+                            Name
+                            <p-sortIcon field="name" />
+                        </div>
+                    </th>
+
+                    <th pSortableColumn="status">
+                        <div class="flex justify-between items-center gap-2">
+                            Status
+                            <p-sortIcon field="status" />
+                        </div>
+                    </th>
+
+                    <th pSortableColumn="subscribers">
+                        <div class="flex justify-between items-center gap-2">
+                            Subscribers
+                            <p-sortIcon field="subscribers" />
+                        </div>
+                    </th>
+
+                    <th pSortableColumn="sent">
+                        <div class="flex justify-between items-center gap-2">
+                            Sent
+                            <p-sortIcon field="sent" />
+                        </div>
+                    </th>
+
+                    <th pSortableColumn="delivered">
+                        <div class="flex justify-between items-center gap-2">
+                            Delivered
+                            <p-sortIcon field="delivered" />
+                        </div>
+                    </th>
+
+                    <th pSortableColumn="failed">
+                        <div class="flex justify-between items-center gap-2">
+                            Failed
+                            <p-sortIcon field="failed" />
+                        </div>
+                    </th>
+
+                    <th pSortableColumn="createdAt">
+                        <div class="flex justify-between items-center gap-2">
+                            Created At
+                            <p-sortIcon field="createdAt" />
+                        </div>
+                    </th>
+                </tr>
+            </ng-template>
+            <ng-template #body let-campaign>
+                <tr>
+                    <td>
+                        <p-tableCheckbox [value]="campaign" />
+                    </td>
+                    <td>
+                        <div class="flex">
+                            <p-button icon="pi pi-eye" styleClass="p-button-sm me-2" (click)="viewDetails(campaign)" severity="primary" rounded />
+                        </div>
+
+                    </td>
+                    <td>{{ campaign.campaignName }}</td>
+                    <td>
+                        <p-tag [value]="campaign.status" [severity]="getStatusSeverity(campaign.status)"></p-tag>
+                    </td>
+                    <td>{{ campaign.totalSubscribers }}</td>
+                    <td>{{ campaign.totalSmsSent }}</td>
+                    <td>{{ campaign.totalSmsDelivered }}</td>
+                    <td>{{ campaign.totalSmsFailed }}</td>
+                    <td>{{ campaign.createdAt | date:'yyyy-MM-dd, h:mm a' }}</td>
+                </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+                <tr>
+                    <td colspan="9">No sms campaigns found.</td>
+                </tr>
+            </ng-template>
+            <ng-template #loadingbody>
+                <tr>
+                    <td colspan="9">Loading sms campaigns data. Please wait.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+
+        <p-dialog header="Create SMS Campaign" [(visible)]="showCreateDialog" [modal]="true" [style]="{ width: '640px' }"
+                  [draggable]="false" [resizable]="false">
+            <form [formGroup]="createForm" (ngSubmit)="saveCampaign()" class="flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                    <label for="campaignName">Campaign Name</label>
+                    <input pInputText id="campaignName" formControlName="campaignName" />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="template">Template</label>
+                    <p-select id="template" [options]="templates" formControlName="templateId" optionLabel="name"
+                              optionValue="id" placeholder="Select a template" [overlayOptions]="getOverlayOptions()"></p-select>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="criteria">Selection Criteria</label>
+                    <p-select id="criteria" [options]="criteriaOptions" formControlName="selectionCriteriaType"
+                              optionLabel="label" optionValue="value" placeholder="Select criteria"
+                              (onChange)="onCriteriaChange()" [overlayOptions]="getOverlayOptions()"></p-select>
+                </div>
+
+                @if (createForm.get('selectionCriteriaType')?.value === 'CUSTOM'){
+                    <div class="flex flex-col gap-2">
+                        <label for="subscribers">Select Subscribers</label>
+                        <p-multiSelect
+                            #multiSelect
+                            appendTo="body"
+                            id="subscribers"
+                            [options]="subscribers"
+                            formControlName="customSubscriberIds"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Select subscribers"
+                            display="chip"
+                            [filter]="true"
+                            (onFilter)="onFilter($event)"
+                            (onPanelShow)="onSubscribersPanelShow()"
+                            (onPanelHide)="onSubscribersPanelHide()"
+                            [overlayOptions]="getOverlayOptions()"></p-multiSelect>
+                    </div>
+                }
+
+                <div class="flex flex-col gap-2">
+                    <label for="language">Language</label>
+                    <p-select id="language" [options]="languageOptions" formControlName="language" optionLabel="label"
+                              optionValue="value" [overlayOptions]="getOverlayOptions()"></p-select>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <p-button label="Cancel" styleClass="p-button-text" (onClick)="showCreateDialog = false"></p-button>
+                    <p-button label="Create" type="submit" [disabled]="createForm.invalid"></p-button>
+                </div>
+            </form>
+        </p-dialog>
+    </div>
+
+</div>

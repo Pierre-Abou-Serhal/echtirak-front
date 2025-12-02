@@ -1,17 +1,10 @@
-import {
-    Subscriber,
-    User,
-    Generator,
-    GeneratorOwnerProfile,
-    BillCollectorProfile,
-    SmsTemplate, SubscriptionBillingModel, Lookup, Bill
-} from '@/core/models/model';
-import { TokenPair } from '@/core/dtos/dto';
+import { Subscriber, User, Generator, GeneratorOwnerProfile, BillCollectorProfile, SmsTemplate, SubscriptionBillingModel, Lookup, Bill, SmsCampaign } from '@/core/models/model';
+import { DashboardBills, DashboardConsumption, DashboardRecentActivity, DashboardSubscribers, DashboardWallet, DashboardWalletStatistics, SmsCampaignDetail, SmsCampaignDetailsMessage, SmsCampaignStatistics, TokenPair } from '@/core/dtos/dto';
 
 // Auth Response
 export interface SignInResponse {
-    user: User,
-    token: TokenPair
+    user: User;
+    token: TokenPair;
 }
 
 export interface RefreshTokenResponse {
@@ -21,23 +14,23 @@ export interface RefreshTokenResponse {
 
 //Generator Owner Response
 export interface GetSubscribersPage {
-    items: Subscriber[],
-    pageNumber: number,
-    pageSize: number,
-    totalCount: number,
-    totalPages: number,
-    hasNext: boolean,
-    hasPrevious: boolean
+    items: Subscriber[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
 }
 
 export interface GetSubscribersResponse {
-    page: GetSubscribersPage
+    page: GetSubscribersPage;
 }
 
-export interface UpsertSubscriberResponse extends Subscriber {}
+export interface UpsertSubscriberResponse extends Subscriber { }
 
 export interface GetGeneratorsResponse {
-    generators: Generator[]
+    generators: Generator[];
 }
 
 export interface UpsertGeneratorResponse {
@@ -78,7 +71,7 @@ export interface GenerateBillsResponse {
 
 export interface AcceptBillsResponse {
     success: boolean;
-    billsInserted: number
+    billsInserted: number;
 }
 
 export interface GenerateAllBillsResponse {
@@ -101,4 +94,37 @@ export interface GetBillsPage {
 
 export interface UpsertSubscriptionBillingModelResponse {
     model: SubscriptionBillingModel;
+}
+
+export interface GetGeneratorOwnerDashboardResponse {
+    subscribers: DashboardSubscribers;
+    bills: DashboardBills;
+    consumption: DashboardConsumption;
+    recentActivity: DashboardRecentActivity;
+    wallet: DashboardWallet;
+    walletStatistics: DashboardWalletStatistics;
+}
+
+export interface GetSmsCampaignPage {
+    items: SmsCampaign[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface GetSmsCampaignsResponse {
+    page: GetSmsCampaignPage;
+}
+
+export interface CreateSmsCampaignResponse {
+    campaign: SmsCampaign;
+}
+
+export interface GetSmsCampaignDetailsResponse {
+    campaign: SmsCampaignDetail;
+    statistics: SmsCampaignStatistics;
+    messages: SmsCampaignDetailsMessage;
 }

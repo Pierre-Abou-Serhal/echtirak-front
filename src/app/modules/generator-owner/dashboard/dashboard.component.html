@@ -1,0 +1,219 @@
+@let dashboard = dashboardResponse();
+
+@if(dashboard){
+<div class="grid grid-cols-12 gap-4">
+    <div class="col-span-12">
+        <h1 class="text-3xl font-bold mb-4">Dashboard</h1>
+    </div>
+
+    <!-- Stats Cards Row 1 -->
+    <div class="col-span-12 md:col-span-6 lg:col-span-3">
+        <p-card header="Subscribers">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="text-2xl font-bold">{{dashboard.subscribers.total}}</div>
+                    <div class="text-sm text-gray-500">Total Subscribers</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-green-500 font-bold">+{{dashboard.subscribers.newThisMonth}}</div>
+                    <div class="text-xs text-gray-500">New this month</div>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-400 flex justify-between">
+                <span>Active: {{dashboard.subscribers.active}}</span>
+                <span>Inactive: {{dashboard.subscribers.inactive}}</span>
+            </div>
+            <div class="mt-1 text-xs text-gray-400 text-right">
+                New this week: +{{dashboard.subscribers.newThisWeek}}
+            </div>
+        </p-card>
+    </div>
+
+    <div class="col-span-12 md:col-span-6 lg:col-span-3">
+        <p-card header="Revenue (This Month)">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="text-2xl font-bold">{{dashboard.bills.thisMonth.revenue | currency}}</div>
+                    <div class="text-sm text-gray-500">{{dashboard.bills.thisMonth.count}} Bills</div>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-400">
+                Last Month: {{dashboard.bills.lastMonth.revenue | currency}} ({{dashboard.bills.lastMonth.count}} Bills)
+            </div>
+            <div class="mt-1 text-xs text-gray-400">
+                Total Revenue: {{dashboard.bills.totalRevenue | currency}}
+            </div>
+        </p-card>
+    </div>
+
+    <div class="col-span-12 md:col-span-6 lg:col-span-3">
+        <p-card header="Bills Status">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="text-2xl font-bold">{{dashboard.bills.total}}</div>
+                    <div class="text-sm text-gray-500">Total Bills</div>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-400 flex justify-between">
+                <span class="text-yellow-500">Pending: {{dashboard.bills.pending}}</span>
+                <span class="text-green-500">Paid: {{dashboard.bills.paid}}</span>
+            </div>
+            <div class="mt-1 text-xs text-red-500">
+                Overdue: {{dashboard.bills.overdue}} ({{dashboard.bills.overdueAmount | currency}})
+            </div>
+        </p-card>
+    </div>
+
+    <div class="col-span-12 md:col-span-6 lg:col-span-3">
+        <p-card header="Wallet Balance">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="text-2xl font-bold">{{dashboard.wallet.balance | currency}}</div>
+                    <div class="text-sm text-gray-500">Available: {{dashboard.wallet.availableBalance | currency}}</div>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-400">
+                Next Billing: {{dashboard.wallet.nextBillingDate | date}} ({{dashboard.wallet.daysUntilNextBilling}}
+                days)
+            </div>
+            <div class="mt-1 text-xs text-gray-400">
+                Projected Charge: {{dashboard.wallet.projectedNextCycleCharge | currency}}
+            </div>
+            <div class="mt-1 text-xs text-gray-400">
+                Cap: {{dashboard.wallet.effectiveCap | currency}}
+            </div>
+            @if(dashboard.wallet.warningMessage){
+            <div class="mt-2 text-xs text-red-500">
+                {{dashboard.wallet.warningMessage}}
+            </div>
+            }
+        </p-card>
+    </div>
+
+    <!-- Row 2: Charts -->
+    <div class="col-span-12 md:col-span-4">
+        <p-card header="Recent Activity (Last 7 Days)">
+            <p-chart type="bar" [data]="recentActivityChartData" [options]="recentActivityChartOptions"
+                height="250px"></p-chart>
+        </p-card>
+    </div>
+    <div class="col-span-12 md:col-span-4">
+        <p-card header="Bills Status Distribution">
+            <p-chart type="doughnut" [data]="billsChartData" [options]="billsChartOptions" height="250px"></p-chart>
+        </p-card>
+    </div>
+    <div class="col-span-12 md:col-span-4">
+        <p-card header="Revenue Comparison">
+            <p-chart type="bar" [data]="revenueChartData" [options]="revenueChartOptions" height="250px"></p-chart>
+        </p-card>
+    </div>
+
+    <!-- Row 3: Consumption & Wallet Stats -->
+    <div class="col-span-12 md:col-span-6">
+        <p-card header="Consumption Overview">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 border rounded">
+                    <div class="text-lg font-semibold">{{dashboard.consumption.totalKva}}</div>
+                    <div class="text-sm text-gray-500">Total KVA</div>
+                </div>
+                <div class="p-4 border rounded">
+                    <div class="text-lg font-semibold">{{dashboard.consumption.totalKvaThisMonth}}</div>
+                    <div class="text-sm text-gray-500">Total KVA (This Month)</div>
+                </div>
+                <div class="p-4 border rounded col-span-2">
+                    <div class="text-lg font-semibold">{{dashboard.consumption.averageKvaPerSubscriber |
+                        number:'1.0-2'}}
+                    </div>
+                    <div class="text-sm text-gray-500">Avg KVA / Subscriber</div>
+                </div>
+            </div>
+        </p-card>
+    </div>
+
+    <div class="col-span-12 md:col-span-6">
+        <p-card header="Wallet Statistics">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-3 border rounded">
+                    <div class="text-sm text-gray-500">Top Ups (This Month)</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.topUpsThisMonth | currency}}</div>
+                </div>
+                <div class="p-3 border rounded">
+                    <div class="text-sm text-gray-500">Spent (This Month)</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.spentThisMonth | currency}}</div>
+                </div>
+                <div class="p-3 border rounded">
+                    <div class="text-sm text-gray-500">SMS Charges</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.smsChargesThisMonth | currency}}</div>
+                </div>
+                <div class="p-3 border rounded">
+                    <div class="text-sm text-gray-500">Billing Charges</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.billingChargesThisMonth | currency}}
+                    </div>
+                </div>
+                <div class="p-3 border rounded">
+                    <div class="text-sm text-gray-500">Refunds</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.refundsThisMonth | currency}}</div>
+                </div>
+                <div class="p-3 border rounded">
+                    <div class="text-sm text-gray-500">Transactions</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.transactionsThisMonth}}</div>
+                </div>
+                <div class="p-3 border rounded col-span-2">
+                    <div class="text-sm text-gray-500">Last Transaction</div>
+                    <div class="text-lg font-bold">{{dashboard.walletStatistics.lastTransactionDate | date:'medium'}}
+                    </div>
+                </div>
+            </div>
+        </p-card>
+    </div>
+
+    <!-- Row 4: All Time Stats -->
+    <div class="col-span-12">
+        <p-card header="All Time Statistics">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 border rounded text-center">
+                    <div class="text-2xl font-bold text-blue-600">{{dashboard.walletStatistics.totalTopUpsAllTime |
+                        currency}}</div>
+                    <div class="text-sm text-gray-600">Total Top Ups</div>
+                </div>
+                <div class="p-4 border rounded text-center">
+                    <div class="text-2xl font-bold text-red-600">{{dashboard.walletStatistics.totalSpentAllTime |
+                        currency}}</div>
+                    <div class="text-sm text-gray-600">Total Spent</div>
+                </div>
+                <div class="p-4 border rounded text-center">
+                    <div class="text-2xl font-bold text-purple-600">
+                        {{dashboard.walletStatistics.totalTransactionsAllTime}}</div>
+                    <div class="text-sm text-gray-600">Total Transactions</div>
+                </div>
+            </div>
+        </p-card>
+    </div>
+
+</div>
+} @else {
+<div class="grid grid-cols-12 gap-4">
+    <div class="col-span-12">
+        <p-skeleton width="10rem" height="2rem" styleClass="mb-4"></p-skeleton>
+    </div>
+    @for (i of [1, 2, 3, 4]; track i) {
+    <div class="col-span-12 md:col-span-6 lg:col-span-3">
+        <p-skeleton height="150px"></p-skeleton>
+    </div>
+    }
+    @for (i of [1, 2, 3]; track i) {
+    <div class="col-span-12 md:col-span-4">
+        <p-skeleton height="300px"></p-skeleton>
+    </div>
+    }
+    <div class="col-span-12 md:col-span-6">
+        <p-skeleton height="300px"></p-skeleton>
+    </div>
+    <div class="col-span-12 md:col-span-6">
+        <p-skeleton height="300px"></p-skeleton>
+    </div>
+    <div class="col-span-12">
+        <p-skeleton height="150px"></p-skeleton>
+    </div>
+</div>
+}

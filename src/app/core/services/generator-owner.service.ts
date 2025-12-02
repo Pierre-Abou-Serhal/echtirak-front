@@ -1,15 +1,22 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
 import {
-    AcceptBillsRequest, GenerateAllBillsRequest,
-    GenerateBillsRequest, GetBillsQueryParams,
-    GetLookupQueryParams, GetSubscribersQrCodePdfRequest,
+    AcceptBillsRequest,
+    CreateSmsCampaignRequest,
+    GenerateAllBillsRequest,
+    GenerateBillsRequest,
+    GetBillsQueryParams,
+    GetLookupQueryParams,
+    GetSmsCampaignDetailsQueryParams,
+    GetSmsCampaignsQueryParams,
+    GetSubscribersQrCodePdfRequest,
     GetSubscribersQueryParams,
     GetSubscriptionBillingModelQueryParams,
     UpdateGeneratorOwnerProfileRequest,
     UpsertBillCollectorRequest,
     UpsertGeneratorRequest,
-    UpsertSubscriberRequest, UpsertSubscriptionBillingModelRequest
+    UpsertSubscriberRequest,
+    UpsertSubscriptionBillingModelRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -27,7 +34,11 @@ import {
     GenerateBillsResponse,
     AcceptBillsResponse,
     GetBillsResponse,
-    UpsertSubscriptionBillingModelResponse
+    UpsertSubscriptionBillingModelResponse,
+    GetGeneratorOwnerDashboardResponse,
+    GetSmsCampaignsResponse,
+    CreateSmsCampaignResponse,
+    GetSmsCampaignDetailsResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -37,14 +48,14 @@ export class GeneratorOwnerService {
     public getSubscribers(queryParams: GetSubscribersQueryParams): Observable<GetSubscribersResponse> {
         let params = this.apiService.buildParams(queryParams);
 
-        return this.apiService.get<GetSubscribersResponse>('/GeneratorOwner/GetSubscribers', {params: params});
+        return this.apiService.get<GetSubscribersResponse>('/GeneratorOwner/GetSubscribers', { params: params });
     }
 
     public upsertSubscriber(request: UpsertSubscriberRequest): Observable<UpsertSubscriberResponse> {
         return this.apiService.post<UpsertSubscriberResponse>('/GeneratorOwner/UpsertSubscriber', request);
     }
 
-    public getGenerators():Observable<GetGeneratorsResponse> {
+    public getGenerators(): Observable<GetGeneratorsResponse> {
         return this.apiService.get<GetGeneratorsResponse>('/GeneratorOwner/Generator');
     }
 
@@ -52,7 +63,7 @@ export class GeneratorOwnerService {
         return this.apiService.post<UpsertGeneratorResponse>('/GeneratorOwner/Generator', request);
     }
 
-    public getProfile():Observable<GetGeneratorOwnerProfileResponse> {
+    public getProfile(): Observable<GetGeneratorOwnerProfileResponse> {
         return this.apiService.get<GetGeneratorOwnerProfileResponse>('/GeneratorOwner/Profile');
     }
 
@@ -60,22 +71,22 @@ export class GeneratorOwnerService {
         return this.apiService.post<UpdateGeneratorOwnerProfileResponse>('/GeneratorOwner/Profile', request);
     }
 
-    public getBillCollectorForGO(){
+    public getBillCollectorForGO() {
         return this.apiService.get<GetBillCollectorForGOResponse>('/GeneratorOwner/BillCollectorForGO');
     }
 
-    public upsertBillCollector(request: UpsertBillCollectorRequest): Observable<UpsertBillCollectorResponse>  {
+    public upsertBillCollector(request: UpsertBillCollectorRequest): Observable<UpsertBillCollectorResponse> {
         return this.apiService.post<UpsertBillCollectorResponse>('/GeneratorOwner/BillCollector', request);
     }
 
-    public getSmsTemplate():Observable<GetSmsTemplatesResponse> {
+    public getSmsTemplate(): Observable<GetSmsTemplatesResponse> {
         return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SMSTemplates');
     }
 
-    public getLookup(queryParams: GetLookupQueryParams) : Observable<GetLookupResponse> {
+    public getLookup(queryParams: GetLookupQueryParams): Observable<GetLookupResponse> {
         let params = this.apiService.buildParams(queryParams);
 
-        return this.apiService.get<GetLookupResponse>('/GeneratorOwner/Lookup', {params: params});
+        return this.apiService.get<GetLookupResponse>('/GeneratorOwner/Lookup', { params: params });
     }
 
     public getSubscriberQrCode(subscriberId: number): Observable<Blob> {
@@ -102,7 +113,7 @@ export class GeneratorOwnerService {
     public getBills(queryParams: GetBillsQueryParams): Observable<GetBillsResponse> {
         let params = this.apiService.buildParams(queryParams);
 
-        return this.apiService.get<GetBillsResponse>('/GeneratorOwner/GetBills', {params: params});
+        return this.apiService.get<GetBillsResponse>('/GeneratorOwner/GetBills', { params: params });
     }
 
     public upsertSubscriptionBillingModel(request: UpsertSubscriptionBillingModelRequest): Observable<UpsertSubscriptionBillingModelResponse> {
@@ -112,6 +123,32 @@ export class GeneratorOwnerService {
     public getSubscriptionBillingModel(queryParams: GetSubscriptionBillingModelQueryParams): Observable<GetSubscriptionBillingModelResponse> {
         let params = this.apiService.buildParams(queryParams);
 
-        return this.apiService.get<GetSubscriptionBillingModelResponse>('/GeneratorOwner/SubscriptionBillingModel', {params: params});
+        return this.apiService.get<GetSubscriptionBillingModelResponse>('/GeneratorOwner/SubscriptionBillingModel', { params: params });
+    }
+
+    public getDashboard() {
+        return this.apiService.get<GetGeneratorOwnerDashboardResponse>('/GeneratorOwner/Dashboard');
+    }
+
+    public getSmsTemplates() {
+        return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SmsTemplates');
+    }
+
+    public getSmsCampaigns(queryParams: GetSmsCampaignsQueryParams) {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetSmsCampaignsResponse>('/GeneratorOwner/SmsCampaigns', { params: params });
+    }
+
+    public createSmsCampaign(request: CreateSmsCampaignRequest) {
+        return this.apiService.post<CreateSmsCampaignResponse>('/GeneratorOwner/SmsCampaigns', request);
+    }
+
+    public getSmsCampaignDetails(queryParams: GetSmsCampaignDetailsQueryParams) {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetSmsCampaignDetailsResponse>(`/GeneratorOwner/SmsCampaigns/${queryParams['id']}`, {
+            params: params
+        });
     }
 }
