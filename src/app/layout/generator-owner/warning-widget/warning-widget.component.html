@@ -1,0 +1,57 @@
+@let warnings = (userContext.generatorOwnerWarnings$ | async);
+
+@if (warnings?.length) {
+    <div class="warning-widget flex items-center justify-center">
+
+        <!-- TRIGGER BUTTON (uses theme colors) -->
+        <p-button
+            type="button"
+            severity="warn"
+            [rounded]="true"
+            [text]="true"
+            icon="pi pi-exclamation-triangle"
+            [badge]="warnings?.length?.toString()"
+            badgeSeverity="danger"
+            class="warning-trigger"
+            [class.vibrate]="warnings?.length ?? 0 > 0"
+            (onClick)="toggle()"
+            aria-label="Show warnings"
+        ></p-button>
+
+        <!-- OVERLAY -->
+        <p-overlay
+            [(visible)]="overlayVisible"
+            contentStyleClass="warning-overlay-panel"
+        >
+            <ng-template #content>
+                <div class="warning-header">
+                    <div class="warning-header-icon-wrap">
+                        <i class="pi pi-exclamation-triangle warning-header-icon"></i>
+                    </div>
+
+                    <div class="warning-header-text">
+                        <span class="warning-title">Warnings</span>
+                        <span class="warning-subtitle">
+                            @if(warnings){
+                                {{ warnings?.length }} issue{{ warnings.length > 1 ? 's' : '' }} detected
+                            }
+                        </span>
+                    </div>
+                </div>
+
+                <ul class="warning-list">
+                    @for (warning of warnings; track $index) {
+                        <li class="warning-item">
+                            <i class="pi pi-info-circle warning-item-icon"></i>
+                            <span class="warning-message">
+                                {{ warning.message }}
+                            </span>
+                        </li>
+                        <p-divider />
+                    }
+                </ul>
+            </ng-template>
+        </p-overlay>
+
+    </div>
+}

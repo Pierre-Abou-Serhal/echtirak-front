@@ -38,7 +38,8 @@ import {
     GetGeneratorOwnerDashboardResponse,
     GetSmsCampaignsResponse,
     CreateSmsCampaignResponse,
-    GetSmsCampaignDetailsResponse
+    GetSmsCampaignDetailsResponse,
+    GetWarningMessagesResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -150,5 +151,9 @@ export class GeneratorOwnerService {
         return this.apiService.get<GetSmsCampaignDetailsResponse>(`/GeneratorOwner/SmsCampaigns/${queryParams['id']}`, {
             params: params
         });
+    }
+
+    public getWarningMessages() {
+        return this.apiService.get<GetWarningMessagesResponse>('/GeneratorOwner/WarningMessages');
     }
 }

@@ -1,4 +1,4 @@
-import { Subscriber, User, Generator, GeneratorOwnerProfile, BillCollectorProfile, SmsTemplate, SubscriptionBillingModel, Lookup, Bill, SmsCampaign } from '@/core/models/model';
+import { Subscriber, User, Generator, GeneratorOwnerProfile, BillCollectorProfile, SmsTemplate, SubscriptionBillingModel, Lookup, Bill, SmsCampaign, WarningMessage } from '@/core/models/model';
 import { DashboardBills, DashboardConsumption, DashboardRecentActivity, DashboardSubscribers, DashboardWallet, DashboardWalletStatistics, SmsCampaignDetail, SmsCampaignDetailsMessage, SmsCampaignStatistics, TokenPair } from '@/core/dtos/dto';
 
 // Auth Response
@@ -127,4 +127,8 @@ export interface GetSmsCampaignDetailsResponse {
     campaign: SmsCampaignDetail;
     statistics: SmsCampaignStatistics;
     messages: SmsCampaignDetailsMessage;
+}
+
+export interface GetWarningMessagesResponse {
+    messages: WarningMessage[];
 }

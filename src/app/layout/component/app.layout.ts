@@ -8,14 +8,26 @@ import { AppFooter } from './app.footer';
 import { LayoutService } from '@/core/services/layout.service';
 import { MenuService } from '@/core/services/menu.service';
 import { MenuItem } from 'primeng/api';
+import { UserContextService } from '@/core/services/user-context.service';
+import { WarningWidgetComponent } from '@/layout/generator-owner/warning-widget/warning-widget.component';
+import { AuthService } from '@/core/services/auth.service';
+import { UserRole } from '@/core/enums/enum';
 
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter ],
+    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, WarningWidgetComponent],
     template: `<div class="layout-wrapper" [ngClass]="containerClass">
         <app-topbar [profileMenu]="profileMenu"></app-topbar>
         <app-sidebar></app-sidebar>
+
+        <!-- Generator owner Global UI components -->
+        @if(authService.getRole() === UserRole.GENERATOR_OWNER){
+            <div class="fixed top-20 right-4 z-50">
+                <app-warning-widget></app-warning-widget>
+            </div>
+        }
+
         <div class="layout-main-container">
             <div class="layout-main">
                 <router-outlet></router-outlet>
@@ -41,7 +53,9 @@ export class AppLayout {
         public renderer: Renderer2,
         public router: Router,
         private ar: ActivatedRoute,
-        private menuService: MenuService
+        private menuService: MenuService,
+        private userContext: UserContextService,
+        public authService: AuthService,
     ) {
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
             if (!this.menuOutsideClickListener) {
@@ -119,6 +133,7 @@ export class AppLayout {
     // call once on first render (add ngOnInit)
     ngOnInit() {
         this.pushActiveMenu();
+        this.userContext.loadGlobalContext(); // Will load global UI data available across all components
     }
 
     private pushActiveMenu() {
@@ -133,4 +148,6 @@ export class AppLayout {
         this.menuService.set(menu);
         this.profileMenu = profileMenu ?? [];
     }
+
+    protected readonly UserRole = UserRole;
 }

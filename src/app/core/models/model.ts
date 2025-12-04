@@ -127,3 +127,8 @@ export interface SmsMessage {
     sentAt?: string;
     deliveredAt?: string ;
 }
+
+export interface WarningMessage {
+    messageCode: string;
+    message: string
+}
