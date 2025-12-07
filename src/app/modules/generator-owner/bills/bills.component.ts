@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { FormsModule } from '@angular/forms';
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs';
@@ -16,4 +16,14 @@ import {
     templateUrl: './bills.component.html',
     styleUrl: './bills.component.scss'
 })
-export class BillsComponent {}
+export class BillsComponent {
+    @ViewChild('billsList') billsListComponent!: BillsListComponent;
+
+    activeTab: string = '0';
+
+    onTabChange(tabValue: string | number) {
+        if (tabValue === '0' || tabValue === 0) {
+            this.billsListComponent.applyFilters();
+        }
+    }
+}

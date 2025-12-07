@@ -7,6 +7,7 @@ export enum UserRole {
 export enum SubscriberStatus {
     ACTIVE = "ACTIVE",
     INACTIVE = "INACTIVE",
+    MARKED_FOR_DEACTIVATION = "MARKED_FOR_DEACTIVATION",
 }
 
 export enum BillStatus {

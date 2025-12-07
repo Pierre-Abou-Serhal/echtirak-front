@@ -6,12 +6,14 @@ import {
     GenerateAllBillsRequest,
     GenerateBillsRequest,
     GetBillsQueryParams,
+    GetCurrencyRatesQueryParams,
     GetLookupQueryParams,
     GetSmsCampaignDetailsQueryParams,
     GetSmsCampaignsQueryParams,
     GetSubscribersQrCodePdfRequest,
     GetSubscribersQueryParams,
     GetSubscriptionBillingModelQueryParams,
+    UpsertCurrencyRatesRequest,
     UpdateGeneratorOwnerProfileRequest,
     UpsertBillCollectorRequest,
     UpsertGeneratorRequest,
@@ -39,7 +41,10 @@ import {
     GetSmsCampaignsResponse,
     CreateSmsCampaignResponse,
     GetSmsCampaignDetailsResponse,
-    GetWarningMessagesResponse
+    GetWarningMessagesResponse,
+    GetCurrenciesResponse,
+    GetCurrencyRatesResponse,
+    UpsertCurrencyRatesResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -127,25 +132,25 @@ export class GeneratorOwnerService {
         return this.apiService.get<GetSubscriptionBillingModelResponse>('/GeneratorOwner/SubscriptionBillingModel', { params: params });
     }
 
-    public getDashboard() {
+    public getDashboard(): Observable<GetGeneratorOwnerDashboardResponse> {
         return this.apiService.get<GetGeneratorOwnerDashboardResponse>('/GeneratorOwner/Dashboard');
     }
 
-    public getSmsTemplates() {
+    public getSmsTemplates(): Observable<GetSmsTemplatesResponse> {
         return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SmsTemplates');
     }
 
-    public getSmsCampaigns(queryParams: GetSmsCampaignsQueryParams) {
+    public getSmsCampaigns(queryParams: GetSmsCampaignsQueryParams): Observable<GetSmsCampaignsResponse> {
         let params = this.apiService.buildParams(queryParams);
 
         return this.apiService.get<GetSmsCampaignsResponse>('/GeneratorOwner/SmsCampaigns', { params: params });
     }
 
-    public createSmsCampaign(request: CreateSmsCampaignRequest) {
+    public createSmsCampaign(request: CreateSmsCampaignRequest): Observable<CreateSmsCampaignResponse> {
         return this.apiService.post<CreateSmsCampaignResponse>('/GeneratorOwner/SmsCampaigns', request);
     }
 
-    public getSmsCampaignDetails(queryParams: GetSmsCampaignDetailsQueryParams) {
+    public getSmsCampaignDetails(queryParams: GetSmsCampaignDetailsQueryParams): Observable<GetSmsCampaignDetailsResponse> {
         let params = this.apiService.buildParams(queryParams);
 
         return this.apiService.get<GetSmsCampaignDetailsResponse>(`/GeneratorOwner/SmsCampaigns/${queryParams['id']}`, {
@@ -153,7 +158,23 @@ export class GeneratorOwnerService {
         });
     }
 
-    public getWarningMessages() {
+    public getWarningMessages(): Observable<GetWarningMessagesResponse> {
         return this.apiService.get<GetWarningMessagesResponse>('/GeneratorOwner/WarningMessages');
+    }
+
+    public getCurrencies(): Observable<GetCurrenciesResponse> {
+        return this.apiService.get<GetCurrenciesResponse>(`/GeneratorOwner/Currency`);
+    }
+
+    public getCurrencyRates(queryParams: GetCurrencyRatesQueryParams): Observable<GetCurrencyRatesResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetCurrencyRatesResponse>(`/GeneratorOwner/CurrencyRates`, {
+            params: params
+        });
+    }
+
+    public upsertCurrencyRates(request: UpsertCurrencyRatesRequest): Observable<UpsertCurrencyRatesResponse> {
+        return this.apiService.post<UpsertCurrencyRatesResponse>('/GeneratorOwner/CurrencyRates', request);
     }
 }

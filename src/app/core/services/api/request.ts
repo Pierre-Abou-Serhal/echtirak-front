@@ -1,12 +1,5 @@
 // Auth Requests
-import {
-    Bill,
-    BillCollectorProfile,
-    Generator,
-    GeneratorOwnerProfile,
-    Subscriber,
-    SubscriptionBillingModel
-} from '@/core/models/model';
+import { Bill, BillCollectorProfile, CurrencyRate, Generator, GeneratorOwnerProfile, Subscriber, SubscriptionBillingModel } from '@/core/models/model';
 
 export interface SignInRequest {
     username: string;
@@ -106,4 +99,15 @@ export interface GetSmsCampaignDetailsQueryParams {
     status?: string;
     phoneNumber?: string;
     subscriberName?: string;
+}
+
+export interface GetCurrencyRatesQueryParams {
+    fromCurrencyCode?: string;
+    toCurrencyCode?: string;
+    dateFrom?: string;
+    dateTo?: string;
+}
+
+export interface UpsertCurrencyRatesRequest {
+    rates: CurrencyRate[];
 }

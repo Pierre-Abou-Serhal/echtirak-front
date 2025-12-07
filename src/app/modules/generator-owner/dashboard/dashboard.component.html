@@ -114,17 +114,17 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="p-4 border rounded">
                     <div class="text-lg font-semibold">{{dashboard.consumption.totalKva}}</div>
-                    <div class="text-sm text-gray-500">Total KVA</div>
+                    <div class="text-sm text-gray-500">Total KWH</div>
                 </div>
                 <div class="p-4 border rounded">
                     <div class="text-lg font-semibold">{{dashboard.consumption.totalKvaThisMonth}}</div>
-                    <div class="text-sm text-gray-500">Total KVA (This Month)</div>
+                    <div class="text-sm text-gray-500">Total KWH (This Month)</div>
                 </div>
                 <div class="p-4 border rounded col-span-2">
                     <div class="text-lg font-semibold">{{dashboard.consumption.averageKvaPerSubscriber |
                         number:'1.0-2'}}
                     </div>
-                    <div class="text-sm text-gray-500">Avg KVA / Subscriber</div>
+                    <div class="text-sm text-gray-500">Avg KWH / Subscriber</div>
                 </div>
             </div>
         </p-card>

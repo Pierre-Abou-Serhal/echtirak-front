@@ -41,12 +41,7 @@ export class BillsListComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
 
     constructor(@Inject(LOCALE_ID) private locale: string) {
-        const currentDate = new Date();
-
-        this.billSearchFilter = {
-            billDateFrom: currentDate,
-            billDateTo: currentDate
-        };
+        this.billSearchFilter = {};
     }
 
     bills: Bill[] = [];

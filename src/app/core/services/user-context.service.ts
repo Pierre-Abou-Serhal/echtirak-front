@@ -39,7 +39,6 @@ export class UserContextService {
         this.generatorOwnerService.getWarningMessages().subscribe(
             {
                 next: (warnings: GetWarningMessagesResponse) => {
-                    warnings.messages.push({messageCode: "THIS_IS_A_TEST_CODE", message: "WLEKKKK DFAAAAAAA33333"}, {messageCode: "THIS_IS_A_TEST_CODE", message: "WLEKKKK DFAAAAAAA33333"})
                     this.generatorOwnerWarnings$.next(warnings.messages);
                     console.log(warnings);
                 },

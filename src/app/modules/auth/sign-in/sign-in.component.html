@@ -18,7 +18,7 @@
                     }
 
                     <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2 mt-2">Password</label>
-                    <p-password id="password1" formControlName="password" [invalid]="isInvalid('password')" placeholder="Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false"></p-password>
+                    <p-password id="password1" formControlName="password" [invalid]="isInvalid('password')" placeholder="Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false" (keydown.enter)="signIn()"></p-password>
 
                     @if (isInvalid('password')) {
                         <p-message severity="error" size="small" variant="simple">Password is required.</p-message>

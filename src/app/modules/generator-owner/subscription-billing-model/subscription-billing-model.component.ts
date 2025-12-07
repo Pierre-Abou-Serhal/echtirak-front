@@ -236,7 +236,7 @@ export class SubscriptionBillingModelComponent implements OnInit {
 
             this.subscriptionBillingModels = [...this.subscriptionBillingModels];
 
-            this.notificationService.success('Successful', `Generator ${notificationMsg}`);
+            this.notificationService.success('Successful', `Subscription Billing Mode ${notificationMsg}`);
 
             this.isSubscriptionBillingModelSaving = false;
             this.isSubscriptionBillingModelDialogOpen = false;

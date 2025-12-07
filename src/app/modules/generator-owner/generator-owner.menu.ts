@@ -12,6 +12,7 @@ export const GENERATOR_OWNER_MENU: MenuItem[] = [
             { label: 'SMS Campaigns', icon: 'pi pi-send', routerLink: ['/app/generator-owner/sms-campaigns'] },
             { label: 'Bills', icon: 'pi pi-money-bill', routerLink: ['/app/generator-owner/bills'] },
             { label: 'Billing Models', icon: 'pi pi-credit-card', routerLink: ['/app/generator-owner/subscription-billing-model'] },
+            { label: 'Currency Rates', icon: 'pi pi-dollar', routerLink: ['/app/generator-owner/currency-rates'] },
         ]
     }
 ];

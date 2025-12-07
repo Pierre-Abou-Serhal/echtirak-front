@@ -20,7 +20,7 @@ import { AuthService } from '@/core/services/auth.service';
                 <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
                     <i class="pi pi-bars"></i>
                 </button>
-                <a class="layout-topbar-logo" routerLink="/">
+                <a class="layout-topbar-logo" routerLink="/auth/sign-in">
                     <img ngSrc="/logo/logo.svg" alt="Echtirak Logo" height="40" width="40" priority />
                     <span>{{ appName }}</span>
                 </a>

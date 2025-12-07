@@ -55,9 +55,9 @@ export interface BillCollectorProfile {
 export interface SmsTemplate {
     id: number;
     name: string;
-    nameAr: string;
+    nameAr?: string;
     body: string;
-    bodyAr: string;
+    bodyAr?: string;
     language: string;
     isActive: boolean;
     templateVariables: string[];
@@ -131,4 +131,18 @@ export interface SmsMessage {
 export interface WarningMessage {
     messageCode: string;
     message: string
+}
+
+export interface Currency {
+    id: number;
+    code: string;
+    name: string;
+}
+
+export interface CurrencyRate {
+    id: number;
+    fromCurrencyCode: string;
+    toCurrencyCode: string;
+    date: string;
+    rate: number;
 }

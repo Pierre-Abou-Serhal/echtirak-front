@@ -78,7 +78,7 @@
 
                 <th pSortableColumn="amountPerKva" style="min-width: 12rem">
                     <div class="flex justify-between items-center gap-2">
-                        Amount Per KVA
+                        Amount Per KWH
                         <p-sortIcon field="amountPerKva" />
                     </div>
                 </th>
@@ -193,7 +193,7 @@
                     <p-message severity="error" size="small" variant="simple">Amount Fixed is required.</p-message>
                 }
 
-                <label for="dialogAmountPerKva" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Amount Per KVA</label>
+                <label for="dialogAmountPerKva" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Amount Per KWH</label>
                 <p-inputnumber
                     inputId="dialogAmountPerKva"
                     mode="decimal"
@@ -205,7 +205,7 @@
                 ></p-inputnumber>
 
                 @if (isInvalid('amountPerKva')) {
-                    <p-message severity="error" size="small" variant="simple">Amount Per KVA is required.</p-message>
+                    <p-message severity="error" size="small" variant="simple">Amount Per KWH is required.</p-message>
                 }
             </form>
         </ng-template>

@@ -339,6 +339,8 @@ export class SubscribersComponent implements OnInit {
     // Dialog functions
     openNew() {
         this.selectedSubscriber = new Subscriber();
+        this.selectedSubscriber.statusCode = SubscriberStatus.ACTIVE;
+
         this.submitted = false;
         this.isSubscriberDialogOpen = true;
         this.filteredSubscriptionBillingModels = [];
