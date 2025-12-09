@@ -3,17 +3,18 @@ import { MenuItem } from 'primeng/api';
 import { RouterModule } from '@angular/router';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
-import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '@/core/services/layout.service';
 import { environment } from '../../../environments/environment';
 import { Toast } from 'primeng/toast';
 import { Menu } from 'primeng/menu';
 import { AuthService } from '@/core/services/auth.service';
+import { UserRole } from '@/core/enums/enum';
+import { WalletWidgetComponent } from '@/layout/generator-owner/wallet-widget/wallet-widget.component';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator, Toast, Menu, NgOptimizedImage],
+    imports: [RouterModule, CommonModule, StyleClassModule, Toast, Menu, NgOptimizedImage, WalletWidgetComponent],
     template: ` <p-toast />
         <div class="layout-topbar">
             <div class="layout-topbar-logo-container">
@@ -31,20 +32,24 @@ import { AuthService } from '@/core/services/auth.service';
                     <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()">
                         <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
                     </button>
-                    <div class="relative">
-                        <button
-                            class="layout-topbar-action layout-topbar-action-highlight"
-                            pStyleClass="@next"
-                            enterFromClass="hidden"
-                            enterActiveClass="animate-scalein"
-                            leaveToClass="hidden"
-                            leaveActiveClass="animate-fadeout"
-                            [hideOnOutsideClick]="true"
-                        >
-                            <i class="pi pi-palette"></i>
-                        </button>
-                        <app-configurator />
-                    </div>
+                    <!--                    <div class="relative">-->
+                    <!--                        <button-->
+                    <!--                            class="layout-topbar-action layout-topbar-action-highlight"-->
+                    <!--                            pStyleClass="@next"-->
+                    <!--                            enterFromClass="hidden"-->
+                    <!--                            enterActiveClass="animate-scalein"-->
+                    <!--                            leaveToClass="hidden"-->
+                    <!--                            leaveActiveClass="animate-fadeout"-->
+                    <!--                            [hideOnOutsideClick]="true"-->
+                    <!--                        >-->
+                    <!--                            <i class="pi pi-palette"></i>-->
+                    <!--                        </button>-->
+                    <!--                        <app-configurator />-->
+                    <!--                    </div>-->
+                    <!-- Generator owner Global UI components -->
+                    @if (authService.getRole() === UserRole.GENERATOR_OWNER) {
+                        <app-wallet-widget></app-wallet-widget>
+                    }
                 </div>
 
                 <!-- PROFILE MENU (dynamic) -->
@@ -103,4 +108,5 @@ export class AppTopbar implements OnChanges {
     }
 
     appName: string = environment.appName;
+    protected readonly UserRole = UserRole;
 }

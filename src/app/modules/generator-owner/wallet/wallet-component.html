@@ -1,1 +1,298 @@
-<p>wallet-component works!</p>
+@let wallet = (userContext.generatorOwnerWalletBalance$ | async);
+
+<h1 class="text-3xl font-bold mb-4">Wallet</h1>
+
+@if (wallet) {
+    <div class="card mb-6">
+        <div class="flex flex-col gap-4 p-4">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="font-semibold text-surface-900 dark:text-surface-0 block">
+                        Overview
+                    </span>
+                    <span class="text-sm text-surface-500 dark:text-surface-400">
+                        Next billing in {{ wallet.daysUntilNextBilling }} day{{ wallet.daysUntilNextBilling === 1 ? '' : 's' }}
+                    </span>
+                </div>
+                @if (wallet.nextBillingDate) {
+                    <div class="text-right text-sm text-surface-500 dark:text-surface-400">
+                        {{ wallet.nextBillingDate | date:'yyyy-MM-dd' }}
+                    </div>
+                }
+            </div>
+
+            <!-- Main balance -->
+            <div class="flex flex-wrap gap-6 items-end justify-between">
+                <div>
+                    <div class="text-sm text-surface-500 dark:text-surface-400">
+                        Current balance
+                    </div>
+                    <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                        {{ wallet.balance | currency:'USD':'symbol':'1.0-4' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Caps & projected charge -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+                <div>
+                    <div class="text-sm text-surface-500 dark:text-surface-400">
+                        Projected next charge
+                    </div>
+                    <div class="font-medium">
+                        {{ wallet.projectedNextCycleCharge | number:'1.0-4' }}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-sm text-surface-500 dark:text-surface-400">
+                        Effective cap
+                    </div>
+                    <div class="font-medium">
+                        {{ wallet.effectiveCap | number:'1.0-4' }}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-sm text-surface-500 dark:text-surface-400">
+                        Default cap
+                    </div>
+                    <div class="font-medium">
+                        {{ wallet.defaultCap | number:'1.0-4' }}
+                    </div>
+                </div>
+
+                @if (wallet.overrideCap !== undefined && wallet.overrideCap !== null) {
+                    <div>
+                        <div class="text-sm text-surface-500 dark:text-surface-400">
+                            Override cap
+                        </div>
+                        <div class="font-medium">
+                            {{ wallet.overrideCap | number:'1.0-4' }}
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Warning message -->
+            @if (wallet.warningMessage) {
+                <div
+                    class="flex items-start gap-2 text-sm p-3 rounded border border-yellow-300 bg-yellow-50 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-100 dark:border-yellow-500"
+                >
+                    <i class="pi pi-exclamation-triangle mt-[2px]"></i>
+                    <span>{{ wallet.warningMessage }}</span>
+                </div>
+            }
+        </div>
+    </div>
+} @else {
+    <div class="card mb-6">
+        <div class="p-4 flex items-center gap-3 text-sm text-surface-500 dark:text-surface-400">
+            <p-progressSpinner class="w-6 h-6" strokeWidth="4" />
+            <span>Loading wallet information...</span>
+        </div>
+    </div>
+}
+
+
+<h1 class="text-3xl font-bold mb-4">Wallet Transactions</h1>
+<div class="card">
+    <!-- FILTERS BAR -->
+    <div class="mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- From Date -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterCurFromDate">
+                    From Date
+                </label>
+                <p-datepicker
+                    inputId="filterCurFromDate"
+                    [(ngModel)]="filters.fromDate"
+                    [showIcon]="true"
+                    [iconDisplay]="'input'"
+                    dateFormat="yy-mm-dd"
+                    appendTo="body"
+                    class="w-full"
+                ></p-datepicker>
+            </div>
+
+            <!-- To Date -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterCurToDate">
+                    To Date
+                </label>
+                <p-datepicker
+                    inputId="filterCurToDate"
+                    [(ngModel)]="filters.toDate"
+                    [showIcon]="true"
+                    [iconDisplay]="'input'"
+                    dateFormat="yy-mm-dd"
+                    appendTo="body"
+                    class="w-full"
+                ></p-datepicker>
+            </div>
+
+            <!-- Transaction Type -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterTransactionType">
+                    Transaction Type
+                </label>
+                <p-iconfield iconPosition="left" class="w-full">
+                    <p-select
+                        inputId="filterTransactionType"
+                        class="w-full"
+                        [options]="walletTransactionTypes"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Transaction Type"
+                        [showClear]="true"
+                        [(ngModel)]="filters.type"
+                        [loading]="isWalletTransactionTypesLoading"
+                    ></p-select>
+                </p-iconfield>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-end gap-2">
+                <p-button
+                    label="Apply"
+                    icon="pi pi-filter"
+                    (click)="applyFilters()"
+                    [loading]="isWalletTransactionsLoading"
+                ></p-button>
+
+                <p-button
+                    label="Reset"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    text
+                    (click)="resetFilters()"
+                ></p-button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
+        <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
+        <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
+    </div>
+    <p-table
+        [value]="walletTransactions"
+        dataKey="id"
+        paginator
+        [loading]="isWalletTransactionsLoading"
+        responsiveLayout="scroll"
+        rowHover
+        showGridlines
+        stripedRows
+        [first]="first"
+        [rows]="rows"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [(selection)]="selectedWalletTransactions"
+        (onPage)="pageChange($event)"
+        [tableStyle]="{'width': 'max-content'}"
+    >
+        <ng-template #caption>
+            <div class="text-end pb-4">
+                <p-button icon="pi pi-external-link" label="Export" (click)="exportToCsv()" />
+            </div>
+
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+
+                <th pSortableColumn="timestamp" >
+                    <div class="flex justify-between items-center gap-2">
+                        Date & Time
+                        <p-sortIcon field="timestamp" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="type" >
+                    <div class="flex justify-between items-center gap-2">
+                        Type
+                        <p-sortIcon field="type" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="quantity" >
+                    <div class="flex justify-between items-center gap-2">
+                        Quantity
+                        <p-sortIcon field="quantity" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="unitPrice" >
+                    <div class="flex justify-between items-center gap-2">
+                        Unit Price
+                        <p-sortIcon field="unitPrice" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="totalAmount" >
+                    <div class="flex justify-between items-center gap-2">
+                        Total Amount
+                        <p-sortIcon field="totalAmount" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="balanceAfter" >
+                    <div class="flex justify-between items-center gap-2">
+                        Balance After
+                        <p-sortIcon field="balanceAfter" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="refId" >
+                    <div class="flex justify-between items-center gap-2">
+                        Reference ID
+                        <p-sortIcon field="refId" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="description" >
+                    <div class="flex justify-between items-center gap-2">
+                        Description
+                        <p-sortIcon field="description" />
+                    </div>
+                </th>
+
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-transaction>
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="transaction" />
+                </td>
+
+                <td>{{ transaction.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+                <td>{{ transaction.type }}</td>
+                <td>{{ transaction.quantity | number:'1.0-4' }}</td>
+                <td>{{ transaction.unitPrice | currency:'USD':'symbol':'1.0-4' }}</td>
+                <td>{{ transaction.totalAmount | currency:'USD':'symbol':'1.0-4' }}</td>
+                <td>{{ transaction.balanceAfter | currency:'USD':'symbol':'1.0-4' }}</td>
+                <td>{{ transaction.refId }}</td>
+                <td>{{ transaction.description }}</td>
+
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="9">No transactions found.</td>
+            </tr>
+        </ng-template>
+        <ng-template #loadingbody>
+            <tr>
+                <td colspan="9">Loading transactions data. Please wait.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

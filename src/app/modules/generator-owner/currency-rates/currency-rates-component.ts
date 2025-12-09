@@ -53,12 +53,7 @@ export class CurrencyRatesComponent implements OnInit {
         @Inject(LOCALE_ID) private locale: string,
         private fb: FormBuilder
     ) {
-        const currentDate = new Date();
-
-        this.filters = {
-            dateFrom: formatDate(currentDate, 'yyyy-MM-dd', this.locale),
-            dateTo: formatDate(currentDate, 'yyyy-MM-dd', this.locale)
-        };
+        this.filters = {};
 
         this.currencyRateForm = this.fb.group({
             fromCurrencyCode: [null, Validators.required],

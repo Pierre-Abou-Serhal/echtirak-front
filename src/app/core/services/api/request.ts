@@ -111,3 +111,16 @@ export interface GetCurrencyRatesQueryParams {
 export interface UpsertCurrencyRatesRequest {
     rates: CurrencyRate[];
 }
+
+export interface GetWalletTransactionsQueryParams {
+    pageNumber?: number;
+    pageSize?: number;
+    fromDate?: string;
+    toDate?: string;
+    type?: string;
+}
+
+export interface WalletForecastRequest {
+    subscriberCount: number;
+    smsCount: number;
+}

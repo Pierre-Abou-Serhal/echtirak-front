@@ -146,3 +146,36 @@ export interface CurrencyRate {
     date: string;
     rate: number;
 }
+
+export interface WalletBalance {
+    balance: number;
+    projectedNextCycleCharge: number;
+    availableBalance: number;
+    effectiveCap: number;
+    defaultCap: number;
+    overrideCap?: number;
+    daysUntilNextBilling: number;
+    nextBillingDate?: string;
+    warningMessage?: string;
+}
+
+export interface WalletTransaction {
+    id: number;
+    timestamp: string;
+    type: string;
+    quantity: number;
+    unitPrice: number;
+    totalAmount: number;
+    balanceAfter: number;
+    refId: string;
+    description: string;
+}
+
+export interface Forecast {
+    forecastedCost: number;
+    currentAvailableBalance: number;
+    newAvailableBalance: number;
+    isAffordable: boolean;
+    warningMessage: string;
+    message: string;
+}

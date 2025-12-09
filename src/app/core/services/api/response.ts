@@ -1,4 +1,21 @@
-import { Subscriber, User, Generator, GeneratorOwnerProfile, BillCollectorProfile, SmsTemplate, SubscriptionBillingModel, Lookup, Bill, SmsCampaign, WarningMessage, CurrencyRate, Currency } from '@/core/models/model';
+import {
+    Subscriber,
+    User,
+    Generator,
+    GeneratorOwnerProfile,
+    BillCollectorProfile,
+    SmsTemplate,
+    SubscriptionBillingModel,
+    Lookup,
+    Bill,
+    SmsCampaign,
+    WarningMessage,
+    CurrencyRate,
+    Currency,
+    WalletBalance,
+    WalletTransaction,
+    Forecast
+} from '@/core/models/model';
 import { DashboardBills, DashboardConsumption, DashboardRecentActivity, DashboardSubscribers, DashboardWallet, DashboardWalletStatistics, SmsCampaignDetail, SmsCampaignDetailsMessage, SmsCampaignStatistics, TokenPair } from '@/core/dtos/dto';
 
 // Auth Response
@@ -143,4 +160,26 @@ export interface GetCurrencyRatesResponse {
 
 export interface UpsertCurrencyRatesResponse {
     rates: CurrencyRate[];
+}
+
+export interface GetWalletBalancesResponse {
+    balance: WalletBalance;
+}
+
+export interface GetWalletTransactionsResponse {
+    page: GetWalletTransactionsPage;
+}
+
+export interface GetWalletTransactionsPage {
+    items: WalletTransaction[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface WalletForecastResponse {
+    forecast: Forecast;
 }

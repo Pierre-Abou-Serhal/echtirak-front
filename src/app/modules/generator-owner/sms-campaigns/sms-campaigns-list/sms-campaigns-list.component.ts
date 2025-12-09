@@ -136,12 +136,7 @@ export class SmsCampaignsListComponent {
                 this._fetchSubscribers(keyword);
             });
 
-        const currentDate = new Date();
-
-        this.smsCampaignSearchFilter = {
-            fromDate: currentDate,
-            toDate: currentDate
-        };
+        this.smsCampaignSearchFilter = {};
 
         // Initial load (empty search)
         this.search$.next(this.smsCampaignSearchFilter);
@@ -412,13 +407,8 @@ export class SmsCampaignsListComponent {
     }
 
     resetFilters() {
-        const currentDate = new Date();
 
-        this.smsCampaignSearchFilter = {
-            fromDate: currentDate,
-            toDate: currentDate,
-            status: undefined
-        };
+        this.smsCampaignSearchFilter = {};
 
         this.applyFilters();
     }
