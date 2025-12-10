@@ -5,17 +5,12 @@ import { IconField } from 'primeng/iconfield';
 import { FormsModule } from '@angular/forms';
 import { Button, ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Generator, Lookup, Subscriber, SubscriptionBillingModel } from '@/core/models/model';
+import { Forecast, Generator, Lookup, Subscriber, SubscriptionBillingModel } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import * as Papa from 'papaparse';
-import {
-    GetGeneratorsResponse, GetLookupResponse,
-    GetSubscribersResponse,
-    GetSubscriptionBillingModelResponse,
-    UpsertSubscriberResponse
-} from '@/core/services/api/response';
+import { GetGeneratorsResponse, GetLookupResponse, GetSubscribersResponse, GetSubscriptionBillingModelResponse, UpsertSubscriberResponse, WalletForecastResponse } from '@/core/services/api/response';
 import { Tag } from 'primeng/tag';
 import { BillingModel, LookupDomain, SubscriberStatus } from '@/core/enums/enum';
 import { Dialog } from 'primeng/dialog';
@@ -26,6 +21,7 @@ import { InputNumber } from 'primeng/inputnumber';
 import { Textarea } from 'primeng/textarea';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Skeleton } from 'primeng/skeleton';
+import { WalletForecastRequest } from '@/core/services/api/request';
 
 @Component({
     selector: 'app-subscribers',
@@ -88,6 +84,10 @@ export class SubscribersComponent implements OnInit {
     isDownloadingSubscribersQrCodePdf: boolean = false;
     selectedGeneratorForQrPdf?: number | undefined;
     generatorsLoading: boolean = true;
+
+    // Subscriber Warning vars
+    displayWarning: boolean = false;
+    forecastWallet: Forecast | null = null;
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -376,38 +376,64 @@ export class SubscribersComponent implements OnInit {
         this.isSubscriberSaving = true;
 
         if (this.isSubscriberValid()) {
-            let isCreatingSub = this.selectedSubscriber.id === -1;
-            this.generatorOwnerService
-                .upsertSubscriber({
-                    ...this.selectedSubscriber
-                })
-                .subscribe({
-                    next: (response: UpsertSubscriberResponse) => {
-                        this.selectedSubscriber = response;
+            let request: WalletForecastRequest = {
+                subscriberCount: 1
+            }
 
-                        if (!isCreatingSub) {
-                            // Edit
-                            this.subscribers[this.findIndexById(this.selectedSubscriber.id)] = this.selectedSubscriber;
-                            this.notificationService.success('Successful', 'Subscriber Updated');
-                        } else {
-                            // Add
-                            this.subscribers.push(this.selectedSubscriber);
-                            this.notificationService.success('Successful', 'Subscriber Created');
-                        }
+            this.walletService.walletForecast(request).subscribe({
+                next: (response: WalletForecastResponse) => {
+                    this.forecastWallet = response.forecast;
 
-                        this.subscribers = [...this.subscribers];
-                        this.isSubscriberDialogOpen = false;
-                        this.selectedSubscriber = new Subscriber();
-                        this.isSubscriberSaving = false;
-                    },
-                    error: (err) => {
-                        console.log(err);
-                        this.isSubscriberSaving = false;
+                    if (response.forecast.isAffordable){
+                        // Creating the campaign --> enough balance
+                        this.displayConfirmation = true;
                     }
-                });
+                    else {
+                        // Block the creation --> Show warning message
+                        this.displayWarning = true;
+                        this.isCampaignSaving = false;
+                    }
+                },
+                error: (err) => {
+                    console.log(err)
+                    this.isCampaignSaving = false;
+                }
+            });
         } else {
             this.isSubscriberSaving = false;
         }
+    }
+
+    updateSubscriber(){
+        let isCreatingSub = this.selectedSubscriber.id === -1;
+        this.generatorOwnerService
+            .upsertSubscriber({
+                ...this.selectedSubscriber
+            })
+            .subscribe({
+                next: (response: UpsertSubscriberResponse) => {
+                    this.selectedSubscriber = response;
+
+                    if (!isCreatingSub) {
+                        // Edit
+                        this.subscribers[this.findIndexById(this.selectedSubscriber.id)] = this.selectedSubscriber;
+                        this.notificationService.success('Successful', 'Subscriber Updated');
+                    } else {
+                        // Add
+                        this.subscribers.push(this.selectedSubscriber);
+                        this.notificationService.success('Successful', 'Subscriber Created');
+                    }
+
+                    this.subscribers = [...this.subscribers];
+                    this.isSubscriberDialogOpen = false;
+                    this.selectedSubscriber = new Subscriber();
+                    this.isSubscriberSaving = false;
+                },
+                error: (err) => {
+                    console.log(err);
+                    this.isSubscriberSaving = false;
+                }
+            });
     }
 
     isSubscriberValid() {
@@ -531,5 +557,10 @@ export class SubscribersComponent implements OnInit {
                 this.isDownloadingSubscribersQrCodePdf = false;
             }
         });
+    }
+
+    // Warning Popup functions
+    closeWarning(){
+        this.displayWarning = false;
     }
 }

@@ -41,7 +41,7 @@
                         Projected next charge
                     </div>
                     <div class="font-medium">
-                        {{ wallet.projectedNextCycleCharge | number:'1.0-4' }}
+                        {{ wallet.projectedNextCycleCharge | currency:'USD':'symbol':'1.0-4' }}
                     </div>
                 </div>
 
@@ -50,7 +50,7 @@
                         Effective cap
                     </div>
                     <div class="font-medium">
-                        {{ wallet.effectiveCap | number:'1.0-4' }}
+                        {{ wallet.effectiveCap | currency:'USD':'symbol':'1.0-4' }}
                     </div>
                 </div>
 
@@ -59,7 +59,7 @@
                         Default cap
                     </div>
                     <div class="font-medium">
-                        {{ wallet.defaultCap | number:'1.0-4' }}
+                        {{ wallet.defaultCap | currency:'USD':'symbol':'1.0-4' }}
                     </div>
                 </div>
 
@@ -69,7 +69,7 @@
                             Override cap
                         </div>
                         <div class="font-medium">
-                            {{ wallet.overrideCap | number:'1.0-4' }}
+                            {{ wallet.overrideCap | currency:'USD':'symbol':'1.0-4' }}
                         </div>
                     </div>
                 }

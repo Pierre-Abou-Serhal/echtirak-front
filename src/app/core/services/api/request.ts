@@ -121,6 +121,7 @@ export interface GetWalletTransactionsQueryParams {
 }
 
 export interface WalletForecastRequest {
-    subscriberCount: number;
-    smsCount: number;
+    subscriberCount?: number;
+    smsCount?: number;
+    selectionCriteriaType: string;
 }

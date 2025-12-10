@@ -1,7 +1,7 @@
 import { Component, DestroyRef, Inject, inject, LOCALE_ID, NgZone, ViewChild } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
-import { SmsCampaign, SmsTemplate } from '@/core/models/model';
+import { Forecast, SmsCampaign, SmsTemplate } from '@/core/models/model';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -13,17 +13,18 @@ import { Router } from '@angular/router';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { Select } from 'primeng/select';
-import { CreateSmsCampaignRequest } from '@/core/services/api/request';
+import { CreateSmsCampaignRequest, WalletForecastRequest } from '@/core/services/api/request';
 import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
 import * as Papa from 'papaparse';
 import { debounceTime, finalize, Subject, switchMap, tap } from 'rxjs';
-import { CreateSmsCampaignResponse, GetLookupResponse, GetSmsCampaignsResponse, GetSmsTemplatesResponse } from '@/core/services/api/response';
+import { CreateSmsCampaignResponse, GetLookupResponse, GetSmsCampaignsResponse, GetSmsTemplatesResponse, WalletForecastResponse } from '@/core/services/api/response';
 import { NotificationService } from '@/core/services/notification.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePicker } from 'primeng/datepicker';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
+import { WalletService } from '@/core/services/wallet.service';
 
 export interface SmsCampaignSearchFilter {
     status?: string;
@@ -40,6 +41,7 @@ export interface SmsCampaignSearchFilter {
 })
 export class SmsCampaignsListComponent {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
+    private readonly walletService = inject(WalletService);
     private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
     private readonly notificationService = inject(NotificationService);
@@ -81,6 +83,14 @@ export class SmsCampaignsListComponent {
     private search$ = new Subject<SmsCampaignSearchFilter>();
     smsCampaignSearchFilter: SmsCampaignSearchFilter;
     keyword: string = '';
+
+    // Sms Campaign Warning vars
+    displayWarning: boolean = false;
+
+    // Sms campaign confirmation vars
+    displayConfirmation: boolean = false;
+
+    forecastWallet: Forecast | null = null;
 
     // Subscribers multi select in the modal
     private readonly zone: NgZone = inject(NgZone);
@@ -271,9 +281,39 @@ export class SmsCampaignsListComponent {
     saveCampaign() {
         if (this.createForm.invalid) return;
 
+        const formValue = this.createForm.value;
+
         this.isCampaignSaving = true;
 
+        let request: WalletForecastRequest = {
+            smsCount: formValue.selectionCriteriaType === 'CUSTOM' ? formValue.customSubscriberIds.length : null,
+            selectionCriteriaType: formValue.selectionCriteriaType
+        }
+
+        this.walletService.walletForecast(request).subscribe({
+            next: (response: WalletForecastResponse) => {
+                this.forecastWallet = response.forecast;
+
+                if (response.forecast.isAffordable){
+                    // Creating the campaign --> enough balance
+                    this.displayConfirmation = true;
+                }
+                else {
+                    // Block the creation --> Show warning message
+                    this.displayWarning = true;
+                    this.isCampaignSaving = false;
+                }
+            },
+            error: (err) => {
+                console.log(err)
+                this.isCampaignSaving = false;
+            }
+        });
+    }
+
+    createSmsCampaign(){
         const formValue = this.createForm.value;
+
         const request: CreateSmsCampaignRequest = {
             campaignName: formValue.campaignName,
             templateId: formValue.templateId,
@@ -297,6 +337,14 @@ export class SmsCampaignsListComponent {
                 this.isCampaignSaving = false;
             }
         });
+    }
+
+    closeWarning(){
+        this.displayWarning = false;
+    }
+
+    closeConfirmation(){
+        this.displayConfirmation = false;
     }
 
     viewDetails(smsCampaign: SmsCampaign) {

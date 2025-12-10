@@ -33,15 +33,15 @@
         <p-card header="Revenue (This Month)">
             <div class="flex justify-between items-center">
                 <div>
-                    <div class="text-2xl font-bold">{{dashboard.bills.thisMonth.revenue | currency}}</div>
+                    <div class="text-2xl font-bold">{{dashboard.bills.thisMonth.revenue | currency:'USD':'symbol':'1.0-4'}</div>
                     <div class="text-sm text-gray-500">{{dashboard.bills.thisMonth.count}} Bills</div>
                 </div>
             </div>
             <div class="mt-2 text-xs text-gray-400">
-                Last Month: {{dashboard.bills.lastMonth.revenue | currency}} ({{dashboard.bills.lastMonth.count}} Bills)
+                Last Month: {{dashboard.bills.lastMonth.revenue | currency:'USD':'symbol':'1.0-4'}} ({{dashboard.bills.lastMonth.count}} Bills)
             </div>
             <div class="mt-1 text-xs text-gray-400">
-                Total Revenue: {{dashboard.bills.totalRevenue | currency}}
+                Total Revenue: {{dashboard.bills.totalRevenue | currency:'USD':'symbol':'1.0-4'}}
             </div>
         </p-card>
     </div>
@@ -59,7 +59,7 @@
                 <span class="text-green-500">Paid: {{dashboard.bills.paid}}</span>
             </div>
             <div class="mt-1 text-xs text-red-500">
-                Overdue: {{dashboard.bills.overdue}} ({{dashboard.bills.overdueAmount | currency}})
+                Overdue: {{dashboard.bills.overdue}} ({{dashboard.bills.overdueAmount | currency:'USD':'symbol':'1.0-4'}})
             </div>
         </p-card>
     </div>
@@ -68,8 +68,8 @@
         <p-card header="Wallet Balance">
             <div class="flex justify-between items-center">
                 <div>
-                    <div class="text-2xl font-bold">{{dashboard.wallet.balance | currency}}</div>
-                    <div class="text-sm text-gray-500">Available: {{dashboard.wallet.availableBalance | currency}}</div>
+                    <div class="text-2xl font-bold">{{dashboard.wallet.balance | currency:'USD':'symbol':'1.0-4'}}</div>
+                    <div class="text-sm text-gray-500">Available: {{dashboard.wallet.availableBalance | currency:'USD':'symbol':'1.0-4'}}</div>
                 </div>
             </div>
             <div class="mt-2 text-xs text-gray-400">
@@ -77,10 +77,10 @@
                 days)
             </div>
             <div class="mt-1 text-xs text-gray-400">
-                Projected Charge: {{dashboard.wallet.projectedNextCycleCharge | currency}}
+                Projected Charge: {{dashboard.wallet.projectedNextCycleCharge | currency:'USD':'symbol':'1.0-4'}}
             </div>
             <div class="mt-1 text-xs text-gray-400">
-                Cap: {{dashboard.wallet.effectiveCap | currency}}
+                Cap: {{dashboard.wallet.effectiveCap | currency:'USD':'symbol':'1.0-4'}}
             </div>
             @if(dashboard.wallet.warningMessage){
             <div class="mt-2 text-xs text-red-500">
@@ -135,24 +135,24 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="p-3 border rounded">
                     <div class="text-sm text-gray-500">Top Ups (This Month)</div>
-                    <div class="text-xl font-bold">{{dashboard.walletStatistics.topUpsThisMonth | currency}}</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.topUpsThisMonth | currency:'USD':'symbol':'1.0-4'}}</div>
                 </div>
                 <div class="p-3 border rounded">
                     <div class="text-sm text-gray-500">Spent (This Month)</div>
-                    <div class="text-xl font-bold">{{dashboard.walletStatistics.spentThisMonth | currency}}</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.spentThisMonth | currency:'USD':'symbol':'1.0-4'}}</div>
                 </div>
                 <div class="p-3 border rounded">
                     <div class="text-sm text-gray-500">SMS Charges</div>
-                    <div class="text-xl font-bold">{{dashboard.walletStatistics.smsChargesThisMonth | currency}}</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.smsChargesThisMonth | currency:'USD':'symbol':'1.0-4'}}</div>
                 </div>
                 <div class="p-3 border rounded">
                     <div class="text-sm text-gray-500">Billing Charges</div>
-                    <div class="text-xl font-bold">{{dashboard.walletStatistics.billingChargesThisMonth | currency}}
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.billingChargesThisMonth | currency:'USD':'symbol':'1.0-4'}}
                     </div>
                 </div>
                 <div class="p-3 border rounded">
                     <div class="text-sm text-gray-500">Refunds</div>
-                    <div class="text-xl font-bold">{{dashboard.walletStatistics.refundsThisMonth | currency}}</div>
+                    <div class="text-xl font-bold">{{dashboard.walletStatistics.refundsThisMonth | currency:'USD':'symbol':'1.0-4'}}</div>
                 </div>
                 <div class="p-3 border rounded">
                     <div class="text-sm text-gray-500">Transactions</div>

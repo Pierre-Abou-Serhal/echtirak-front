@@ -280,3 +280,64 @@
     </div>
 
 </div>
+
+<!-- SMS Campaign Confirmation Popup -->
+<p-dialog header="Confirmation" [(visible)]="displayConfirmation" [style]="{ width: '350px' }" [modal]="true">
+    <ng-template pTemplate="header">
+        <div class="flex items-center gap-2">
+            <i class="pi pi-info-circle text-green-500 text-xl"></i>
+            <span class="font-bold">
+                Are you sure you want to proceed?
+            </span>
+        </div>
+    </ng-template>
+
+    <!-- Body -->
+    <p class="m-0 text-color-secondary">
+        {{ forecastWallet?.message }}
+    </p>
+
+    <ng-template #footer>
+        <p-button label="No" icon="pi pi-times" (click)="closeConfirmation()" text severity="secondary" />
+        <p-button label="Yes" icon="pi pi-check" (click)="createSmsCampaign()" severity="primary" outlined autofocus />
+    </ng-template>
+</p-dialog>
+
+<!-- SMS Campaign Not Affordable Popup -->
+<p-dialog
+    [(visible)]="displayWarning"
+    [modal]="true"
+    [style]="{ width: '420px', maxWidth: '95vw' }"
+    [breakpoints]="{ '960px': '75vw', '640px': '95vw' }"
+    [draggable]="false"
+    [resizable]="false"
+>
+    <!-- Custom HEADER with icon + title -->
+    <ng-template pTemplate="header">
+        <div class="flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle text-yellow-500 text-xl"></i>
+            <span class="font-bold">
+                Your SMS campaign exceeds your wallet limit
+            </span>
+        </div>
+    </ng-template>
+
+    <!-- Body -->
+    <p class="m-0 text-color-secondary">
+        {{ forecastWallet?.warningMessage }}
+    </p>
+
+    <!-- Footer -->
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end w-full">
+            <p-button
+                label="Got it"
+                icon="pi pi-times"
+                (click)="closeWarning()"
+                text
+                severity="secondary"
+                autofocus
+            />
+        </div>
+    </ng-template>
+</p-dialog>

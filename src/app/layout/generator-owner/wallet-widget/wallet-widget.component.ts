@@ -6,7 +6,7 @@ import { ProgressSpinner } from 'primeng/progressspinner';
 
 @Component({
     selector: 'app-wallet-widget',
-    imports: [Popover, AsyncPipe, DatePipe, DecimalPipe, CurrencyPipe, ProgressSpinner],
+    imports: [Popover, AsyncPipe, DatePipe, CurrencyPipe, ProgressSpinner],
     templateUrl: './wallet-widget.component.html',
     styleUrl: './wallet-widget.component.scss'
 })
