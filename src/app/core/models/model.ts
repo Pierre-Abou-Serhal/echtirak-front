@@ -38,10 +38,13 @@ export interface Generator {
 }
 
 export interface GeneratorOwnerProfile {
-    firstName: string,
-    lastName: string,
-    businessName: string,
-    phoneNumber: string
+    firstName: string;
+    lastName: string;
+    businessName: string;
+    phoneNumber: string;
+    gracePeriodDays: number;
+    smsDisplayName: string;
+    username: string;
 }
 
 export interface BillCollectorProfile {
@@ -99,6 +102,7 @@ export interface Bill {
     subscriptionFeeVar: number;
     subscriptionFeeFixed: number;
     notes: string;
+    generatedFrom: number;
 }
 
 

@@ -1,0 +1,129 @@
+<div class="bills-page">
+
+    <h1 class="page-title">Pending Bills</h1>
+
+    <!-- Loading -->
+    @if (loading) {
+        <div class="state state-loading">
+            <div class="spinner"></div>
+            <span>Loading pending bills…</span>
+        </div>
+    }
+
+    <!-- No code -->
+    @if (!loading && !code) {
+        <div class="state state-info">
+            Please enter a subscriber code to view bills.
+        </div>
+    }
+
+    <!-- No bills -->
+    @if (!loading && code && pendingBills.length === 0) {
+        <div class="state state-empty">
+            No pending bills were found.
+        </div>
+    }
+
+    <!-- Bills list -->
+    @if (!loading && code && pendingBills.length > 0) {
+        <div class="bills-list">
+            @for (bill of pendingBills; track bill.id) {
+                <article class="bill-card">
+
+                    <!-- Header: name + status -->
+                    <header class="bill-header">
+                        <div class="bill-name">
+                            {{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}
+                        </div>
+                        <span class="status-pill">
+                    {{ bill.statusCode }}
+                </span>
+                    </header>
+
+                    <!-- Sub-header: generator + date -->
+                    <div class="bill-subheader">
+                        <span class="label">Generator</span>
+                        <span class="value">{{ bill.generatorCode }}</span>
+
+                        <span class="label">Date</span>
+                        <span class="value">
+                    {{ bill.billDate | date: 'yyyy-MM-dd' }}
+                </span>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="bill-amount-row">
+                        <span class="label">Amount</span>
+                        <span class="amount">
+                    {{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}
+                </span>
+                    </div>
+
+                    <!-- Technical info -->
+                    <div class="bill-grid">
+                        <div class="bill-grid-item">
+                            <span class="label">Previous</span>
+                            <span class="value">{{ bill.previousKva | number:'1.0-4' }}</span>
+                            <span class="label-small">KWH</span>
+                        </div>
+
+                        <div class="bill-grid-item">
+                            <span class="label">Current</span>
+                            <span class="value">{{ bill.currentKva | number:'1.0-4' }}</span>
+                            <span class="label-small">KWH</span>
+                        </div>
+
+                        <div class="bill-grid-item">
+                            <span class="label">Difference</span>
+                            <span class="value"> {{ (bill.currentKva - bill.previousKva) | number:'1.0-4' }} </span>
+                            <span class="label-small">KWH</span>
+                        </div>
+
+                        <div class="bill-grid-item">
+                            <span class="label">Subscription</span>
+                            <span class="value">{{ bill.subscriptionAmps | number:'1.0-4' }}</span>
+                            <span class="label-small">(A)</span>
+                        </div>
+                    </div>
+
+                    <!-- Fees (only if > 0) -->
+                    @if (bill.subscriptionFeeVar > 0 || bill.subscriptionFeeFixed > 0 || bill.kvaFee > 0) {
+                        <div class="divider"></div>
+                        <div class="fees">
+                            @if (bill.subscriptionFeeVar > 0) {
+                                <div class="fee-row">
+                                    <span class="label">Variable fee</span>
+                                    <span class="value">{{ bill.subscriptionFeeVar | number:'1.0-4' }} {{ bill.currencyCode }}</span>
+                                </div>
+                            }
+                            @if (bill.subscriptionFeeFixed > 0) {
+                                <div class="fee-row">
+                                    <span class="label">Fixed subscription fee</span>
+                                    <span class="value">{{ bill.subscriptionFeeFixed | number:'1.0-4' }} {{ bill.currencyCode }}</span>
+                                </div>
+                            }
+                            @if (bill.kvaFee > 0) {
+                                <div class="fee-row">
+                                    <span class="label">KWH fee</span>
+                                    <span class="value">{{ bill.kvaFee | number:'1.0-4' }} {{ bill.currencyCode }}</span>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <!-- Notes -->
+                    @if (bill.notes) {
+                        <div class="divider"></div>
+                        <section class="notes">
+                            <div class="label">Notes</div>
+                            <p class="notes-text">
+                                {{ bill.notes }}
+                            </p>
+                        </section>
+                    }
+                </article>
+            }
+        </div>
+    }
+
+</div>

@@ -123,5 +123,29 @@ export interface GetWalletTransactionsQueryParams {
 export interface WalletForecastRequest {
     subscriberCount?: number;
     smsCount?: number;
-    selectionCriteriaType: string;
+    selectionCriteriaType?: string;
+    customSubscriberIds?: number[];
+}
+
+export interface UpdateBillRequest {
+    billId: number;
+    subscriberId: number;
+    subscriberFirstName: string;
+    subscriberLastName: string;
+    billDate: string;
+    previousKva: number;
+    currentKva: number;
+    kvaFee: number;
+    subscriptionFeeVar: number;
+    subscriptionFeeFixed: number;
+    currencyCode: string;
+    amount: number;
+    notes: string;
+    subscriptionAmps: number;
+    statusCode: string;
+    status: string;
+}
+
+export interface GetBillsByCodeQueryParams {
+    SubscriberBillCode: string;
 }

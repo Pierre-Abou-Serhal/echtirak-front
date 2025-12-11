@@ -12,10 +12,11 @@ import { Button } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
 import { Avatar } from 'primeng/avatar';
 import { NotificationService } from '@/core/services/notification.service';
+import { InputNumber } from 'primeng/inputnumber';
 
 @Component({
     selector: 'app-profile.component',
-    imports: [InputText, Message, ReactiveFormsModule, Button, Skeleton, Avatar],
+    imports: [InputText, Message, ReactiveFormsModule, Button, Skeleton, Avatar, InputNumber],
     templateUrl: './profile.component.html',
     styleUrl: './profile.component.scss',
     standalone: true
@@ -33,7 +34,10 @@ export class ProfileComponent implements OnInit {
             firstName: [null, Validators.required],
             lastName: [null, Validators.required],
             businessName: [null, [Validators.required]],
-            phoneNumber: [null, [Validators.required]]
+            phoneNumber: [null, [Validators.required]],
+            gracePeriodDays: [null, [Validators.required]],
+            smsDisplayName: [null, [Validators.required]],
+            username: [null, [Validators.required]]
         });
     }
 
@@ -44,6 +48,9 @@ export class ProfileComponent implements OnInit {
                 this.profileForm.get('lastName')?.setValue(response.profile.lastName);
                 this.profileForm.get('businessName')?.setValue(response.profile.businessName);
                 this.profileForm.get('phoneNumber')?.setValue(response.profile.phoneNumber);
+                this.profileForm.get('gracePeriodDays')?.setValue(response.profile.gracePeriodDays);
+                this.profileForm.get('smsDisplayName')?.setValue(response.profile.smsDisplayName);
+                this.profileForm.get('username')?.setValue(response.profile.username);
 
                 this.loading = false;
             },
@@ -68,15 +75,16 @@ export class ProfileComponent implements OnInit {
             firstName: this.profileForm.get('firstName')?.value,
             lastName: this.profileForm.get('lastName')?.value,
             businessName: this.profileForm.get('businessName')?.value,
-            phoneNumber: this.profileForm.get('phoneNumber')?.value
+            phoneNumber: this.profileForm.get('phoneNumber')?.value,
+            gracePeriodDays: this.profileForm.get('gracePeriodDays')?.value,
+            smsDisplayName: this.profileForm.get('smsDisplayName')?.value,
+            username: this.profileForm.get('username')?.value
         };
 
         try {
             await firstValueFrom(this.generatorOwnerService.updateProfile(updateProfileRequest));
 
-            this.notificationService.success(
-                'Successful',
-                'Profile updated successfully',);
+            this.notificationService.success('Successful', 'Profile updated successfully');
 
             this.saving = false;
         } catch (error) {

@@ -1,0 +1,244 @@
+/* =========================
+   PAGE WRAPPER
+========================= */
+.bills-page {
+    min-height: 100%;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* =========================
+   PAGE TITLE
+========================= */
+.page-title {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto 1.2rem;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+/* =========================
+   CENTERED LIST
+========================= */
+.bills-list {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* =========================
+   CARD
+========================= */
+.bill-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 1.1rem 1.2rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    font-size: 0.95rem;
+}
+
+/* =========================
+   HEADER
+========================= */
+.bill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bill-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* =========================
+   STATUS PILL
+========================= */
+.status-pill {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 700;
+}
+
+/* =========================
+   SUB HEADER
+========================= */
+.bill-subheader {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.6rem;
+    row-gap: 0.2rem;
+    font-size: 0.85rem;
+}
+
+/* =========================
+   AMOUNT ROW
+========================= */
+.bill-amount-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.9rem;
+}
+
+.bill-amount-row .amount {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+/* =========================
+   TECH INFO GRID
+========================= */
+.bill-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 0.6rem;
+    font-size: 0.85rem;
+}
+
+.bill-grid-item {
+    display: flex;
+    flex-direction: column;
+}
+
+/* =========================
+   FEES
+========================= */
+.fees {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+}
+
+.fee-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* =========================
+   NOTES
+========================= */
+.notes-text {
+    margin: 0.2rem 0 0;
+    font-size: 0.9rem;
+    color: #4b5563;
+    line-height: 1.4;
+    white-space: pre-line;
+}
+
+/* =========================
+   TEXT HELPERS
+========================= */
+.label {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.label-small {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.value {
+    font-weight: 600;
+    color: #111827;
+}
+
+/* =========================
+   DIVIDER
+========================= */
+.divider {
+    border-top: 1px solid #e5e7eb;
+    margin: 0.4rem 0;
+}
+
+/* =========================
+   STATES
+========================= */
+.state {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto 1rem;
+    border-radius: 0.9rem;
+    padding: 1rem 1.1rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.state-loading {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.state-info {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.state-empty {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* =========================
+   SPINNER
+========================= */
+.spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    border: 2px solid #93c5fd;
+    border-top-color: transparent;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================
+   DESKTOP SCALE
+========================= */
+@media (min-width: 768px) {
+    .page-title {
+        font-size: 2.1rem;
+    }
+
+    .bill-card {
+        font-size: 1rem;
+        padding: 1.3rem 1.4rem;
+    }
+
+    .bill-name {
+        font-size: 1.25rem;
+    }
+
+    .bill-amount-row .amount {
+        font-size: 1.8rem;
+    }
+
+    .notes-text {
+        font-size: 0.95rem;
+    }
+}

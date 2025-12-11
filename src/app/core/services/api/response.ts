@@ -44,7 +44,7 @@ export interface GetSubscribersResponse {
     page: GetSubscribersPage;
 }
 
-export interface UpsertSubscriberResponse extends Subscriber { }
+export interface UpsertSubscriberResponse extends Subscriber {}
 
 export interface GetGeneratorsResponse {
     generators: Generator[];
@@ -182,4 +182,25 @@ export interface GetWalletTransactionsPage {
 
 export interface WalletForecastResponse {
     forecast: Forecast;
+}
+
+export interface UpdateBillResponse {
+    response: {
+        oldBill: Bill;
+        newBill: Bill;
+    };
+}
+
+export interface GetBillsByCodeResponse {
+    page: GetBillsByCodePage;
+}
+
+export interface GetBillsByCodePage {
+    items: Bill[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
 }

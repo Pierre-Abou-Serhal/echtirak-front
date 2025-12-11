@@ -526,15 +526,7 @@
 
     <!-- Footer -->
     <ng-template pTemplate="footer">
-        <div class="flex justify-end w-full">
-            <p-button
-                label="Got it"
-                icon="pi pi-times"
-                (click)="closeWarning()"
-                text
-                severity="secondary"
-                autofocus
-            />
-        </div>
+        <p-button label="No" icon="pi pi-times" (click)="closeWarning()" text severity="secondary" />
+        <p-button label="Yes" icon="pi pi-check" (click)="updateSubscriber()" severity="primary" outlined autofocus />
     </ng-template>
 </p-dialog>

@@ -18,7 +18,8 @@ import {
     UpsertBillCollectorRequest,
     UpsertGeneratorRequest,
     UpsertSubscriberRequest,
-    UpsertSubscriptionBillingModelRequest
+    UpsertSubscriptionBillingModelRequest,
+    UpdateBillRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -44,7 +45,8 @@ import {
     GetWarningMessagesResponse,
     GetCurrenciesResponse,
     GetCurrencyRatesResponse,
-    UpsertCurrencyRatesResponse
+    UpsertCurrencyRatesResponse,
+    UpdateBillResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -176,5 +178,9 @@ export class GeneratorOwnerService {
 
     public upsertCurrencyRates(request: UpsertCurrencyRatesRequest): Observable<UpsertCurrencyRatesResponse> {
         return this.apiService.post<UpsertCurrencyRatesResponse>('/GeneratorOwner/CurrencyRates', request);
+    }
+
+    public updateBill(request: UpdateBillRequest): Observable<UpdateBillResponse> {
+        return this.apiService.post<UpdateBillResponse>('/GeneratorOwner/UpdateBill', request);
     }
 }

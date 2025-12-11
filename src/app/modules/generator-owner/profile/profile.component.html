@@ -53,7 +53,38 @@
             class="space-y-6"
             (ngSubmit)="onSave()"
         >
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4">
+            <!-- Username -->
+            <div>
+                <label
+                    for="dialogUsername"
+                    class="block text-surface-900 dark:text-surface-0 text-sm font-medium mb-2"
+                >
+                    Username
+                </label>
+                <input
+                    pInputText
+                    id="dialogUsername"
+                    type="text"
+                    placeholder="Username"
+                    class="w-full"
+                    formControlName="username"
+                    [invalid]="isInvalid('username')"
+                />
+                @if (isInvalid('username')) {
+                    <p-message
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                        class="mt-1"
+                    >
+                        Username is required.
+                    </p-message>
+                }
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- First Name -->
                 <div>
                     <label
@@ -173,7 +204,71 @@
                 </div>
             </div>
 
-            <div class="flex justify-end gap-2 pt-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Grace Period Days -->
+            <div>
+                <label
+                    for="dialogGracePeriodDays"
+                    class="block text-surface-900 dark:text-surface-0 text-sm font-medium mb-2"
+                >
+                    Grace Period (days)
+                </label>
+
+                <p-inputnumber
+                    inputId="dialogGracePeriodDays"
+                    placeholder="Grace period in days"
+                    class="w-full"
+                    formControlName="gracePeriodDays"
+                    [invalid]="isInvalid('gracePeriodDays')"
+                    mode="decimal"
+                    [minFractionDigits]="0"
+                    [maxFractionDigits]="0"
+                ></p-inputnumber>
+
+                @if (isInvalid('gracePeriodDays')) {
+                    <p-message
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                        class="mt-1"
+                    >
+                        Grace period is required.
+                    </p-message>
+                }
+            </div>
+
+            <!-- SMS Display Name -->
+            <div>
+                <label
+                    for="dialogSmsDisplayName"
+                    class="block text-surface-900 dark:text-surface-0 text-sm font-medium mb-2"
+                >
+                    SMS Display Name
+                </label>
+                <input
+                    pInputText
+                    id="dialogSmsDisplayName"
+                    type="text"
+                    placeholder="SMS Display Name"
+                    class="w-full"
+                    formControlName="smsDisplayName"
+                    [invalid]="isInvalid('smsDisplayName')"
+                />
+                @if (isInvalid('smsDisplayName')) {
+                    <p-message
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                        class="mt-1"
+                    >
+                        SMS Display Name is required.
+                    </p-message>
+                }
+            </div>
+        </div>
+
+
+        <div class="flex justify-end gap-2 pt-2">
                 <p-button
                     label="Save changes"
                     icon="pi pi-check"

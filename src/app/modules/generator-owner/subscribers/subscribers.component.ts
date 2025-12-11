@@ -22,6 +22,7 @@ import { Textarea } from 'primeng/textarea';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Skeleton } from 'primeng/skeleton';
 import { WalletForecastRequest } from '@/core/services/api/request';
+import { WalletService } from '@/core/services/wallet.service';
 
 @Component({
     selector: 'app-subscribers',
@@ -34,6 +35,7 @@ export class SubscribersComponent implements OnInit {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly notificationService = inject(NotificationService);
+    private readonly walletService = inject(WalletService);
 
     subscribers: Subscriber[] = [];
     selectedSubscribers: Subscriber[] = [];
@@ -378,25 +380,22 @@ export class SubscribersComponent implements OnInit {
         if (this.isSubscriberValid()) {
             let request: WalletForecastRequest = {
                 subscriberCount: 1
-            }
+            };
 
             this.walletService.walletForecast(request).subscribe({
                 next: (response: WalletForecastResponse) => {
                     this.forecastWallet = response.forecast;
 
-                    if (response.forecast.isAffordable){
-                        // Creating the campaign --> enough balance
-                        this.displayConfirmation = true;
-                    }
-                    else {
-                        // Block the creation --> Show warning message
+                    if (response.forecast.isAffordable) {
+                        this.updateSubscriber();
+                    } else {
+                        // Warn the user, but allow him to continue
                         this.displayWarning = true;
-                        this.isCampaignSaving = false;
                     }
                 },
                 error: (err) => {
-                    console.log(err)
-                    this.isCampaignSaving = false;
+                    console.log(err);
+                    this.isSubscriberSaving = false;
                 }
             });
         } else {
@@ -404,7 +403,7 @@ export class SubscribersComponent implements OnInit {
         }
     }
 
-    updateSubscriber(){
+    updateSubscriber() {
         let isCreatingSub = this.selectedSubscriber.id === -1;
         this.generatorOwnerService
             .upsertSubscriber({
@@ -527,12 +526,12 @@ export class SubscribersComponent implements OnInit {
     downloadSubscribersQrCodePdf() {
         this.isDownloadingSubscribersQrCodePdf = true;
 
-        if(!this.selectedGeneratorForQrPdf) {
+        if (!this.selectedGeneratorForQrPdf) {
             this.isDownloadingSubscribersQrCodePdf = false;
             return;
         }
 
-        this.generatorOwnerService.getSubscribersQrCodePdf({generatorId: this.selectedGeneratorForQrPdf}).subscribe({
+        this.generatorOwnerService.getSubscribersQrCodePdf({ generatorId: this.selectedGeneratorForQrPdf }).subscribe({
             next: (response) => {
                 const blob = response.body!;
                 const contentDisposition = response.headers.get('content-disposition') ?? '';
@@ -560,7 +559,8 @@ export class SubscribersComponent implements OnInit {
     }
 
     // Warning Popup functions
-    closeWarning(){
+    closeWarning() {
         this.displayWarning = false;
+        this.isSubscriberSaving = false;
     }
 }

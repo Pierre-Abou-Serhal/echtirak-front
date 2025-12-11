@@ -3,18 +3,21 @@ import { AppLayout } from '@/layout/component/app.layout';
 import { NotFoundComponent } from '@/static/not-found/not-found.component';
 import { anonymousOnlyGuard, roleMatchGuard } from '@/core/guards/guard';
 import { UserRole } from '@/core/enums/enum';
-import { HomeComponent } from '@/static/home/home.component';
 import { AccessDeniedComponent } from '@/static/access-denied/access-denied.component';
+import {
+    GetBillsByCodeComponent
+} from '@/static/get-bills-by-code/get-bills-by-code.component/get-bills-by-code.component';
+import { LandingComponent } from '@/static/landing/landing.component';
 
 export const appRoutes: Routes = [
     {
         path: '',
-        component: HomeComponent,
+        component: LandingComponent,
     },
     {
         path: 'auth',
         loadChildren: () => import('./app/modules/auth/auth.routes'),
-        canMatch: [anonymousOnlyGuard],
+        canMatch: [anonymousOnlyGuard]
     },
     {
         path: 'app',
@@ -26,9 +29,7 @@ export const appRoutes: Routes = [
                 data: {
                     roles: [UserRole.GENERATOR_OWNER]
                 },
-                loadChildren: () =>
-                    import('./app/modules/generator-owner/generator-owner.routes')
-                        .then((route) => route.GENERATOR_OWNER_ROUTES)
+                loadChildren: () => import('./app/modules/generator-owner/generator-owner.routes').then((route) => route.GENERATOR_OWNER_ROUTES)
             },
             {
                 path: 'bill-collector',
@@ -36,15 +37,17 @@ export const appRoutes: Routes = [
                 data: {
                     roles: [UserRole.BILL_COLLECTOR]
                 },
-                loadChildren: () =>
-                    import('./app/modules/bill-collector/bill-collector.routes')
-                        .then((route) => route.BILL_COLLECTOR_ROUTES)
-            },
+                loadChildren: () => import('./app/modules/bill-collector/bill-collector.routes').then((route) => route.BILL_COLLECTOR_ROUTES)
+            }
         ]
     },
     {
+        path: 'get-bills-by-code/:code',
+        component: GetBillsByCodeComponent
+    },
+    {
         path: 'access-denied',
-        component: AccessDeniedComponent,
+        component: AccessDeniedComponent
     },
     { path: '**', component: NotFoundComponent }
 ];

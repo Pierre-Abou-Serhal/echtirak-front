@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Inject, inject, LOCALE_ID, OnInit } from '@angular/core';
+import { Component, DestroyRef, Inject, inject, LOCALE_ID, OnInit, ViewChild } from '@angular/core';
 import { Button, ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { IconField } from 'primeng/iconfield';
@@ -6,9 +6,7 @@ import { InputIcon } from 'primeng/inputicon';
 import { Table, TableModule } from 'primeng/table';
 import { InputText } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
-import {
-    GetBillsResponse, GetGeneratorsResponse, GetLookupResponse
-} from '@/core/services/api/response';
+import { GetBillsResponse, GetGeneratorsResponse, GetLookupResponse, UpdateBillResponse } from '@/core/services/api/response';
 import { Bill, Generator, Lookup } from '@/core/models/model';
 import { BillStatus, LookupDomain } from '@/core/enums/enum';
 import { debounceTime, finalize, Subject, switchMap, tap } from 'rxjs';
@@ -20,6 +18,8 @@ import { DatePicker } from 'primeng/datepicker';
 import { Select } from 'primeng/select';
 import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
 import { InputNumber } from 'primeng/inputnumber';
+import { UpdateBillRequest } from '@/core/services/api/request';
+import { NotificationService } from '@/core/services/notification.service';
 
 export interface BillSearchFilter {
     generatorId?: number;
@@ -38,6 +38,8 @@ export interface BillSearchFilter {
 })
 export class BillsListComponent implements OnInit {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
+    private readonly notificationService = inject(NotificationService);
+
     private readonly destroyRef = inject(DestroyRef);
 
     constructor(@Inject(LOCALE_ID) private locale: string) {
@@ -72,6 +74,10 @@ export class BillsListComponent implements OnInit {
 
     // Edit inside table
     clonedBills: { [id: string]: Bill } = {};
+
+    // Update Bill vars
+    isBillSaving: boolean = false;
+    @ViewChild('dt') table!: Table;
 
     private search$ = new Subject<BillSearchFilter>();
 
@@ -310,21 +316,15 @@ export class BillsListComponent implements OnInit {
         }
     }
 
-    editBill(bill: Bill) {
-        console.log(bill);
-    }
-
     // Search filter functions
     applyFilters() {
         this.search$.next(this.billSearchFilter);
     }
 
     resetFilters() {
-        const currentDate = new Date();
-
         this.billSearchFilter = {
-            billDateFrom: currentDate,
-            billDateTo: currentDate,
+            billDateFrom: undefined,
+            billDateTo: undefined,
             subscriberName: undefined,
             generatorId: undefined,
             statusCode: undefined
@@ -340,16 +340,78 @@ export class BillsListComponent implements OnInit {
     }
 
     onRowEditSave(bill: Bill) {
-        // Update bill API call
-        console.log(bill);
+        this.updateBill(bill);
     }
 
     onRowEditCancel(bill: Bill, index: number) {
-        // user cancelled → revert from clone
+        // user canceled → revert from clone
         const original = this.clonedBills[bill.id];
         if (original) {
             this.bills[index] = original;
             delete this.clonedBills[bill.id];
         }
+        this.table.cancelRowEdit(bill);
     }
+
+    updateBill(bill: Bill) {
+        console.log('bill to update', bill);
+
+        this.isBillSaving = true;
+
+        let request: UpdateBillRequest = {
+            billId: bill.id,
+            subscriberLastName: bill.subscriberLastName,
+            billDate: bill.billDate,
+            amount: bill.amount,
+            statusCode: bill.statusCode,
+            currencyCode: bill.currencyCode,
+            kvaFee: bill.kvaFee,
+            notes: bill.notes,
+            currentKva: bill.currentKva,
+            previousKva: bill.previousKva,
+            subscriberFirstName: bill.subscriberFirstName,
+            subscriberId: bill.subscriberId,
+            subscriptionAmps: bill.subscriptionAmps,
+            subscriptionFeeFixed: bill.subscriptionFeeFixed,
+            subscriptionFeeVar: bill.subscriptionFeeVar,
+            status: bill.statusCode // TODO: Remove
+        };
+
+        this.generatorOwnerService.updateBill(request).subscribe({
+            next: (response: UpdateBillResponse) => {
+                this.notificationService.success('Successful', 'Bill updated successfully');
+
+                console.log(this.findIndexById(request.billId));
+                console.log(response.response.oldBill);
+
+                // The updated bill will become the old one
+                this.bills[this.findIndexById(request.billId)] = response.response.oldBill;
+
+                // Will insert a new fresh bill at the top of the array
+                this.bills.push(response.response.newBill);
+
+                this.isBillSaving = false;
+                this.table.cancelRowEdit(bill);
+            },
+            error: (err) => {
+                console.log(err);
+                this.isBillSaving = false;
+                this.table.cancelRowEdit(bill);
+            }
+        });
+    }
+
+    findIndexById(id: number): number {
+        let index = -1;
+        for (let i = 0; i < this.bills.length; i++) {
+            if (this.bills[i].id === id) {
+                index = i;
+                break;
+            }
+        }
+
+        return index;
+    }
+
+    protected readonly BillStatus = BillStatus;
 }
