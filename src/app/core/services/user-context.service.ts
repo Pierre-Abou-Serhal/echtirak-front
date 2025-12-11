@@ -53,7 +53,7 @@ export class UserContextService {
         });
     }
 
-    private loadWalletBalance() {
+    loadWalletBalance() {
         this.walletService.getWalletBalance().subscribe({
             next: (walletBalance: GetWalletBalancesResponse) => {
                 this.generatorOwnerWalletBalance$.next(walletBalance.balance);

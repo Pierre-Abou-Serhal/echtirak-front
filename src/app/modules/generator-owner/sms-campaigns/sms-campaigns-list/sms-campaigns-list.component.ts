@@ -25,6 +25,7 @@ import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { WalletService } from '@/core/services/wallet.service';
+import { UserContextService } from '@/core/services/user-context.service';
 
 export interface SmsCampaignSearchFilter {
     status?: string;
@@ -46,6 +47,7 @@ export class SmsCampaignsListComponent {
     private readonly fb = inject(FormBuilder);
     private readonly notificationService = inject(NotificationService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly userContextService = inject(UserContextService);
 
     public campaigns: SmsCampaign[] = [];
     public selectedCampaigns: SmsCampaign[] = [];
@@ -137,14 +139,9 @@ export class SmsCampaignsListComponent {
                 }
             });
 
-        this.subscriberSearch$
-            .pipe(
-                debounceTime(300),
-                takeUntilDestroyed(this.destroyRef)
-            )
-            .subscribe(keyword => {
-                this._fetchSubscribers(keyword);
-            });
+        this.subscriberSearch$.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef)).subscribe((keyword) => {
+            this._fetchSubscribers(keyword);
+        });
 
         this.smsCampaignSearchFilter = {};
 
@@ -287,31 +284,31 @@ export class SmsCampaignsListComponent {
 
         let request: WalletForecastRequest = {
             smsCount: formValue.selectionCriteriaType === 'CUSTOM' ? formValue.customSubscriberIds.length : null,
-            selectionCriteriaType: formValue.selectionCriteriaType
-        }
+            selectionCriteriaType: formValue.selectionCriteriaType,
+            customSubscriberIds: formValue.customSubscriberIds
+        };
 
         this.walletService.walletForecast(request).subscribe({
             next: (response: WalletForecastResponse) => {
                 this.forecastWallet = response.forecast;
 
-                if (response.forecast.isAffordable){
+                if (response.forecast.isAffordable) {
                     // Creating the campaign --> enough balance
                     this.displayConfirmation = true;
-                }
-                else {
+                } else {
                     // Block the creation --> Show warning message
                     this.displayWarning = true;
                     this.isCampaignSaving = false;
                 }
             },
             error: (err) => {
-                console.log(err)
+                console.log(err);
                 this.isCampaignSaving = false;
             }
         });
     }
 
-    createSmsCampaign(){
+    createSmsCampaign() {
         const formValue = this.createForm.value;
 
         const request: CreateSmsCampaignRequest = {
@@ -324,26 +321,33 @@ export class SmsCampaignsListComponent {
 
         this.generatorOwnerService.createSmsCampaign(request).subscribe({
             next: (response: CreateSmsCampaignResponse) => {
+                console.log(response.campaign);
                 // Add
                 this.campaigns.push(response.campaign);
                 this.notificationService.success('Successful', 'SMS Campaign Created');
 
                 this.campaigns = [...this.campaigns];
+
+                // Update wallet balance
+                this.userContextService.loadWalletBalance();
+
                 this.showCreateDialog = false;
                 this.isCampaignSaving = false;
+                this.displayConfirmation  = false;
             },
             error: (err) => {
                 console.log(err);
                 this.isCampaignSaving = false;
+                this.displayConfirmation = false;
             }
         });
     }
 
-    closeWarning(){
+    closeWarning() {
         this.displayWarning = false;
     }
 
-    closeConfirmation(){
+    closeConfirmation() {
         this.displayConfirmation = false;
     }
 
@@ -455,7 +459,6 @@ export class SmsCampaignsListComponent {
     }
 
     resetFilters() {
-
         this.smsCampaignSearchFilter = {};
 
         this.applyFilters();
@@ -532,16 +535,13 @@ export class SmsCampaignsListComponent {
             return;
         }
 
-        const scrollContainer =
-            overlayEl.querySelector('.p-multiselect-items-wrapper') as HTMLElement | null;
+        const scrollContainer = overlayEl.querySelector('.p-multiselect-items-wrapper') as HTMLElement | null;
 
         const target = scrollContainer ?? overlayEl;
 
         target.removeEventListener('scroll', this.overlayScrollHandler);
         this.overlayScrollAttached = false;
     }
-
-
 
     // Called when user writes in the search box
     onFilter(event: any) {
@@ -593,7 +593,7 @@ export class SmsCampaignsListComponent {
                     this.subscribers = [...this.subscribers, ...items];
                 },
                 error: () => {
-                    console.error("Failed to fetch subscribers");
+                    console.error('Failed to fetch subscribers');
                 },
                 complete: () => {
                     this.isLoadingSubscribers = false;
