@@ -14,7 +14,8 @@ import {
     Currency,
     WalletBalance,
     WalletTransaction,
-    Forecast
+    Forecast,
+    KvaReading
 } from '@/core/models/model';
 import { DashboardBills, DashboardConsumption, DashboardRecentActivity, DashboardSubscribers, DashboardWallet, DashboardWalletStatistics, SmsCampaignDetail, SmsCampaignDetailsMessage, SmsCampaignStatistics, TokenPair } from '@/core/dtos/dto';
 
@@ -203,4 +204,12 @@ export interface GetBillsByCodePage {
     totalPages: number;
     hasNext: boolean;
     hasPrevious: boolean;
+}
+
+export interface GetKVAReadingsPerGeneratorResponse {
+    readings: KvaReading[];
+}
+
+export interface UpdateKVAReadingResponse {
+    reading: KvaReading;
 }

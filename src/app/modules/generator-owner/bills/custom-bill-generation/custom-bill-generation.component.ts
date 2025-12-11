@@ -18,13 +18,13 @@ import { Select } from 'primeng/select';
 import { BillsPreviewComponent } from '@/modules/generator-owner/bills/bills-preview/bills-preview.component';
 
 @Component({
-    selector: 'app-single-bill-generation-component',
+    selector: 'app-custom-bill-generation-component',
     imports: [Button, TableModule, ButtonDirective, IconField, InputIcon, InputText, FormsModule, Tag, Select, BillsPreviewComponent],
-    templateUrl: './single-bill-generation.component.html',
-    styleUrl: './single-bill-generation.component.scss',
+    templateUrl: './custom-bill-generation.component.html',
+    styleUrl: './custom-bill-generation.component.scss',
     standalone: true
 })
-export class SingleBillGenerationComponent implements OnInit {
+export class CustomBillGenerationComponent implements OnInit {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly notificationService = inject(NotificationService);

@@ -149,3 +149,13 @@ export interface UpdateBillRequest {
 export interface GetBillsByCodeQueryParams {
     SubscriberBillCode: string;
 }
+
+export interface GetKVAReadingsPerGeneratorQueryParams {
+    generatorId: number;
+}
+
+export interface UpdateKVAReadingRequest {
+    id: number;
+    kvaReading: number;
+    status: string;
+}

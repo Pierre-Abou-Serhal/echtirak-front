@@ -183,3 +183,27 @@ export interface Forecast {
     warningMessage: string;
     message: string;
 }
+
+export interface KvaReading {
+    id: number;
+    billCollectorUserId: number;
+    subscriberId: number;
+    subscriberFirstName: string;
+    subscriberLastName: string;
+    subscriberPhoneNumber: string;
+    electricMeterNumber: string;
+    generatorId: number;
+    generatorCode: string;
+    kvaReading: number;
+    kvaPrevious: number;
+    kvaCurrent: number;
+    kvaReadingUrl: string;
+    status: string;
+    statusDomain: string;
+    createdAt: string;
+    createdBy: string;
+    modifiedAt: string;
+    modifiedBy: string;
+    pendingReadingsCount: number;
+    hasDuplicatePendingReadings: boolean;
+}
