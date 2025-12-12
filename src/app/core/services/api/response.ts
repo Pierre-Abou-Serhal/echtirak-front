@@ -213,3 +213,8 @@ export interface GetKVAReadingsPerGeneratorResponse {
 export interface UpdateKVAReadingResponse {
     reading: KvaReading;
 }
+
+export interface GenerateBillsFromKVAReadingsResponse {
+    bills: Bill[];
+    hasDuplicateBills: boolean;
+}

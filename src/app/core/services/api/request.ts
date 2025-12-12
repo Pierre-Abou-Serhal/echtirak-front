@@ -159,3 +159,7 @@ export interface UpdateKVAReadingRequest {
     kvaReading: number;
     status: string;
 }
+
+export interface GenerateBillsFromKVAReadingsRequest {
+    kvaReadingIds: number[];
+}

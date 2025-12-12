@@ -1,1 +1,207 @@
-<p>ZOBTIT</p>
+<div class="mb-4">
+    <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
+    <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
+    <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
+</div>
+<p-table
+    #dt
+    [value]="kvaReadings"
+    dataKey="id"
+    [globalFilterFields]="['subscriberFirstName', 'subscriberLastName', 'subscriberPhoneNumber', 'electricMeterNumber', 'kvaReading', 'kvaPrevious', 'kvaCurrent', 'status']"
+    responsiveLayout="scroll"
+    [loading]="isKvaReadingLoading"
+    editMode="row"
+    rowHover
+    showGridlines
+    paginator
+    stripedRows
+    [first]="first"
+    [rows]="rows"
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [(selection)]="selectedKvaReadings"
+    (onPage)="pageChange($event)"
+>
+    <ng-template #caption>
+        <div class="text-end pb-4">
+            <p-button icon="pi pi-file-plus" class="me-2" label="Generate" severity="primary" (click)="generateBills()" [loading]="isBillsGenerating"/>
+            <p-button icon="pi pi-external-link" label="Export" (click)="exportToCsv()" />
+        </div>
+
+        <div class="flex justify-between items-center flex-column sm:flex-row">
+            <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt)"></button>
+            <p-iconfield iconPosition="left" class="ml-auto">
+                <p-inputicon>
+                    <i class="pi pi-search"></i>
+                </p-inputicon>
+                <input pInputText type="text"
+                       (input)="onGlobalFilter(dt, $event)" placeholder="Search keyword" />
+            </p-iconfield>
+        </div>
+    </ng-template>
+    <ng-template #header>
+        <tr>
+            <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+            <th style="width: 5rem"></th>
+
+            <th class="no-wrap-text" pSortableColumn="subscriberFirstName">
+                <div class="flex justify-between items-center gap-2">
+                    Subscriber
+                    <p-sortIcon field="subscriberFirstName" />
+                </div>
+            </th>
+
+            <th class="no-wrap-text" pSortableColumn="electricMeterNumber">
+                <div class="flex justify-between items-center gap-2">
+                    Electric Meter Number
+                    <p-sortIcon field="electricMeterNumber" />
+                </div>
+            </th>
+
+            <th class="no-wrap-text" pSortableColumn="kvaReading">
+                <div class="flex justify-between items-center gap-2">
+                    KWH Reading
+                    <p-sortIcon field="kvaReading" />
+                </div>
+            </th>
+
+            <th class="no-wrap-text" pSortableColumn="kvaPrevious">
+                <div class="flex justify-between items-center gap-2">
+                    KWH Previous
+                    <p-sortIcon field="kvaPrevious" />
+                </div>
+            </th>
+
+            <th class="no-wrap-text" pSortableColumn="kvaCurrent">
+                <div class="flex justify-between items-center gap-2">
+                    KWH Current
+                    <p-sortIcon field="kvaCurrent" />
+                </div>
+            </th>
+
+            <th class="no-wrap-text" pSortableColumn="status">
+                <div class="flex justify-between items-center gap-2">
+                    Status
+                    <p-sortIcon field="status" />
+                </div>
+            </th>
+        </tr>
+    </ng-template>
+    <ng-template #body let-kvaReading let-editing="editing" let-ri="rowIndex">
+        <tr [pEditableRow]="kvaReading" [ngClass]="rowClass(kvaReading)">
+            <td>
+                <p-tableCheckbox [value]="kvaReading" />
+            </td>
+            <!-- ACTIONS (edit / save / cancel) -->
+            <td>
+                <div class="flex items-center justify-center gap-2">
+                    @if(!editing){
+                        <!-- start editing -->
+                        <p-button
+                            pInitEditableRow
+                            icon="pi pi-pencil"
+                            styleClass="p-button-sm"
+                            (click)="onRowEditInit(kvaReading)"
+                            severity="info"
+                            rounded
+                            [disabled]="kvaReading.status !== KvaReadingStatus.PENDING"
+                        />
+                    }
+
+                    @if(editing){
+                        <!-- save -->
+                        <p-button
+                            icon="pi pi-check"
+                            styleClass="p-button-sm"
+                            (click)="onRowEditSave(kvaReading)"
+                            severity="primary"
+                            rounded
+                            [loading]="isKvaReadingSaving"
+                        />
+
+                        <!-- cancel -->
+                        <p-button
+                            icon="pi pi-times"
+                            styleClass="p-button-sm"
+                            (click)="onRowEditCancel(kvaReading, ri)"
+                            severity="danger"
+                            rounded
+                        />
+                    }
+                </div>
+            </td>
+
+            <!-- NON-EDITABLE COLUMNS: normal display -->
+            <td>
+                {{ kvaReading.subscriberFirstName }} {{ kvaReading.subscriberLastName }} {{ kvaReading.subscriberPhoneNumber }}
+            </td>
+            <td>
+                {{ kvaReading.electricMeterNumber }}
+            </td>
+            <td>
+                <p-cellEditor>
+                    <ng-template #input>
+                        <p-inputnumber
+                            [(ngModel)]="kvaReading.kvaReading"
+                            mode="decimal"
+                            [minFractionDigits]="0"
+                            [maxFractionDigits]="4"
+                        ></p-inputnumber>
+                    </ng-template>
+                    <ng-template #output>
+                        {{ kvaReading.kvaReading | number:'1.0-4' }}
+                    </ng-template>
+                </p-cellEditor>
+            </td>
+            <td>
+                {{ kvaReading.kvaPrevious }}
+            </td>
+            <td>
+                {{ kvaReading.kvaCurrent }}
+            </td>
+            <td>
+
+
+
+                <p-cellEditor>
+                    <ng-template #input>
+                        <p-select
+                            [options]="kvaReadingStatuses"
+                            [(ngModel)]="kvaReading.status"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Select generator"
+                            [overlayOptions]="getOverlayOptions()"
+                        />
+                    </ng-template>
+                    <ng-template #output>
+                        <p-tag
+                            [value]="kvaReading.status"
+                            [severity]="getBillSeverity(kvaReading.status)"
+                        />
+                    </ng-template>
+                </p-cellEditor>
+
+
+
+
+
+
+
+
+
+            </td>
+        </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+        <tr>
+            <td colspan="11">No KWH readings found.</td>
+        </tr>
+    </ng-template>
+    <ng-template #loadingbody>
+        <tr>
+            <td colspan="11">Loading KWH readings data. Please wait.</td>
+        </tr>
+    </ng-template>
+</p-table>

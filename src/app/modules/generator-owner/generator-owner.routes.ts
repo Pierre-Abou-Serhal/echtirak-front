@@ -15,6 +15,7 @@ import { SmsCampaignsListComponent } from './sms-campaigns/sms-campaigns-list/sm
 import { SmsCampaignDetailsComponent } from './sms-campaigns/sms-campaign-details/sms-campaign-details.component';
 import { CurrencyRatesComponent } from '@/modules/generator-owner/currency-rates/currency-rates-component';
 import { WalletComponent } from '@/modules/generator-owner/wallet/wallet-component';
+import { AnnouncementsComponent } from '@/modules/generator-owner/announcements/announcements.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -36,6 +37,7 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             { path: 'subscription-billing-model', component: SubscriptionBillingModelComponent },
             { path: 'currency-rates', component: CurrencyRatesComponent },
             { path: 'wallet', component: WalletComponent },
+            { path: 'announcements', component: AnnouncementsComponent }
         ]
     }
 ] as Routes;

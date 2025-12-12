@@ -21,7 +21,8 @@ import {
     UpsertSubscriptionBillingModelRequest,
     UpdateBillRequest,
     GetKVAReadingsPerGeneratorQueryParams,
-    UpdateKVAReadingRequest
+    UpdateKVAReadingRequest,
+    GenerateBillsFromKVAReadingsRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -50,7 +51,8 @@ import {
     UpsertCurrencyRatesResponse,
     UpdateBillResponse,
     GetKVAReadingsPerGeneratorResponse,
-    UpdateKVAReadingResponse
+    UpdateKVAReadingResponse,
+    GenerateBillsFromKVAReadingsResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -197,5 +199,9 @@ export class GeneratorOwnerService {
     }
     public updateKVAReading(request: UpdateKVAReadingRequest): Observable<UpdateKVAReadingResponse> {
         return this.apiService.post<UpdateKVAReadingResponse>('/GeneratorOwner/updateKVAReading', request);
+    }
+
+    public generateBillsFromKVAReadings(request: GenerateBillsFromKVAReadingsRequest): Observable<GenerateBillsFromKVAReadingsResponse> {
+        return this.apiService.post<GenerateBillsFromKVAReadingsResponse>('/GeneratorOwner/GenerateBillsFromKVAReadings', request);
     }
 }

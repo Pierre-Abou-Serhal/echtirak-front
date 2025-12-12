@@ -1,13 +1,21 @@
 <div class="card">
-    <p-select
-        [options]="generators"
-        [(ngModel)]="selectedGeneratorId"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Select generator"
-        class="w-full md:w-56 me-2"
-        [loading]="isGeneratorsLoading"
-    />
+    <div class="flex items-center">
+        <label class="block font-semibold me-2" for="generators">
+            Generator :
+        </label>
+
+        <p-select
+            id="generators"
+            [options]="generators"
+            [(ngModel)]="selectedGeneratorId"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Select generator"
+            class="w-full md:w-56 me-2"
+            [loading]="isGeneratorsLoading"
+        />
+    </div>
+
 
     <p-tabs [(value)]="activeTab">
         <p-tablist>
@@ -16,7 +24,7 @@
         </p-tablist>
         <p-tabpanels>
             <p-tabpanel value="0">
-                <app-metered-bill-generation [generatorId]="selectedGeneratorId"></app-metered-bill-generation>
+                <app-metered-bill-generation [generatorId]="selectedGeneratorId" (generatedBills)="generateBills($event)"></app-metered-bill-generation>
             </p-tabpanel>
             <p-tabpanel value="1">
                 <app-fixed-bill-generation></app-fixed-bill-generation>

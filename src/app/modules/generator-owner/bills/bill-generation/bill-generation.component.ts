@@ -3,7 +3,7 @@ import { Select } from 'primeng/select';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { Bill, Generator } from '@/core/models/model';
 import { SelectOptionNumValue } from '@/core/dtos/dto';
-import { GenerateBillsResponse, GetGeneratorsResponse } from '@/core/services/api/response';
+import { GetGeneratorsResponse } from '@/core/services/api/response';
 import { FormsModule } from '@angular/forms';
 import { BillsPreviewComponent } from '@/modules/generator-owner/bills/bills-preview/bills-preview.component';
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs';
@@ -29,8 +29,6 @@ export class BillGenerationComponent implements OnInit {
     selectedGeneratorId: number = 0;
     isGeneratorsLoading: boolean = true;
 
-    isGeneratingBills: boolean = false;
-
     activeTab: string = '0';
 
     ngOnInit(): void {
@@ -52,29 +50,8 @@ export class BillGenerationComponent implements OnInit {
         });
     }
 
-    // Generate bills functions
-    generateBills() {
-        this.isGeneratingBills = true;
-
-        this.billsPreview = [];
-
-        this.generatorOwnerService
-            .generateAllBills({
-                generatorId: this.selectedGeneratorId
-            })
-            .subscribe({
-                next: (response: GenerateBillsResponse) => {
-                    this.billsPreview = response.bills.map((bill, index) => ({
-                        ...bill,
-                        id: index + 1
-                    }));
-                    this.isGeneratingBills = false;
-                },
-                error: (err) => {
-                    console.log(err);
-                    this.billsPreview = [];
-                    this.isGeneratingBills = false;
-                }
-            });
+    // Listens to the output to any child component outputting a bill list
+    generateBills(bills: Bill[]) {
+       this.billsPreview = bills;
     }
 }
