@@ -260,6 +260,7 @@ export class CustomBillGenerationComponent implements OnInit {
 
     onGeneratorChange() {
         this.search$.next({ keyword: this.keyword, generatorId: this.selectedGeneratorId });
+        this.selectedSubscribers = [];
     }
 
     // Generate bills functions

@@ -57,3 +57,20 @@ export enum LookupDomain {
     WALLET_TRANSACTION_TYPE = 'WALLET_TRANSACTION_TYPE',
     KVA_READING_STATUS = 'KVA_READING_STATUS',
 }
+
+
+export enum AnnouncementFilterType {
+    READ = "READ",
+    UNREAD = "UNREAD",
+}
+
+export enum DataViewLayout {
+    LIST = 'list',
+    GRID = 'grid',
+}
+
+export enum AnnouncementPriority {
+    HIGH = 'HIGH',
+    MEDIUM = 'MEDIUM',
+    LOW = 'LOW',
+}

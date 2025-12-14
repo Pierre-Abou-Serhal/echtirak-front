@@ -163,3 +163,18 @@ export interface UpdateKVAReadingRequest {
 export interface GenerateBillsFromKVAReadingsRequest {
     kvaReadingIds: number[];
 }
+
+export interface GenerateBillsForFixedSubsRequest {
+    generatorId: number;
+}
+
+export interface GetAnnouncementsQueryParams {
+    pageNumber?: number;
+    pageSize?: number;
+    isRead?: boolean;
+    includeDeleted?: boolean;
+}
+
+export interface MarkAnnouncementAsReadRequest {
+    announcementId: number;
+}

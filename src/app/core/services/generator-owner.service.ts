@@ -22,7 +22,10 @@ import {
     UpdateBillRequest,
     GetKVAReadingsPerGeneratorQueryParams,
     UpdateKVAReadingRequest,
-    GenerateBillsFromKVAReadingsRequest
+    GenerateBillsFromKVAReadingsRequest,
+    GenerateBillsForFixedSubsRequest,
+    GetAnnouncementsQueryParams,
+    MarkAnnouncementAsReadRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -52,7 +55,10 @@ import {
     UpdateBillResponse,
     GetKVAReadingsPerGeneratorResponse,
     UpdateKVAReadingResponse,
-    GenerateBillsFromKVAReadingsResponse
+    GenerateBillsFromKVAReadingsResponse,
+    GenerateBillsForFixedSubsResponse,
+    GetAnnouncementsResponse,
+    GetAnnouncementsUnreadCountResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -197,11 +203,37 @@ export class GeneratorOwnerService {
             params: params
         });
     }
+
     public updateKVAReading(request: UpdateKVAReadingRequest): Observable<UpdateKVAReadingResponse> {
         return this.apiService.post<UpdateKVAReadingResponse>('/GeneratorOwner/updateKVAReading', request);
     }
 
     public generateBillsFromKVAReadings(request: GenerateBillsFromKVAReadingsRequest): Observable<GenerateBillsFromKVAReadingsResponse> {
         return this.apiService.post<GenerateBillsFromKVAReadingsResponse>('/GeneratorOwner/GenerateBillsFromKVAReadings', request);
+    }
+
+    // TODO: NOT IMPLEMENTED YET FROM TEH BACKEND
+    public generateBillsForFixedSubs(request: GenerateBillsForFixedSubsRequest): Observable<GenerateBillsForFixedSubsResponse> {
+        return this.apiService.post<GenerateBillsForFixedSubsResponse>('/GeneratorOwner/GenerateBillsForFixedSubs', request);
+    }
+
+    public getAnnouncements(queryParams: GetAnnouncementsQueryParams): Observable<GetAnnouncementsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetAnnouncementsResponse>(`/GeneratorOwner/Announcement`, {
+            params: params
+        });
+    }
+
+    public getAnnouncementsUnreadCount(): Observable<GetAnnouncementsUnreadCountResponse> {
+        return this.apiService.get<GetAnnouncementsUnreadCountResponse>(`/GeneratorOwner/Announcement/UnreadCount`);
+    }
+
+    public deleteAnnouncement(id: number): Observable<void> {
+        return this.apiService.delete<void>(`/GeneratorOwner/Announcement/${id}`);
+    }
+
+    public markAnnouncementAsRead(request: MarkAnnouncementAsReadRequest): Observable<void> {
+        return this.apiService.post<void>(`/GeneratorOwner/Announcement/${request.announcementId}/MarkAsRead`, request);
     }
 }

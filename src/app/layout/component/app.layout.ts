@@ -22,7 +22,7 @@ import { UserRole } from '@/core/enums/enum';
         <app-sidebar></app-sidebar>
 
         <!-- Generator owner Global UI components -->
-        @if(authService.getRole() === UserRole.GENERATOR_OWNER){
+        @if (authService.getRole() === UserRole.GENERATOR_OWNER) {
             <div class="fixed top-20 right-4 z-50">
                 <app-warning-widget></app-warning-widget>
             </div>
@@ -48,6 +48,9 @@ export class AppLayout {
 
     profileMenu: MenuItem[] = [];
 
+    private unreadSub?: Subscription;
+    private lastUnread = 0;
+
     constructor(
         public layoutService: LayoutService,
         public renderer: Renderer2,
@@ -55,7 +58,7 @@ export class AppLayout {
         private ar: ActivatedRoute,
         private menuService: MenuService,
         private userContext: UserContextService,
-        public authService: AuthService,
+        public authService: AuthService
     ) {
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
             if (!this.menuOutsideClickListener) {
@@ -128,12 +131,20 @@ export class AppLayout {
         if (this.menuOutsideClickListener) {
             this.menuOutsideClickListener();
         }
+
+        this.unreadSub?.unsubscribe();
     }
 
     // call once on first render (add ngOnInit)
     ngOnInit() {
         this.pushActiveMenu();
         this.userContext.loadGlobalContext(); // Will load global UI data available across all components
+
+        this.unreadSub = this.userContext.generatorOwnerAnnouncementUnreadCount$.subscribe((count) => {
+            this.lastUnread = count ?? 0;
+            this.patchAnnouncementsBadge(this.lastUnread);
+            console.log(this.lastUnread);
+        });
     }
 
     private pushActiveMenu() {
@@ -147,6 +158,31 @@ export class AppLayout {
 
         this.menuService.set(menu);
         this.profileMenu = profileMenu ?? [];
+
+        this.patchAnnouncementsBadge(this.lastUnread);
+    }
+
+    private patchAnnouncementsBadge(unread: number) {
+        const items = this.menuService.items(); // read signal value
+        const updated = this.withAnnouncementsBadge(items, unread);
+        this.menuService.set(updated);
+    }
+
+    private withAnnouncementsBadge(items: MenuItem[], unread: number): MenuItem[] {
+        const badge = unread > 0 ? String(unread) : undefined;
+
+        return items.map((section) => ({
+            ...section,
+            items: section.items?.map((child) => {
+                // Only announcement menu item will get a badge
+                if (child.routerLink[0] !== '/app/generator-owner/announcements') return child;
+
+                return {
+                    ...child,
+                    badge
+                };
+            })
+        }));
     }
 
     protected readonly UserRole = UserRole;

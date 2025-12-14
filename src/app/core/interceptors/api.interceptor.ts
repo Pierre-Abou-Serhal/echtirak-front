@@ -62,10 +62,7 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
         catchError((err: HttpErrorResponse) => {
             const apiError: ApiError = mapApiError(err);
 
-            const skipRefresh =
-                req.context.get(SKIP_REFRESH) ||
-                req.url.includes('SignIn') ||
-                req.url.includes('RefreshToken');
+            const skipRefresh = req.context.get(SKIP_REFRESH) || req.url.includes('SignIn') || req.url.includes('RefreshToken');
 
             const hasRefreshToken = !!session?.refreshToken;
 
@@ -76,34 +73,32 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
                     isRefreshingToken.value = true;
                     refreshTokenSubject.next(null);
 
-                    return authService
-                        .refreshToken({ refreshToken: session!.refreshToken! })
-                        .pipe(
-                            switchMap((refreshResponse) => {
-                                // update tokens in AuthService (+localStorage via signal)
-                                authService.updateTokens(refreshResponse);
+                    return authService.refreshToken({ refreshToken: session!.refreshToken! }).pipe(
+                        switchMap((refreshResponse) => {
+                            // update tokens in AuthService (+localStorage via signal)
+                            authService.updateTokens(refreshResponse);
 
-                                const newSession = authService.session();
-                                const retryReq = addAuthHeaders(req, newSession).clone({
-                                    // mark this as already refreshed to avoid infinite loop
-                                    context: req.context.set(SKIP_REFRESH, true),
-                                });
+                            const newSession = authService.session();
+                            const retryReq = addAuthHeaders(req, newSession).clone({
+                                // mark this as already refreshed to avoid infinite loop
+                                context: req.context.set(SKIP_REFRESH, true)
+                            });
 
-                                // signal to waiting requests that we have a new token
-                                refreshTokenSubject.next(refreshResponse.accessToken);
+                            // signal to waiting requests that we have a new token
+                            refreshTokenSubject.next(refreshResponse.accessToken);
 
-                                return next(retryReq);
-                            }),
-                            catchError((refreshErr: HttpErrorResponse) => {
-                                // refresh failed -> logout and propagate error
-                                authService.logout();
-                                const mappedRefreshError = mapApiError(refreshErr);
-                                return throwError(() => mappedRefreshError);
-                            }),
-                            finalize(() => {
-                                isRefreshingToken.value = false;
-                            })
-                        );
+                            return next(retryReq);
+                        }),
+                        catchError((refreshErr: HttpErrorResponse) => {
+                            // refresh failed -> logout and propagate error
+                            authService.logout();
+                            const mappedRefreshError = mapApiError(refreshErr);
+                            return throwError(() => mappedRefreshError);
+                        }),
+                        finalize(() => {
+                            isRefreshingToken.value = false;
+                        })
+                    );
                 } else {
                     // already refreshing: wait until refreshTokenSubject emits a non-null token
                     return refreshTokenSubject.pipe(
@@ -112,7 +107,7 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
                         switchMap((token) => {
                             const newSession = authService.session();
                             const retryReq = addAuthHeaders(req, newSession).clone({
-                                context: req.context.set(SKIP_REFRESH, true),
+                                context: req.context.set(SKIP_REFRESH, true)
                             });
                             return next(retryReq);
                         })
@@ -121,7 +116,7 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
             }
 
             // ---------- other errors (or 401 without refresh token) ----------
-            if (apiError.status === 400 || apiError.status === 500) {
+            if (apiError.status === 400 || apiError.status === 500 || apiError.status === 404) {
                 notify.error(apiError.title, apiError.detail);
             }
 

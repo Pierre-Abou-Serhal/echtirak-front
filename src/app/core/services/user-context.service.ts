@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import { WalletBalance, WarningMessage } from '@/core/models/model';
 import { AuthService } from '@/core/services/auth.service';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
-import { GetWalletBalancesResponse, GetWarningMessagesResponse } from '@/core/services/api/response';
+import { GetAnnouncementsUnreadCountResponse, GetWalletBalancesResponse, GetWarningMessagesResponse } from '@/core/services/api/response';
 import { UserRole } from '@/core/enums/enum';
 import { WalletService } from '@/core/services/wallet.service';
 
@@ -12,6 +12,7 @@ export class UserContextService {
     // Exposed observables for UI
     generatorOwnerWarnings$ = new BehaviorSubject<WarningMessage[]>([]);
     generatorOwnerWalletBalance$ = new BehaviorSubject<WalletBalance | null>(null);
+    generatorOwnerAnnouncementUnreadCount$ = new BehaviorSubject<number | null>(null);
 
     private readonly loaders: Record<string, () => void> = {};
 
@@ -25,6 +26,7 @@ export class UserContextService {
             [UserRole.GENERATOR_OWNER]: () => {
                 this.loadWarnings();
                 this.loadWalletBalance();
+                this.loadAnnouncementsUnreadCount();
             },
             [UserRole.BILL_COLLECTOR]: () => this.loadCollectorStats(),
             [UserRole.ADMIN]: () => this.loadAdminData()
@@ -61,6 +63,18 @@ export class UserContextService {
             error: (err) => {
                 this.generatorOwnerWalletBalance$.next(null);
                 console.error('Failed to load warnings:', err);
+            }
+        });
+    }
+
+    public loadAnnouncementsUnreadCount() {
+        this.generatorOwnerService.getAnnouncementsUnreadCount().subscribe({
+            next: (response: GetAnnouncementsUnreadCountResponse) => {
+                this.generatorOwnerAnnouncementUnreadCount$.next(response.count.unreadCount);
+            },
+            error: (err) => {
+                this.generatorOwnerAnnouncementUnreadCount$.next(null);
+                console.error('Failed to load announcements unread count:', err);
             }
         });
     }

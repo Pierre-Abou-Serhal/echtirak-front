@@ -387,8 +387,10 @@ export class BillsListComponent implements OnInit {
                 // The updated bill will become the old one
                 this.bills[this.findIndexById(request.billId)] = response.response.oldBill;
 
-                // Will insert a new fresh bill at the top of the array
-                this.bills.push(response.response.newBill);
+                // Will insert a new fresh bill at the top of the array if updated from PENDING to PENDING
+                if (response.response.newBill) {
+                    this.bills.push(response.response.newBill);
+                }
 
                 this.isBillSaving = false;
                 this.table.cancelRowEdit(bill);
@@ -399,6 +401,16 @@ export class BillsListComponent implements OnInit {
                 this.table.cancelRowEdit(bill);
             }
         });
+    }
+
+    payBill(bill: Bill) {
+        bill.statusCode = BillStatus.PAID;
+        this.updateBill(bill);
+    }
+
+    cancelBill(bill: Bill) {
+        bill.statusCode = BillStatus.CANCELLED;
+        this.updateBill(bill);
     }
 
     findIndexById(id: number): number {

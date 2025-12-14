@@ -207,3 +207,18 @@ export interface KvaReading {
     pendingReadingsCount: number;
     hasDuplicatePendingReadings: boolean;
 }
+
+export interface Announcement {
+    id: number;
+    title: string;
+    content: string;
+    priority: string;
+    createdAt: string;
+    publishedAt: string;
+    expiresAt: string;
+    isRead: boolean;
+    readAt: string;
+    isDeleted: boolean;
+    deletedAt: string;
+    receivedAt: string;
+}

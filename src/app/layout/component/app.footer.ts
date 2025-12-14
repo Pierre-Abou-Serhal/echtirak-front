@@ -8,7 +8,7 @@ import { RouterLink } from '@angular/router';
     imports: [RouterLink],
     template: ` <div class="layout-footer">
         {{ currentDate.getFullYear() }}
-        <a target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline" routerLink="/">{{ environment.appName }}</a>
+        <a target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline" routerLink="/auth/sign-in">{{ environment.appName }}</a>
     </div>`
 })
 export class AppFooter {

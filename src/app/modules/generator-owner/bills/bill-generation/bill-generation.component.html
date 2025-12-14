@@ -27,7 +27,7 @@
                 <app-metered-bill-generation [generatorId]="selectedGeneratorId" (generatedBills)="generateBills($event)"></app-metered-bill-generation>
             </p-tabpanel>
             <p-tabpanel value="1">
-                <app-fixed-bill-generation></app-fixed-bill-generation>
+                <app-fixed-bill-generation [generatorId]="selectedGeneratorId" (generatedBills)="generateBills($event)"></app-fixed-bill-generation>
             </p-tabpanel>
         </p-tabpanels>
     </p-tabs>

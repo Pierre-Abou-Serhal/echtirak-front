@@ -15,7 +15,8 @@ import {
     WalletBalance,
     WalletTransaction,
     Forecast,
-    KvaReading
+    KvaReading,
+    Announcement
 } from '@/core/models/model';
 import { DashboardBills, DashboardConsumption, DashboardRecentActivity, DashboardSubscribers, DashboardWallet, DashboardWalletStatistics, SmsCampaignDetail, SmsCampaignDetailsMessage, SmsCampaignStatistics, TokenPair } from '@/core/dtos/dto';
 
@@ -188,7 +189,7 @@ export interface WalletForecastResponse {
 export interface UpdateBillResponse {
     response: {
         oldBill: Bill;
-        newBill: Bill;
+        newBill?: Bill;
     };
 }
 
@@ -217,4 +218,29 @@ export interface UpdateKVAReadingResponse {
 export interface GenerateBillsFromKVAReadingsResponse {
     bills: Bill[];
     hasDuplicateBills: boolean;
+}
+
+export interface GenerateBillsForFixedSubsResponse {
+    bills: Bill[];
+    hasDuplicateBills: boolean;
+}
+
+export interface GetAnnouncementsResponse {
+    page: GetAnnouncementsPage;
+}
+
+export interface GetAnnouncementsPage {
+    items: Announcement[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface GetAnnouncementsUnreadCountResponse {
+    count: {
+        unreadCount: number;
+    };
 }

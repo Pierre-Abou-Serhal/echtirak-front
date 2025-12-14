@@ -22,6 +22,7 @@
         [rows]="rows"
         [first]="first"
         (onPage)="pageChange($event)"
+        [tableStyle]="{'width': 'max-content'}"
         [globalFilterFields]="[
                 'id',
                 'subscriberId',
@@ -86,98 +87,91 @@
 
                 <th style="width: 4rem"></th>
 
-                <th pSortableColumn="subscriberFirstName" style="min-width: 14rem">
+                <th pSortableColumn="subscriberFirstName">
                     <div class="flex justify-between items-center gap-2">
-                        Subscriber First Name
+                        Subscriber
                         <p-sortIcon field="subscriberFirstName" />
                     </div>
                 </th>
 
-                <th pSortableColumn="subscriberLastName" style="min-width: 14rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Subscriber Last Name
-                        <p-sortIcon field="subscriberLastName" />
-                    </div>
-                </th>
-
-                <th pSortableColumn="generatorCode" style="min-width: 14rem">
+                <th pSortableColumn="generatorCode">
                     <div class="flex justify-between items-center gap-2">
                         Generator Code
                         <p-sortIcon field="generatorCode" />
                     </div>
                 </th>
 
-                <th pSortableColumn="billDate" style="min-width: 14rem">
+                <th pSortableColumn="billDate">
                     <div class="flex justify-between items-center gap-2">
                         Bill Date
                         <p-sortIcon field="billDate" />
                     </div>
                 </th>
 
-                <th pSortableColumn="notes" style="min-width: 14rem">
+                <th pSortableColumn="notes">
                     <div class="flex justify-between items-center gap-2">
                         Notes
                         <p-sortIcon field="notes" />
                     </div>
                 </th>
 
-                <th pSortableColumn="amount" style="min-width: 14rem">
+                <th pSortableColumn="amount">
                     <div class="flex justify-between items-center gap-2">
                         Amount
                         <p-sortIcon field="amount" />
                     </div>
                 </th>
 
-                <th pSortableColumn="currencyCode" style="min-width: 14rem">
+                <th pSortableColumn="currencyCode">
                     <div class="flex justify-between items-center gap-2">
                         Currency Code
                         <p-sortIcon field="currencyCode" />
                     </div>
                 </th>
 
-                <th pSortableColumn="previousKva" style="min-width: 14rem">
+                <th pSortableColumn="previousKva">
                     <div class="flex justify-between items-center gap-2">
                         Previous KWH
                         <p-sortIcon field="previousKva" />
                     </div>
                 </th>
 
-                <th pSortableColumn="currentKva" style="min-width: 14rem">
+                <th pSortableColumn="currentKva">
                     <div class="flex justify-between items-center gap-2">
                         Current KWH
                         <p-sortIcon field="currentKva" />
                     </div>
                 </th>
 
-                <th pSortableColumn="subscriptionAmps" style="min-width: 14rem">
+                <th pSortableColumn="subscriptionAmps">
                     <div class="flex justify-between items-center gap-2">
                         Subscription AMPS
                         <p-sortIcon field="subscriptionAmps" />
                     </div>
                 </th>
 
-                <th pSortableColumn="kvaFee" style="min-width: 14rem">
+                <th pSortableColumn="kvaFee">
                     <div class="flex justify-between items-center gap-2">
                         KWH Fee
                         <p-sortIcon field="kvaFee" />
                     </div>
                 </th>
 
-                <th pSortableColumn="subscriptionFeeVar" style="min-width: 14rem">
+                <th pSortableColumn="subscriptionFeeVar">
                     <div class="flex justify-between items-center gap-2">
                         Subscription Fee Var
                         <p-sortIcon field="subscriptionFeeVar" />
                     </div>
                 </th>
 
-                <th pSortableColumn="subscriptionFeeFixed" style="min-width: 14rem">
+                <th pSortableColumn="subscriptionFeeFixed">
                     <div class="flex justify-between items-center gap-2">
                         Subscription Fee Fixed
                         <p-sortIcon field="subscriptionFeeFixed" />
                     </div>
                 </th>
 
-                <th pSortableColumn="statusCode" style="min-width: 14rem">
+                <th pSortableColumn="statusCode">
                     <div class="flex justify-between items-center gap-2">
                         Status Code
                         <p-sortIcon field="statusCode" />
@@ -232,11 +226,7 @@
                 </td>
 
                 <td>
-                    {{ bill.subscriberFirstName }}
-                </td>
-
-                <td>
-                    {{ bill.subscriberLastName }}
+                    {{ bill.subscriberLastName }} {{ bill.subscriberFirstName }}
                 </td>
 
                 <td>
@@ -283,27 +273,40 @@
                 </td>
 
                 <td>
-                    {{ bill.previousKva }}
+                    {{ bill.previousKva | number:'1.0-4' }}
                 </td>
 
                 <td>
-                    {{ bill.currentKva }}
+                    <p-cellEditor>
+                        <ng-template #input>
+                            <p-inputnumber
+                                [(ngModel)]="bill.currentKva"
+                                mode="decimal"
+                                [minFractionDigits]="0"
+                                [maxFractionDigits]="4"
+                                class="w-full"
+                            ></p-inputnumber>
+                        </ng-template>
+                        <ng-template #output>
+                            {{ bill.currentKva | number:'1.0-4' }}
+                        </ng-template>
+                    </p-cellEditor>
                 </td>
 
                 <td>
-                    {{ bill.subscriptionAmps }}
+                    {{ bill.subscriptionAmps | number:'1.0-4' }}
                 </td>
 
                 <td>
-                    {{ bill.kvaFee }}
+                    {{ bill.kvaFee | number:'1.0-4' }}
                 </td>
 
                 <td>
-                    {{ bill.subscriptionFeeVar }}
+                    {{ bill.subscriptionFeeVar | number:'1.0-4' }}
                 </td>
 
                 <td>
-                    {{ bill.subscriptionFeeFixed }}
+                    {{ bill.subscriptionFeeFixed | number:'1.0-4' }}
                 </td>
 
                 <td>
