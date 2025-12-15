@@ -388,7 +388,7 @@ export class BillsListComponent implements OnInit {
                 this.bills[this.findIndexById(request.billId)] = response.response.oldBill;
 
                 // Will insert a new fresh bill at the top of the array if updated from PENDING to PENDING
-                if (response.response.newBill) {
+                if (response.response.newBill.id !== response.response.oldBill.id) {
                     this.bills.push(response.response.newBill);
                 }
 

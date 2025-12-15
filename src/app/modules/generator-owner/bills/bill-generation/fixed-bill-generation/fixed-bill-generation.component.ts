@@ -1,7 +1,7 @@
 import { Component, inject, Input, output } from '@angular/core';
 import { Bill } from '@/core/models/model';
-import { GenerateBillsForFixedSubsRequest, GenerateBillsFromKVAReadingsRequest } from '@/core/services/api/request';
-import { GenerateBillsForFixedSubsResponse, GenerateBillsFromKVAReadingsResponse } from '@/core/services/api/response';
+import { GenerateBillsForAllFixedSubscribersRequest } from '@/core/services/api/request';
+import { GenerateBillsForAllFixedSubscribersResponse } from '@/core/services/api/response';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { Button } from 'primeng/button';
 
@@ -28,14 +28,14 @@ export class FixedBillGenerationComponent {
     generateBills() {
         this.isBillsGenerating = true;
 
-        let request: GenerateBillsForFixedSubsRequest = {
+        let request: GenerateBillsForAllFixedSubscribersRequest = {
             generatorId: this.generatorId
         };
 
         console.log(request);
 
-        this.generatorOwnerService.generateBillsForFixedSubs(request).subscribe({
-            next: (response: GenerateBillsForFixedSubsResponse) => {
+        this.generatorOwnerService.generateBillsForAllFixedSubscribers(request).subscribe({
+            next: (response: GenerateBillsForAllFixedSubscribersResponse) => {
                 this.generatedBills.emit(
                     response.bills.map((bill, index) => ({
                         ...bill,

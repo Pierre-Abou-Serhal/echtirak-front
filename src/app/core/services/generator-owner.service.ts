@@ -3,8 +3,7 @@ import { ApiService } from '@/core/services/api/api.service';
 import {
     AcceptBillsRequest,
     CreateSmsCampaignRequest,
-    GenerateAllBillsRequest,
-    GenerateBillsRequest,
+    GenerateBillsForSelectedSubscribersRequest,
     GetBillsQueryParams,
     GetCurrencyRatesQueryParams,
     GetLookupQueryParams,
@@ -22,8 +21,8 @@ import {
     UpdateBillRequest,
     GetKVAReadingsPerGeneratorQueryParams,
     UpdateKVAReadingRequest,
-    GenerateBillsFromKVAReadingsRequest,
-    GenerateBillsForFixedSubsRequest,
+    GenerateBillsForMeteredSubscribersRequest,
+    GenerateBillsForAllFixedSubscribersRequest,
     GetAnnouncementsQueryParams,
     MarkAnnouncementAsReadRequest
 } from '@/core/services/api/request';
@@ -40,7 +39,7 @@ import {
     GetSmsTemplatesResponse,
     GetSubscriptionBillingModelResponse,
     GetLookupResponse,
-    GenerateBillsResponse,
+    GenerateBillsForSelectedSubscribersResponse,
     AcceptBillsResponse,
     GetBillsResponse,
     UpsertSubscriptionBillingModelResponse,
@@ -55,8 +54,8 @@ import {
     UpdateBillResponse,
     GetKVAReadingsPerGeneratorResponse,
     UpdateKVAReadingResponse,
-    GenerateBillsFromKVAReadingsResponse,
-    GenerateBillsForFixedSubsResponse,
+    GenerateBillsForMeteredSubscribersResponse,
+    GenerateBillsForAllFixedSubscribersResponse,
     GetAnnouncementsResponse,
     GetAnnouncementsUnreadCountResponse
 } from '@/core/services/api/response';
@@ -118,16 +117,12 @@ export class GeneratorOwnerService {
         return this.apiService.postBlob('/GeneratorOwner/Subscribers/QrCodePdf', request);
     }
 
-    public generateBills(request: GenerateBillsRequest): Observable<GenerateBillsResponse> {
-        return this.apiService.post<GenerateBillsResponse>('/GeneratorOwner/GenerateBills', request);
+    public generateBillsForSelectedSubscribers(request: GenerateBillsForSelectedSubscribersRequest): Observable<GenerateBillsForSelectedSubscribersResponse> {
+        return this.apiService.post<GenerateBillsForSelectedSubscribersResponse>('/GeneratorOwner/GenerateBillsForSelectedSubscribers', request);
     }
 
     public acceptBills(request: AcceptBillsRequest): Observable<AcceptBillsResponse> {
         return this.apiService.post<AcceptBillsResponse>('/GeneratorOwner/AcceptBills', request);
-    }
-
-    public generateAllBills(request: GenerateAllBillsRequest): Observable<GenerateBillsResponse> {
-        return this.apiService.post<GenerateBillsResponse>('/GeneratorOwner/GenerateAllBills', request);
     }
 
     public getBills(queryParams: GetBillsQueryParams): Observable<GetBillsResponse> {
@@ -208,13 +203,12 @@ export class GeneratorOwnerService {
         return this.apiService.post<UpdateKVAReadingResponse>('/GeneratorOwner/updateKVAReading', request);
     }
 
-    public generateBillsFromKVAReadings(request: GenerateBillsFromKVAReadingsRequest): Observable<GenerateBillsFromKVAReadingsResponse> {
-        return this.apiService.post<GenerateBillsFromKVAReadingsResponse>('/GeneratorOwner/GenerateBillsFromKVAReadings', request);
+    public generateBillsForMeteredSubscribers(request: GenerateBillsForMeteredSubscribersRequest): Observable<GenerateBillsForMeteredSubscribersResponse> {
+        return this.apiService.post<GenerateBillsForMeteredSubscribersResponse>('/GeneratorOwner/GenerateBillsForMeteredSubscribers', request);
     }
 
-    // TODO: NOT IMPLEMENTED YET FROM TEH BACKEND
-    public generateBillsForFixedSubs(request: GenerateBillsForFixedSubsRequest): Observable<GenerateBillsForFixedSubsResponse> {
-        return this.apiService.post<GenerateBillsForFixedSubsResponse>('/GeneratorOwner/GenerateBillsForFixedSubs', request);
+    public generateBillsForAllFixedSubscribers(request: GenerateBillsForAllFixedSubscribersRequest): Observable<GenerateBillsForAllFixedSubscribersResponse> {
+        return this.apiService.post<GenerateBillsForAllFixedSubscribersResponse>('/GeneratorOwner/GenerateBillsForAllFixedSubscribers', request);
     }
 
     public getAnnouncements(queryParams: GetAnnouncementsQueryParams): Observable<GetAnnouncementsResponse> {

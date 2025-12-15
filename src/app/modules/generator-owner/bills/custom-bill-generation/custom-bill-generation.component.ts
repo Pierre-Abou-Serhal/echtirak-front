@@ -3,7 +3,7 @@ import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { NotificationService } from '@/core/services/notification.service';
 import { Bill, Generator, Subscriber } from '@/core/models/model';
 import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, tap } from 'rxjs';
-import { GenerateBillsResponse, GetGeneratorsResponse, GetSubscribersResponse } from '@/core/services/api/response';
+import { GenerateBillsForSelectedSubscribersResponse, GetGeneratorsResponse, GetSubscribersResponse } from '@/core/services/api/response';
 import { SubscriberStatus } from '@/core/enums/enum';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Table, TableModule } from 'primeng/table';
@@ -276,12 +276,12 @@ export class CustomBillGenerationComponent implements OnInit {
         this.billsPreview = [];
 
         this.generatorOwnerService
-            .generateBills({
+            .generateBillsForSelectedSubscribers({
                 generatorId: this.selectedGeneratorId,
                 subscriberIds: this.selectedSubscribers.map((sub) => sub.id)
             })
             .subscribe({
-                next: (response: GenerateBillsResponse) => {
+                next: (response: GenerateBillsForSelectedSubscribersResponse) => {
                     this.billsPreview = response.bills.map((bill, index) => ({
                         ...bill,
                         id: index + 1

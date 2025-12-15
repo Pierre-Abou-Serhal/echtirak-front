@@ -84,7 +84,7 @@ export interface GetLookupResponse {
     items: Lookup[];
 }
 
-export interface GenerateBillsResponse {
+export interface GenerateBillsForSelectedSubscribersResponse {
     bills: Bill[];
 }
 
@@ -189,7 +189,7 @@ export interface WalletForecastResponse {
 export interface UpdateBillResponse {
     response: {
         oldBill: Bill;
-        newBill?: Bill;
+        newBill: Bill;
     };
 }
 
@@ -215,12 +215,12 @@ export interface UpdateKVAReadingResponse {
     reading: KvaReading;
 }
 
-export interface GenerateBillsFromKVAReadingsResponse {
+export interface GenerateBillsForMeteredSubscribersResponse {
     bills: Bill[];
     hasDuplicateBills: boolean;
 }
 
-export interface GenerateBillsForFixedSubsResponse {
+export interface GenerateBillsForAllFixedSubscribersResponse {
     bills: Bill[];
     hasDuplicateBills: boolean;
 }
@@ -243,4 +243,12 @@ export interface GetAnnouncementsUnreadCountResponse {
     count: {
         unreadCount: number;
     };
+}
+
+export interface GetKvaReadingPerBillCollectorResponse {
+    readings: KvaReading[];
+}
+
+export interface UpsertKVAReadingResponse {
+    reading: KvaReading;
 }

@@ -107,6 +107,16 @@
                             rounded
                             [disabled]="kvaReading.status !== KvaReadingStatus.PENDING"
                         />
+
+                        <!-- Open KVA Reading image -->
+                        <p-button
+                            icon="pi pi-eye"
+                            styleClass="p-button-sm"
+                            (click)="onKvaReadingViewImage(kvaReading)"
+                            severity="secondary"
+                            rounded
+                            [disabled]="!kvaReading.kvaReadingUrl"
+                        />
                     }
 
                     @if(editing){
@@ -205,3 +215,22 @@
         </tr>
     </ng-template>
 </p-table>
+
+<!-- KVA Reading image -->
+<p-dialog
+    [(visible)]="isKvaImageDialogOpen"
+    header="KVA Reading Image"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '520px', maxWidth: '95vw' }"
+    (onHide)="hideKvaImageDialog()"
+>
+    <ng-template #content>
+        @if (loadingKvaImage) {
+            <p-skeleton width="100%" height="280px"></p-skeleton>
+        } @else if (kvaImageUrl) {
+            <img [src]="kvaImageUrl" class="w-full rounded-lg border border-surface-200" />
+        }
+    </ng-template>
+</p-dialog>

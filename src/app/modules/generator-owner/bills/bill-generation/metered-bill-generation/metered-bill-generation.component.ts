@@ -2,7 +2,7 @@ import { Component, inject, Input, OnInit, output, ViewChild } from '@angular/co
 import { FormsModule } from '@angular/forms';
 import { Bill, KvaReading, Lookup } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
-import { GenerateBillsFromKVAReadingsResponse, GetKVAReadingsPerGeneratorResponse, GetLookupResponse, UpdateKVAReadingResponse } from '@/core/services/api/response';
+import { GenerateBillsForMeteredSubscribersResponse, GetKVAReadingsPerGeneratorResponse, GetLookupResponse, UpdateKVAReadingResponse } from '@/core/services/api/response';
 import { Button } from 'primeng/button';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
@@ -11,17 +11,22 @@ import { Table, TableModule } from 'primeng/table';
 import * as Papa from 'papaparse';
 import { KvaReadingStatus, LookupDomain } from '@/core/enums/enum';
 import { Tag } from 'primeng/tag';
-import { GenerateBillsFromKVAReadingsRequest, UpdateKVAReadingRequest } from '@/core/services/api/request';
+import { GenerateBillsForMeteredSubscribersRequest, UpdateKVAReadingRequest } from '@/core/services/api/request';
 import { NotificationService } from '@/core/services/notification.service';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
 import { SelectOptionStrValue } from '@/core/dtos/dto';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { finalize } from 'rxjs';
+import { BillCollectorService } from '@/core/services/bill-collector-service';
+import { Dialog } from 'primeng/dialog';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
     selector: 'app-metered-bill-generation',
-    imports: [FormsModule, Button, IconField, InputIcon, InputText, TableModule, Tag, NgClass, DecimalPipe, InputNumber, Select],
+    imports: [FormsModule, Button, IconField, InputIcon, InputText, TableModule, Tag, NgClass, DecimalPipe, InputNumber, Select, Dialog, Skeleton],
     templateUrl: './metered-bill-generation.component.html',
     styleUrl: './metered-bill-generation.component.scss'
 })
@@ -38,6 +43,7 @@ export class MeteredBillGenerationComponent implements OnInit {
     generatedBills = output<Bill[]>();
 
     generatorOwnerService: GeneratorOwnerService = inject(GeneratorOwnerService);
+    billCollectorService: BillCollectorService = inject(BillCollectorService);
     notificationService: NotificationService = inject(NotificationService);
 
     kvaReadings: KvaReading[] = [];
@@ -57,6 +63,14 @@ export class MeteredBillGenerationComponent implements OnInit {
     kvaReadingStatuses: SelectOptionStrValue[] = [];
 
     isBillsGenerating: boolean = false;
+
+    isKvaImageDialogOpen = false;
+    loadingKvaImage = false;
+
+    kvaImageUrl?: SafeUrl;
+    private kvaImageObjectUrl?: string;
+
+    private sanitizer = inject(DomSanitizer);
 
     ngOnInit() {
         this.generatorOwnerService.getLookup({ domain: LookupDomain.KVA_READING_STATUS }).subscribe({
@@ -194,6 +208,12 @@ export class MeteredBillGenerationComponent implements OnInit {
     updateKvaReading(kvaReading: KvaReading) {
         console.log('kva reading to update', kvaReading);
 
+        if (kvaReading.kvaReading <= kvaReading.kvaCurrent) {
+            this.notificationService.error('Error', 'KWH reading must be greater than ' + kvaReading.kvaCurrent);
+
+            return;
+        }
+
         this.isKvaReadingSaving = true;
 
         let request: UpdateKVAReadingRequest = {
@@ -227,18 +247,20 @@ export class MeteredBillGenerationComponent implements OnInit {
         if (this.selectedKvaReadings.length > 0) {
             this.isBillsGenerating = true;
 
-            let request: GenerateBillsFromKVAReadingsRequest = {
+            let request: GenerateBillsForMeteredSubscribersRequest = {
                 kvaReadingIds: this.selectedKvaReadings.map((i) => i.id)
             };
 
             console.log(request);
 
-            this.generatorOwnerService.generateBillsFromKVAReadings(request).subscribe({
-                next: (response: GenerateBillsFromKVAReadingsResponse) => {
-                    this.generatedBills.emit( response.bills.map((bill, index) => ({
-                        ...bill,
-                        id: index + 1
-                    })));
+            this.generatorOwnerService.generateBillsForMeteredSubscribers(request).subscribe({
+                next: (response: GenerateBillsForMeteredSubscribersResponse) => {
+                    this.generatedBills.emit(
+                        response.bills.map((bill, index) => ({
+                            ...bill,
+                            id: index + 1
+                        }))
+                    );
 
                     console.log(this.generatedBills);
 
@@ -276,6 +298,47 @@ export class MeteredBillGenerationComponent implements OnInit {
                 return options?.valid;
             }
         };
+    }
+
+    // See KVA reading image
+    onKvaReadingViewImage(kvaReading: KvaReading) {
+        if (!kvaReading?.id) return;
+
+        this.isKvaImageDialogOpen = true;
+        this.loadingKvaImage = true;
+
+        // cleanup old preview
+        if (this.kvaImageObjectUrl) {
+            URL.revokeObjectURL(this.kvaImageObjectUrl);
+            this.kvaImageObjectUrl = undefined;
+            this.kvaImageUrl = undefined;
+        }
+
+        // IMPORTANT: use a service method that returns Blob
+        this.billCollectorService
+            .getKvaReadingImage(kvaReading.id) // or billCollectorService.getKvaReadingImage(...)
+            .pipe(finalize(() => (this.loadingKvaImage = false)))
+            .subscribe({
+                next: (blob) => {
+                    this.kvaImageObjectUrl = URL.createObjectURL(blob);
+                    this.kvaImageUrl = this.sanitizer.bypassSecurityTrustUrl(this.kvaImageObjectUrl);
+                },
+                error: (err) => {
+                    console.error('Failed to load image', err);
+                    this.isKvaImageDialogOpen = false;
+                }
+            });
+    }
+
+    hideKvaImageDialog() {
+        this.isKvaImageDialogOpen = false;
+        this.loadingKvaImage = false;
+
+        if (this.kvaImageObjectUrl) {
+            URL.revokeObjectURL(this.kvaImageObjectUrl);
+            this.kvaImageObjectUrl = undefined;
+        }
+        this.kvaImageUrl = undefined;
     }
 
     protected readonly KvaReadingStatus = KvaReadingStatus;

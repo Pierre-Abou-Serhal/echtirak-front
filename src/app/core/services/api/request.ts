@@ -50,17 +50,13 @@ export interface GetSubscribersQrCodePdfRequest {
     generatorId: number;
 }
 
-export interface GenerateBillsRequest {
+export interface GenerateBillsForSelectedSubscribersRequest {
     generatorId: number;
     subscriberIds: number[];
 }
 
 export interface AcceptBillsRequest {
     bills: Bill[];
-}
-
-export interface GenerateAllBillsRequest {
-    generatorId: number;
 }
 
 export interface GetBillsQueryParams {
@@ -160,11 +156,11 @@ export interface UpdateKVAReadingRequest {
     status: string;
 }
 
-export interface GenerateBillsFromKVAReadingsRequest {
+export interface GenerateBillsForMeteredSubscribersRequest {
     kvaReadingIds: number[];
 }
 
-export interface GenerateBillsForFixedSubsRequest {
+export interface GenerateBillsForAllFixedSubscribersRequest {
     generatorId: number;
 }
 
@@ -177,4 +173,12 @@ export interface GetAnnouncementsQueryParams {
 
 export interface MarkAnnouncementAsReadRequest {
     announcementId: number;
+}
+
+export interface UpsertKVAReadingRequest {
+    id: number;
+    subscriberId: number;
+    kvaReading: number;
+    status: string;
+    imageFile?: File;
 }

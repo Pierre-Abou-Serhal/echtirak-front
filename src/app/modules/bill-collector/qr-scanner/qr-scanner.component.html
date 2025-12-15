@@ -1,16 +1,14 @@
-<div>
+<div class="flex flex-col gap-3">
     @if(availableDevices.length > 1) {
-        <!-- camera selector (optional) -->
         <div class="camera-select">
-            <label>
+            <label class="text-sm text-color-secondary">
                 Camera:
-                <select (change)="onDeviceSelectChange($event)">
-                    @for(device of availableDevices; track $index){
+                <select class="ml-2" (change)="onDeviceSelectChange($event)">
+                    @for(device of availableDevices; track device.deviceId) {
                         <option [value]="device.deviceId">
-                            {{ device.label }}
+                            {{ device.label || 'Camera' }}
                         </option>
                     }
-
                 </select>
             </label>
         </div>
@@ -18,24 +16,46 @@
 
     <zxing-scanner
         class="scanner-window"
+        [enable]="enabled"
         [autostart]="true"
         [autofocusEnabled]="true"
         [formats]="allowedFormats"
         [device]="currentDevice"
         (scanSuccess)="onScanSuccess($event)"
         (camerasFound)="onCamerasFound($event)"
-        (permissionResponse)="onPermissionResponse($event)">
-    </zxing-scanner>
+        (permissionResponse)="onPermissionResponse($event)"
+    ></zxing-scanner>
 
-    @if(qrResult){
-        <div class="result">
-            <h3>Scanned QR:</h3>
+    @if(hasPermission === false) {
+        <p class="text-sm text-red-500 m-0">
+            Please allow camera access to scan QR codes.
+        </p>
+    }
+
+    <div class="flex gap-2">
+        <p-button
+            label="Close"
+            icon="pi pi-times"
+            severity="secondary"
+            outlined
+            class="flex-1"
+            (click)="close()"
+        ></p-button>
+
+        <p-button
+            label="Clear"
+            icon="pi pi-refresh"
+            severity="secondary"
+            class="flex-1"
+            [disabled]="!qrResult"
+            (click)="clearResult()"
+        ></p-button>
+    </div>
+
+    @if(qrResult) {
+        <div class="result text-sm">
+            <div class="font-semibold mb-1">Scanned:</div>
             <code>{{ qrResult }}</code>
-            <button type="button" (click)="clearResult()">Clear</button>
         </div>
     }
 </div>
-
-@if(!hasPermission){
-    <p>Please allow camera access to scan QR codes.</p>
-}
