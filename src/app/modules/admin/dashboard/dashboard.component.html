@@ -1,0 +1,507 @@
+<div class="dashboard">
+    <p-toolbar styleClass="dashboard-toolbar mb-4">
+        <div class="p-toolbar-group-start">
+            <div class="toolbar-title">
+                <div class="h1">Admin Dashboard</div>
+                <div class="sub">Full platform overview, trends, and forecasts</div>
+            </div>
+        </div>
+
+        <div class="p-toolbar-group-end toolbar-controls">
+            <div class="control">
+                <span class="label">Period</span>
+                <p-select
+                    [options]="periodOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    [formControl]="form.controls.period"
+                    [style]="{ width: '200px' }"
+                />
+            </div>
+
+            <div class="control switch">
+                <span class="label">Trends</span>
+                <p-toggleSwitch [formControl]="form.controls.includeTrends"></p-toggleSwitch>
+            </div>
+
+            <div class="control switch">
+                <span class="label">Forecasts</span>
+                <p-toggleSwitch [formControl]="form.controls.includeForecasts"></p-toggleSwitch>
+            </div>
+
+            <p-button
+                icon="pi pi-refresh"
+                label="Refresh"
+                severity="secondary"
+                (onClick)="refresh()"
+            />
+        </div>
+    </p-toolbar>
+
+    @if (vm$ | async; as vm) {
+
+        @if (vm.state === 'loading') {
+            <div class="grid kpi-grid">
+                @for (i of [1,2,3,4,5,6,7,8]; track i) {
+                    <p-card>
+                        <p-skeleton width="60%" height="1rem"></p-skeleton>
+                        <p-skeleton width="40%" height="2rem" styleClass="mt-2"></p-skeleton>
+                    </p-card>
+                }
+            </div>
+
+            <div class="mt-3">
+                <p-card>
+                    <p-skeleton width="25%" height="1.2rem"></p-skeleton>
+                    <p-skeleton width="100%" height="280px" styleClass="mt-3"></p-skeleton>
+                </p-card>
+            </div>
+        }
+
+        @if (vm.state === 'error') {
+            <p-message severity="error" [text]="vm.error"></p-message>
+        }
+
+        @if (vm.state === 'ready') {
+            @let res = vm.data;
+            @let dash = res.dashboard;
+
+            <!-- KPI Row -->
+            <div class="grid kpi-grid">
+                @for (kpi of kpis(res); track kpi.title) {
+                    <p-card styleClass="kpi-card">
+                        <div class="kpi-title">{{ kpi.title }}</div>
+                        <div class="kpi-value">{{ kpi.value | number:'1.0-4' }}</div>
+                    </p-card>
+                }
+            </div>
+
+            <p-divider></p-divider>
+
+            <p-tabs value="overview" scrollable>
+                <p-tablist>
+                    <p-tab value="overview">Overview</p-tab>
+                    <p-tab value="financial">Financial</p-tab>
+                    <p-tab value="growth">Growth</p-tab>
+                    <p-tab value="usage">Usage</p-tab>
+                    <p-tab value="health">Health</p-tab>
+                    <p-tab value="trends">Trends</p-tab>
+                </p-tablist>
+
+                <p-tabpanels>
+                    <!-- Overview -->
+                    <p-tabpanel value="overview">
+                        <div class="grid section-grid">
+                            <p-panel header="Platform Overview" styleClass="panel">
+                                <p-table
+                                    [value]="toMetricEntries(dash.platformOverview)"
+                                    [rows]="50"
+                                    [paginator]="false"
+                                    styleClass="kv-table"
+                                >
+                                    <ng-template pTemplate="header">
+                                        <tr><th>Metric</th><th>Value</th></tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="body" let-row>
+                                        <tr>
+                                            <td class="metric">{{ row.label }}</td>
+                                            <td class="value">
+                                                @if (row.kind === 'number') {
+                                                    {{ row.value | number:'1.0-4' }}
+                                                } @else if (row.kind === 'date') {
+                                                    {{ row.value | date:'yyyy-MM-dd' }}
+                                                } @else if (row.kind === 'boolean') {
+                                                    <p-tag
+                                                        [value]="(row.value ? 'Yes' : 'No')"
+                                                        [severity]="row.value ? 'success' : 'secondary'"
+                                                    />
+                                                } @else {
+                                                    {{ row.value }}
+                                                }
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </p-panel>
+
+                            <p-panel header="Operational Metrics" styleClass="panel">
+                                <p-table
+                                    [value]="toMetricEntries(dash.operationalMetrics)"
+                                    styleClass="kv-table"
+                                >
+                                    <ng-template pTemplate="header">
+                                        <tr><th>Metric</th><th>Value</th></tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="body" let-row>
+                                        <tr>
+                                            <td class="metric">{{ row.label }}</td>
+                                            <td class="value">
+                                                @if (row.kind === 'number') {
+                                                    {{ row.value | number:'1.0-4' }}
+                                                } @else if (row.kind === 'date') {
+                                                    {{ row.value | date:'yyyy-MM-dd' }}
+                                                } @else {
+                                                    {{ row.value }}
+                                                }
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </p-panel>
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- Financial -->
+                    <p-tabpanel value="financial">
+                        <div class="grid section-grid">
+                            <p-panel header="Financial Metrics" styleClass="panel">
+                                <p-table [value]="toMetricEntries(dash.financialMetrics)" styleClass="kv-table">
+                                    <ng-template pTemplate="header">
+                                        <tr><th>Metric</th><th>Value</th></tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="body" let-row>
+                                        <tr>
+                                            <td class="metric">{{ row.label }}</td>
+                                            <td class="value">{{ row.value | number:'1.0-4' }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </p-panel>
+
+                            <p-panel header="Accounting Summary" styleClass="panel">
+                                <div class="grid accounting-grid">
+                                    <p-card styleClass="accounting-card">
+                                        <div class="card-h">This Month</div>
+                                        <p-table [value]="toMetricEntries(dash.accountingSummary.thisMonth)" styleClass="kv-table">
+                                            <ng-template pTemplate="body" let-row>
+                                                <tr>
+                                                    <td class="metric">{{ row.label }}</td>
+                                                    <td class="value">{{ row.value | number:'1.0-4' }}</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-card>
+
+                                    <p-card styleClass="accounting-card">
+                                        <div class="card-h">Last Month</div>
+                                        <p-table [value]="toMetricEntries(dash.accountingSummary.lastMonth)" styleClass="kv-table">
+                                            <ng-template pTemplate="body" let-row>
+                                                <tr>
+                                                    <td class="metric">{{ row.label }}</td>
+                                                    <td class="value">{{ row.value | number:'1.0-4' }}</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-card>
+
+                                    <p-card styleClass="accounting-card">
+                                        <div class="card-h">All Time</div>
+                                        <p-table [value]="toMetricEntries(dash.accountingSummary.allTime)" styleClass="kv-table">
+                                            <ng-template pTemplate="body" let-row>
+                                                <tr>
+                                                    <td class="metric">{{ row.label }}</td>
+                                                    <td class="value">{{ row.value | number:'1.0-4' }}</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-card>
+                                </div>
+
+                                <p-divider></p-divider>
+
+                                <p-table
+                                    [value]="toMetricEntries({
+                    averagePricingPerSubscriber: dash.accountingSummary.averagePricingPerSubscriber,
+                    averagePricingPerSms: dash.accountingSummary.averagePricingPerSms,
+                    revenuePerSubscriber: dash.accountingSummary.revenuePerSubscriber
+                  })"
+                                    styleClass="kv-table"
+                                >
+                                    <ng-template pTemplate="header">
+                                        <tr><th>Metric</th><th>Value</th></tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="body" let-row>
+                                        <tr>
+                                            <td class="metric">{{ row.label }}</td>
+                                            <td class="value">{{ row.value | number:'1.0-4' }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </p-panel>
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- Growth -->
+                    <p-tabpanel value="growth">
+                        <div class="grid section-grid">
+                            <p-panel header="Growth Metrics" styleClass="panel">
+                                <p-table [value]="toMetricEntries(dash.growthMetrics)" styleClass="kv-table">
+                                    <ng-template pTemplate="header">
+                                        <tr><th>Metric</th><th>Value</th></tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="body" let-row>
+                                        <tr>
+                                            <td class="metric">{{ row.label }}</td>
+                                            <td class="value">{{ row.value | number:'1.0-4' }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </p-panel>
+
+                            @if (form.controls.includeForecasts.value) {
+                                <p-panel header="Forecasts" styleClass="panel">
+                                    <p-table [value]="toMetricEntries(dash.forecasts)" styleClass="kv-table">
+                                        <ng-template pTemplate="header">
+                                            <tr><th>Metric</th><th>Value</th></tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-row>
+                                            <tr>
+                                                <td class="metric">{{ row.label }}</td>
+                                                <td class="value">{{ row.value | number:'1.0-4' }}</td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
+                                </p-panel>
+                            } @else {
+                                <p-message severity="info" text="Forecasts are disabled from the toolbar."></p-message>
+                            }
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- Usage -->
+                    <p-tabpanel value="usage">
+                        <div class="grid section-grid">
+                            <p-panel header="Usage Metrics" styleClass="panel">
+                                <p-table [value]="toMetricEntries(dash.usageMetrics)" styleClass="kv-table">
+                                    <ng-template pTemplate="header">
+                                        <tr><th>Metric</th><th>Value</th></tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="body" let-row>
+                                        <tr>
+                                            <td class="metric">{{ row.label }}</td>
+                                            <td class="value">{{ row.value | number:'1.0-4' }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </p-panel>
+
+                            <p-panel header="Top Performers" styleClass="panel">
+                                <p-table
+                                    [value]="dash.topPerformers"
+                                    [rows]="10"
+                                    [paginator]="true"
+                                    styleClass="data-table"
+                                >
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th>GO ID</th>
+                                            <th>Business</th>
+                                            <th>Username</th>
+                                            <th>Metric</th>
+                                            <th>Value</th>
+                                            <th>Count</th>
+                                        </tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="body" let-row>
+                                        <tr>
+                                            <td>{{ row.generatorOwnerUserId | number:'1.0-4' }}</td>
+                                            <td>{{ row.businessName }}</td>
+                                            <td>{{ row.username }}</td>
+                                            <td>{{ row.metricType }}</td>
+                                            <td>{{ row.metricValue | number:'1.0-4' }}</td>
+                                            <td>{{ row.metricCount | number:'1.0-4' }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </p-panel>
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- Health -->
+                    <p-tabpanel value="health">
+                        <div class="grid section-grid">
+                            <p-panel header="Health Metrics" styleClass="panel">
+                                <p-table [value]="toMetricEntries(dash.healthMetrics)" styleClass="kv-table">
+                                    <ng-template pTemplate="header">
+                                        <tr><th>Metric</th><th>Value</th></tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="body" let-row>
+                                        <tr>
+                                            <td class="metric">{{ row.label }}</td>
+                                            <td class="value">{{ row.value | number:'1.0-4' }}</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </p-panel>
+
+                            <p-panel header="Consumption Metrics" styleClass="panel">
+                                <p-table [value]="toMetricEntries(dash.consumptionMetrics)" styleClass="kv-table">
+                                    <ng-template pTemplate="header">
+                                        <tr><th>Metric</th><th>Value</th></tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="body" let-row>
+                                        <tr>
+                                            <td class="metric">{{ row.label }}</td>
+                                            <td class="value">
+                                                @if (row.kind === 'number') {
+                                                    {{ row.value | number:'1.0-4' }}
+                                                } @else if (row.kind === 'date') {
+                                                    {{ row.value | date:'yyyy-MM-dd' }}
+                                                } @else {
+                                                    {{ row.value }}
+                                                }
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </p-panel>
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- Trends -->
+                    <p-tabpanel value="trends">
+                        @if (form.controls.includeTrends.value) {
+                            <div class="trend-header">
+                                <div class="control">
+                                    <span class="label">Metric</span>
+                                    <p-select
+                                        [options]="trendMetricOptions"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        [formControl]="form.controls.trendMetric"
+                                        [style]="{ width: '220px' }"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="grid trend-grid">
+                                <p-card styleClass="trend-card">
+                                    <div class="trend-title">Monthly</div>
+                                    <div class="chart-wrap">
+                                        <p-chart
+                                            type="line"
+                                            [data]="buildTrendChart(dash.monthlyTrends, form.controls.trendMetric.value)"
+                                            [options]="chartOptions"
+                                        ></p-chart>
+                                    </div>
+
+                                    <p-divider></p-divider>
+
+                                    <p-table [value]="dash.monthlyTrends" [rows]="8" [paginator]="true" styleClass="data-table">
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th>Period</th><th>Start</th><th>End</th>
+                                                <th>New GOs</th><th>New Subs</th><th>Revenue</th>
+                                                <th>SMS</th><th>Bills Gen</th><th>Bills Paid</th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-row>
+                                            <tr>
+                                                <td>{{ row.period }}</td>
+                                                <td>{{ row.periodStart | date:'yyyy-MM-dd' }}</td>
+                                                <td>{{ row.periodEnd | date:'yyyy-MM-dd' }}</td>
+                                                <td>{{ row.newGos | number:'1.0-4' }}</td>
+                                                <td>{{ row.newSubscribers | number:'1.0-4' }}</td>
+                                                <td>{{ row.revenue | number:'1.0-4' }}</td>
+                                                <td>{{ row.smsSent | number:'1.0-4' }}</td>
+                                                <td>{{ row.billsGenerated | number:'1.0-4' }}</td>
+                                                <td>{{ row.billsPaid | number:'1.0-4' }}</td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
+                                </p-card>
+
+                                <p-card styleClass="trend-card">
+                                    <div class="trend-title">Weekly</div>
+                                    <div class="chart-wrap">
+                                        <p-chart
+                                            type="line"
+                                            [data]="buildTrendChart(dash.weeklyTrends, form.controls.trendMetric.value)"
+                                            [options]="chartOptions"
+                                        ></p-chart>
+                                    </div>
+
+                                    <p-divider></p-divider>
+
+                                    <p-table [value]="dash.weeklyTrends" [rows]="8" [paginator]="true" styleClass="data-table">
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th>Period</th><th>Start</th><th>End</th>
+                                                <th>New GOs</th><th>New Subs</th><th>Revenue</th>
+                                                <th>SMS</th><th>Bills Gen</th><th>Bills Paid</th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-row>
+                                            <tr>
+                                                <td>{{ row.period }}</td>
+                                                <td>{{ row.periodStart | date:'yyyy-MM-dd' }}</td>
+                                                <td>{{ row.periodEnd | date:'yyyy-MM-dd' }}</td>
+                                                <td>{{ row.newGos | number:'1.0-4' }}</td>
+                                                <td>{{ row.newSubscribers | number:'1.0-4' }}</td>
+                                                <td>{{ row.revenue | number:'1.0-4' }}</td>
+                                                <td>{{ row.smsSent | number:'1.0-4' }}</td>
+                                                <td>{{ row.billsGenerated | number:'1.0-4' }}</td>
+                                                <td>{{ row.billsPaid | number:'1.0-4' }}</td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
+                                </p-card>
+
+                                <p-card styleClass="trend-card">
+                                    <div class="trend-title">Daily</div>
+                                    <div class="chart-wrap">
+                                        <p-chart
+                                            type="line"
+                                            [data]="buildTrendChart(dash.dailyTrends, form.controls.trendMetric.value)"
+                                            [options]="chartOptions"
+                                        ></p-chart>
+                                    </div>
+
+                                    <p-divider></p-divider>
+
+                                    <p-table [value]="dash.dailyTrends" [rows]="10" [paginator]="true" styleClass="data-table">
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th>Period</th><th>Start</th><th>End</th>
+                                                <th>New GOs</th><th>New Subs</th><th>Revenue</th>
+                                                <th>SMS</th><th>Bills Gen</th><th>Bills Paid</th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-row>
+                                            <tr>
+                                                <td>{{ row.period }}</td>
+                                                <td>{{ row.periodStart | date:'yyyy-MM-dd' }}</td>
+                                                <td>{{ row.periodEnd | date:'yyyy-MM-dd' }}</td>
+                                                <td>{{ row.newGos | number:'1.0-4' }}</td>
+                                                <td>{{ row.newSubscribers | number:'1.0-4' }}</td>
+                                                <td>{{ row.revenue | number:'1.0-4' }}</td>
+                                                <td>{{ row.smsSent | number:'1.0-4' }}</td>
+                                                <td>{{ row.billsGenerated | number:'1.0-4' }}</td>
+                                                <td>{{ row.billsPaid | number:'1.0-4' }}</td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
+                                </p-card>
+                            </div>
+                        } @else {
+                            <p-message severity="info" text="Trends are disabled from the toolbar."></p-message>
+                        }
+                    </p-tabpanel>
+                </p-tabpanels>
+            </p-tabs>
+        }
+    }
+</div>

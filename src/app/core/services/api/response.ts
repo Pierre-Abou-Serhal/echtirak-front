@@ -16,9 +16,22 @@ import {
     WalletTransaction,
     Forecast,
     KvaReading,
-    Announcement
+    Announcement,
+    AdminGeneratorOwnerProfile
 } from '@/core/models/model';
-import { DashboardBills, DashboardConsumption, DashboardRecentActivity, DashboardSubscribers, DashboardWallet, DashboardWalletStatistics, SmsCampaignDetail, SmsCampaignDetailsMessage, SmsCampaignStatistics, TokenPair } from '@/core/dtos/dto';
+import {
+    AdminDashboard,
+    DashboardBills,
+    DashboardConsumption,
+    DashboardRecentActivity,
+    DashboardSubscribers,
+    DashboardWallet,
+    DashboardWalletStatistics,
+    SmsCampaignDetail,
+    SmsCampaignDetailsMessage,
+    SmsCampaignStatistics,
+    TokenPair
+} from '@/core/dtos/dto';
 
 // Auth Response
 export interface SignInResponse {
@@ -251,4 +264,12 @@ export interface GetKvaReadingPerBillCollectorResponse {
 
 export interface UpsertKVAReadingResponse {
     reading: KvaReading;
+}
+
+export interface GetDashboardResponse {
+    dashboard: AdminDashboard;
+}
+
+export interface GetGeneratorOwnersResponse {
+    owners: AdminGeneratorOwnerProfile[];
 }

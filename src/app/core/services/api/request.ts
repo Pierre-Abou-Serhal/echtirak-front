@@ -182,3 +182,10 @@ export interface UpsertKVAReadingRequest {
     status: string;
     imageFile?: File;
 }
+
+
+export interface GetDashboardQueryParams {
+    period?: string;
+    includeTrends?: boolean;
+    includeForecasts?: boolean;
+}

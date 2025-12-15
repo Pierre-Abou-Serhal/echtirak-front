@@ -1,5 +1,5 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { BillCollectorService } from '@/core/services/bill-collector-service';
+import { BillCollectorService } from '@/core/services/bill-collector.service';
 import { InputNumber } from 'primeng/inputnumber';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';

@@ -105,14 +105,17 @@ export class AnnouncementsComponent implements OnInit {
 
     prioritySeverity(priority: string) {
         switch (priority) {
-            case AnnouncementPriority.HIGH:
-                return 'danger';
+            case AnnouncementPriority.URGENT:
+                return 'error';
 
-            case AnnouncementPriority.MEDIUM:
+            case AnnouncementPriority.HIGH:
                 return 'warn';
 
-            case AnnouncementPriority.LOW:
+            case AnnouncementPriority.MEDIUM:
                 return 'info';
+
+            case AnnouncementPriority.LOW:
+                return 'secondary';
 
             default:
                 return null;

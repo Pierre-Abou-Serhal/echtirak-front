@@ -20,7 +20,7 @@ import { SelectOptionStrValue } from '@/core/dtos/dto';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { finalize } from 'rxjs';
-import { BillCollectorService } from '@/core/services/bill-collector-service';
+import { BillCollectorService } from '@/core/services/bill-collector.service';
 import { Dialog } from 'primeng/dialog';
 import { Skeleton } from 'primeng/skeleton';
 

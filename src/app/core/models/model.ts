@@ -222,3 +222,31 @@ export interface Announcement {
     deletedAt: string;
     receivedAt: string;
 }
+
+export interface AdminGeneratorOwnerProfile {
+    id: number;
+    username: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    businessName: string;
+    phoneNumber: string;
+    smsDisplayName: string;
+    gracePeriodDays: number;
+    currencyRates: CurrencyRate[];
+    fixedPlatformFeeMonthly: number;
+    pricePerSubscriberMonthly: number;
+    pricePerSms: number;
+    isYearlyPayment: true;
+    yearlyDiscountFixedFee: number;
+    yearlyDiscountPerSubscriber: number;
+    yearlyDiscountPerSms: number;
+    freeTrialMonths: number;
+    freeTrialEnabled: boolean;
+    billingCycleDays: number;
+    billingStartDate: string;
+    initialBalance: number;
+    paymentMethod: string;
+    overrideWalletCap: number;
+    overrideCapReason: string;
+}

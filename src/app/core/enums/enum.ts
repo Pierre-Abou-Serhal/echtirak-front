@@ -70,7 +70,8 @@ export enum DataViewLayout {
 }
 
 export enum AnnouncementPriority {
+    URGENT = 'URGENT',
     HIGH = 'HIGH',
     MEDIUM = 'MEDIUM',
-    LOW = 'LOW',
+    LOW = 'LOW'
 }

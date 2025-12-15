@@ -1,0 +1,151 @@
+.dashboard {
+    padding: 1rem;
+}
+
+.dashboard-toolbar {
+    border-radius: 14px;
+}
+
+.toolbar-title {
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+
+    .h1 {
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .sub {
+        font-size: .9rem;
+        opacity: .75;
+    }
+}
+
+.toolbar-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .control {
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+
+        .label {
+            font-size: .8rem;
+            opacity: .75;
+        }
+
+        &.switch {
+            flex-direction: row;
+            align-items: center;
+            gap: .6rem;
+
+            .label {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+.grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.kpi-card {
+    border-radius: 16px;
+
+    .kpi-title {
+        font-size: .85rem;
+        opacity: .75;
+        margin-bottom: .25rem;
+    }
+
+    .kpi-value {
+        font-size: 1.55rem;
+        font-weight: 800;
+        letter-spacing: .2px;
+    }
+}
+
+.section-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel {
+    border-radius: 16px;
+}
+
+.kv-table {
+    .metric {
+        width: 60%;
+        font-weight: 600;
+    }
+    .value {
+        width: 40%;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.accounting-grid {
+    grid-template-columns: 1fr;
+}
+
+.accounting-card {
+    border-radius: 16px;
+    width: 100%;
+
+    .card-h {
+        font-weight: 800;
+        margin-bottom: .5rem;
+    }
+}
+
+.trend-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+
+    .control {
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+
+        .label {
+            font-size: .8rem;
+            opacity: .75;
+        }
+    }
+}
+
+.trend-grid {
+    grid-template-columns: 1fr;
+}
+
+.trend-card {
+    border-radius: 16px;
+
+    .trend-title {
+        font-weight: 800;
+        margin-bottom: .75rem;
+    }
+
+    .chart-wrap {
+        height: 280px;
+    }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .section-grid { grid-template-columns: 1fr; }
+    .accounting-grid { grid-template-columns: 1fr; }
+}

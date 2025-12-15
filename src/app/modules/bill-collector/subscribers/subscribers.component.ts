@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { QrScannerComponent } from '@/modules/bill-collector/qr-scanner/qr-scanner.component';
-import { BillCollectorService } from '@/core/services/bill-collector-service';
+import { BillCollectorService } from '@/core/services/bill-collector.service';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { Skeleton } from 'primeng/skeleton';

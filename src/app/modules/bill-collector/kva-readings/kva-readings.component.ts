@@ -8,7 +8,7 @@ import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
-import { BillCollectorService } from '@/core/services/bill-collector-service';
+import { BillCollectorService } from '@/core/services/bill-collector.service';
 import { NotificationService } from '@/core/services/notification.service';
 import { KvaReading } from '@/core/models/model';
 import { finalize } from 'rxjs';

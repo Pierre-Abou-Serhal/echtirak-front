@@ -12,7 +12,7 @@ import { LandingComponent } from '@/static/landing/landing.component';
 export const appRoutes: Routes = [
     {
         path: '',
-        component: LandingComponent,
+        component: LandingComponent
     },
     {
         path: 'auth',
@@ -38,6 +38,14 @@ export const appRoutes: Routes = [
                     roles: [UserRole.BILL_COLLECTOR]
                 },
                 loadChildren: () => import('./app/modules/bill-collector/bill-collector.routes').then((route) => route.BILL_COLLECTOR_ROUTES)
+            },
+            {
+                path: 'admin',
+                canMatch: [roleMatchGuard],
+                data: {
+                    roles: [UserRole.ADMIN]
+                },
+                loadChildren: () => import('./app/modules/admin/admin.routes').then((route) => route.ADMIN_ROUTES)
             }
         ]
     },

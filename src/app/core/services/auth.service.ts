@@ -79,7 +79,7 @@ export class AuthService {
                 await this.router.navigateByUrl('/app/bill-collector/subscribers');
                 break;
             case UserRole.ADMIN:
-                await this.router.navigateByUrl('/app/admin/test');
+                await this.router.navigateByUrl('/app/admin/dashboard');
                 break;
             default:
                 await this.logout();
@@ -114,9 +114,9 @@ export class AuthService {
             case UserRole.GENERATOR_OWNER:
                 return router.createUrlTree(['/app/generator-owner/dashboard']);
             case UserRole.BILL_COLLECTOR:
-                return router.createUrlTree(['/app/bill-collector']);
+                return router.createUrlTree(['/app/bill-collector/subscribers']);
             case UserRole.ADMIN:
-                return router.createUrlTree(['/app/admin']);
+                return router.createUrlTree(['/app/admin/dashboard']);
             default:
                 return router.createUrlTree(['/access-denied']);
         }
