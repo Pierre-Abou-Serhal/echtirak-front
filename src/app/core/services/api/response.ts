@@ -273,3 +273,39 @@ export interface GetDashboardResponse {
 export interface GetGeneratorOwnersResponse {
     owners: AdminGeneratorOwnerProfile[];
 }
+
+export interface UpdateGeneratorOwnerResponse {
+    owner: AdminGeneratorOwnerProfile;
+}
+
+// TODO: Implement once ready
+export interface ReactivateGeneratorOwnerRequestResponse {
+    generatorOwnerUserId: number;
+    previousStatus: string;
+    newStatus: string;
+    pendingBillingCycleAmount: 0;
+    newBalance: number;
+    reactivatedAt: string;
+}
+
+// TODO: Implement once ready
+export interface DeactivateGeneratorOwnerRequestResponse {
+    generatorOwnerUserId: number;
+    statusCode: string;
+    deactivatedAt: string;
+    reason: string;
+}
+
+export interface GetKVAReadingsResponse {
+    page: GetKVAReadingsPage;
+}
+
+export interface GetKVAReadingsPage {
+    items: KvaReading[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}

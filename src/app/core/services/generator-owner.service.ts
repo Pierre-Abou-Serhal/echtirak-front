@@ -24,7 +24,8 @@ import {
     GenerateBillsForMeteredSubscribersRequest,
     GenerateBillsForAllFixedSubscribersRequest,
     GetAnnouncementsQueryParams,
-    MarkAnnouncementAsReadRequest
+    MarkAnnouncementAsReadRequest,
+    GetKVAReadingsQueryParams
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -57,7 +58,8 @@ import {
     GenerateBillsForMeteredSubscribersResponse,
     GenerateBillsForAllFixedSubscribersResponse,
     GetAnnouncementsResponse,
-    GetAnnouncementsUnreadCountResponse
+    GetAnnouncementsUnreadCountResponse,
+    GetKVAReadingsResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -229,5 +231,19 @@ export class GeneratorOwnerService {
 
     public markAnnouncementAsRead(request: MarkAnnouncementAsReadRequest): Observable<void> {
         return this.apiService.post<void>(`/GeneratorOwner/Announcement/${request.announcementId}/MarkAsRead`, request);
+    }
+
+    public getKvaReadingImage(recordId: number): Observable<Blob> {
+        const path = `/GeneratorOwner/kva-reading-image/${recordId}`;
+        return this.apiService.getBlob(path);
+    }
+
+    // TODO: implement in new component for GOs
+    public getKVAReadings(queryParams: GetKVAReadingsQueryParams): Observable<GetKVAReadingsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetKVAReadingsResponse>(`/GeneratorOwner/KVAReadings`, {
+            params: params
+        });
     }
 }

@@ -189,3 +189,52 @@ export interface GetDashboardQueryParams {
     includeTrends?: boolean;
     includeForecasts?: boolean;
 }
+
+export interface UpdateGeneratorOwnerRequest {
+    id: number;
+    username: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    businessName: string;
+    phoneNumber: string;
+    smsDisplayName: string;
+    gracePeriodDays: number;
+    currencyRates: CurrencyRate[];
+    fixedPlatformFeeMonthly: number;
+    pricePerSubscriberMonthly: number;
+    pricePerSms: number;
+    isYearlyPayment: boolean;
+    yearlyDiscountFixedFee: number;
+    yearlyDiscountPerSubscriber: number;
+    yearlyDiscountPerSms: number;
+    freeTrialMonths: number;
+    freeTrialEnabled: boolean;
+    billingCycleDays: number;
+    billingStartDate: string;
+    initialBalance: number;
+    paymentMethod: string;
+    overrideWalletCap: number;
+    overrideCapReason: string;
+}
+
+export interface ReactivateGeneratorOwnerRequest {
+    generatorOwnerUserId: number;
+    reason: string;
+}
+
+export interface DeactivateGeneratorOwnerRequest {
+    generatorOwnerUserId: number;
+    reason: string;
+}
+
+export interface GetKVAReadingsQueryParams {
+    pageNumber: number;
+    pageSize: number;
+    generatorId?: number;
+    subscriberId?: number;
+    status?: string;
+    createdAtFrom?: string;
+    createdAtTo?: string;
+    keyword?: string;
+}

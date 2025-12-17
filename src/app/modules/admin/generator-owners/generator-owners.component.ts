@@ -2,21 +2,17 @@ import { Component, inject, OnInit } from '@angular/core';
 import { AdminService } from '@/core/services/admin.service';
 import { AdminGeneratorOwnerProfile } from '@/core/models/model';
 import { GetGeneratorOwnersResponse } from '@/core/services/api/response';
-import { Button, ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Button } from 'primeng/button';
 import { IconField } from 'primeng/iconfield';
-import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
-import { Message } from 'primeng/message';
 import { ReactiveFormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
+import * as Papa from 'papaparse';
+import { InputIcon } from 'primeng/inputicon';
 
 @Component({
     selector: 'app-generator-owners.component',
-    imports: [
-        ReactiveFormsModule,
-        TableModule
-    ],
+    imports: [ReactiveFormsModule, TableModule, Button, IconField, InputText, InputIcon],
     templateUrl: './generator-owners.component.html',
     styleUrl: './generator-owners.component.scss'
 })
@@ -25,6 +21,11 @@ export class GeneratorOwnersComponent implements OnInit {
 
     generatorOwners: AdminGeneratorOwnerProfile[] = [];
     isGeneratorOwnersLoading: boolean = false;
+
+    rowsPerPageOptions = [10, 20, 50, 100];
+    first = 0;
+    rows = 10;
+    selectGeneratorOwners: AdminGeneratorOwnerProfile[] = [];
 
     ngOnInit() {
         this.loadGeneratorOwners();
@@ -43,5 +44,74 @@ export class GeneratorOwnersComponent implements OnInit {
                 this.isGeneratorOwnersLoading = false;
             }
         });
+    }
+
+    // Data table functions
+    pageChange(event: any) {
+        this.first = event.first ?? this.first;
+        this.rows = event.rows ?? this.rows;
+    }
+
+    onGlobalFilter(table: Table, event: Event) {
+        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    }
+
+    clear(table: Table) {
+        table.clear();
+    }
+
+    next() {
+        if (this.isLastPage()) return;
+        this.first = this.first + this.rows;
+    }
+
+    prev() {
+        this.first = Math.max(0, this.first - this.rows);
+    }
+
+    reset() {
+        this.first = 0;
+    }
+
+    isLastPage(): boolean {
+        return this.first + this.rows >= this.generatorOwners.length;
+    }
+
+    isFirstPage(): boolean {
+        return this.first === 0;
+    }
+
+    exportToCsv() {
+        if (!this.generatorOwners?.length) return;
+
+        let listToExport: AdminGeneratorOwnerProfile[] = this.generatorOwners;
+
+        if (this.selectGeneratorOwners.length > 0) {
+            listToExport = this.selectGeneratorOwners;
+        }
+
+        const csv = Papa.unparse(listToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'generator-owners.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // TODO: implement once ready
+    editGeneratorOwner(go: AdminGeneratorOwnerProfile) {
+        console.log(go);
+    }
+
+    // TODO: implement once ready
+    reactivateGeneratorOwner(go: AdminGeneratorOwnerProfile) {
+        console.log(go);
+    }
+
+    // TODO: implement once ready
+    deactivateGeneratorOwner(go: AdminGeneratorOwnerProfile) {
+        console.log(go);
     }
 }

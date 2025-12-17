@@ -16,6 +16,9 @@ import { SmsCampaignDetailsComponent } from './sms-campaigns/sms-campaign-detail
 import { CurrencyRatesComponent } from '@/modules/generator-owner/currency-rates/currency-rates-component';
 import { WalletComponent } from '@/modules/generator-owner/wallet/wallet-component';
 import { AnnouncementsComponent } from '@/modules/generator-owner/announcements/announcements.component';
+import {
+    KvaReadingHistoryComponent
+} from '@/modules/generator-owner/kva-reading-history/kva-reading-history.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -32,6 +35,7 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             { path: 'generators', component: GeneratorsComponent },
             { path: 'profile', component: ProfileComponent },
             { path: 'bill-collectors', component: BillCollectorComponent },
+            { path: 'kva-reading-history', component: KvaReadingHistoryComponent },
             { path: 'sms-templates', component: SmsTemplatesComponent },
             { path: 'bills', component: BillsComponent },
             { path: 'subscription-billing-model', component: SubscriptionBillingModelComponent },

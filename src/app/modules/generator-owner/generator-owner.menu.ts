@@ -1,15 +1,14 @@
 import { MenuItem } from 'primeng/api';
-import { UserContextService } from '@/core/services/user-context.service';
-import { inject } from '@angular/core';
 
 export const GENERATOR_OWNER_MENU: MenuItem[] = [
     {
         label: 'Generator Owner',
         items: [
-            { label: 'Dashboard', icon: 'pi pi-chart-bar', routerLink: ['/app/generator-owner/dashboard'], badge: undefined},
+            { label: 'Dashboard', icon: 'pi pi-chart-bar', routerLink: ['/app/generator-owner/dashboard'], badge: undefined },
             { label: 'Subscribers', icon: 'pi pi-users', routerLink: ['/app/generator-owner/subscribers'], badge: undefined },
             { label: 'Generators', icon: 'pi pi-bolt', routerLink: ['/app/generator-owner/generators'], badge: undefined },
             { label: 'Bill Collectors', icon: 'pi pi-user-edit', routerLink: ['/app/generator-owner/bill-collectors'], badge: undefined },
+            { label: 'KWH Readings', icon: 'pi pi-book', routerLink: ['/app/generator-owner/kva-reading-history'], badge: undefined },
             { label: 'SMS Templates', icon: 'pi pi-envelope', routerLink: ['/app/generator-owner/sms-templates'], badge: undefined },
             { label: 'SMS Campaigns', icon: 'pi pi-send', routerLink: ['/app/generator-owner/sms-campaigns'], badge: undefined },
             { label: 'Bills', icon: 'pi pi-money-bill', routerLink: ['/app/generator-owner/bills'], badge: undefined },

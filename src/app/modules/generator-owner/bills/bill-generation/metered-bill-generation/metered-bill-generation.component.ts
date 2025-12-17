@@ -20,7 +20,6 @@ import { SelectOptionStrValue } from '@/core/dtos/dto';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { finalize } from 'rxjs';
-import { BillCollectorService } from '@/core/services/bill-collector.service';
 import { Dialog } from 'primeng/dialog';
 import { Skeleton } from 'primeng/skeleton';
 
@@ -43,7 +42,6 @@ export class MeteredBillGenerationComponent implements OnInit {
     generatedBills = output<Bill[]>();
 
     generatorOwnerService: GeneratorOwnerService = inject(GeneratorOwnerService);
-    billCollectorService: BillCollectorService = inject(BillCollectorService);
     notificationService: NotificationService = inject(NotificationService);
 
     kvaReadings: KvaReading[] = [];
@@ -315,8 +313,8 @@ export class MeteredBillGenerationComponent implements OnInit {
         }
 
         // IMPORTANT: use a service method that returns Blob
-        this.billCollectorService
-            .getKvaReadingImage(kvaReading.id) // or billCollectorService.getKvaReadingImage(...)
+        this.generatorOwnerService
+            .getKvaReadingImage(kvaReading.id)
             .pipe(finalize(() => (this.loadingKvaImage = false)))
             .subscribe({
                 next: (blob) => {
@@ -342,4 +340,13 @@ export class MeteredBillGenerationComponent implements OnInit {
     }
 
     protected readonly KvaReadingStatus = KvaReadingStatus;
+
+    downloadKvaImage() {
+        if (!this.kvaImageObjectUrl) return;
+
+        const a = document.createElement('a');
+        a.href = this.kvaImageObjectUrl;
+        a.download = `kva-reading-${Date.now()}.jpg`;
+        a.click();
+    }
 }
