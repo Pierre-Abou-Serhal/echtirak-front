@@ -189,6 +189,25 @@
                 <td>
                     <div class="flex items-center justify-center gap-2">
                         @if(!editing){
+                            <div class="flex items-center gap-2">
+                                @if (bill.hasRecentPayment) {
+                                    <p-tag
+                                        icon="pi pi-dollar"
+                                        severity="warn"
+                                        pTooltip="Subscriber has a payment within the last 30 days (relative to this bill date)."
+                                        tooltipPosition="top"
+                                    />
+                                }
+
+                                @if (bill.hasDuplicateBill) {
+                                    <p-tag
+                                        icon="pi pi-copy"
+                                        severity="danger"
+                                        pTooltip="Subscriber has more than one pending bill."
+                                        tooltipPosition="top"
+                                    />
+                                }
+                            </div>
                             <!-- start editing -->
                             <p-button
                                 pInitEditableRow

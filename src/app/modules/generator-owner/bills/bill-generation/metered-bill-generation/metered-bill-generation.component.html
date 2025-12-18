@@ -89,7 +89,7 @@
         </tr>
     </ng-template>
     <ng-template #body let-kvaReading let-editing="editing" let-ri="rowIndex">
-        <tr [pEditableRow]="kvaReading" [ngClass]="rowClass(kvaReading)">
+        <tr [pEditableRow]="kvaReading">
             <td>
                 <p-tableCheckbox [value]="kvaReading" />
             </td>
@@ -171,9 +171,6 @@
                 {{ kvaReading.kvaCurrent }}
             </td>
             <td>
-
-
-
                 <p-cellEditor>
                     <ng-template #input>
                         <p-select
@@ -188,19 +185,10 @@
                     <ng-template #output>
                         <p-tag
                             [value]="kvaReading.status"
-                            [severity]="getBillSeverity(kvaReading.status)"
+                            [severity]="getKvaReadingSeverity(kvaReading.status)"
                         />
                     </ng-template>
                 </p-cellEditor>
-
-
-
-
-
-
-
-
-
             </td>
         </tr>
     </ng-template>
@@ -219,7 +207,7 @@
 <!-- KVA Reading image -->
 <p-dialog
     [(visible)]="isKvaImageDialogOpen"
-    header="KVA Reading Image"
+    header="KWH Reading Image"
     [modal]="true"
     [draggable]="false"
     [resizable]="false"

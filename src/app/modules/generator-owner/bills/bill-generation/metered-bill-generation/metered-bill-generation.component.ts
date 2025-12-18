@@ -13,7 +13,7 @@ import { KvaReadingStatus, LookupDomain } from '@/core/enums/enum';
 import { Tag } from 'primeng/tag';
 import { GenerateBillsForMeteredSubscribersRequest, UpdateKVAReadingRequest } from '@/core/services/api/request';
 import { NotificationService } from '@/core/services/notification.service';
-import { DecimalPipe, NgClass } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
 import { SelectOptionStrValue } from '@/core/dtos/dto';
@@ -25,7 +25,7 @@ import { Skeleton } from 'primeng/skeleton';
 
 @Component({
     selector: 'app-metered-bill-generation',
-    imports: [FormsModule, Button, IconField, InputIcon, InputText, TableModule, Tag, NgClass, DecimalPipe, InputNumber, Select, Dialog, Skeleton],
+    imports: [FormsModule, Button, IconField, InputIcon, InputText, TableModule, Tag, DecimalPipe, InputNumber, Select, Dialog, Skeleton],
     templateUrl: './metered-bill-generation.component.html',
     styleUrl: './metered-bill-generation.component.scss'
 })
@@ -163,11 +163,7 @@ export class MeteredBillGenerationComponent implements OnInit {
         URL.revokeObjectURL(url);
     }
 
-    rowClass(kvaReading: KvaReading) {
-        return { '!bg-yellow-100 dark:!bg-yellow-950': kvaReading.hasDuplicatePendingReadings };
-    }
-
-    getBillSeverity(statusCode: string) {
+    getKvaReadingSeverity(statusCode: string) {
         switch (statusCode) {
             case KvaReadingStatus.PENDING:
                 return 'info';

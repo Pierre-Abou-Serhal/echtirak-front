@@ -103,6 +103,8 @@ export interface Bill {
     subscriptionFeeFixed: number;
     notes: string;
     generatedFrom: number;
+    hasDuplicateBill: boolean;
+    hasRecentPayment: boolean;
 }
 
 
@@ -204,8 +206,6 @@ export interface KvaReading {
     createdBy: string;
     modifiedAt: string;
     modifiedBy: string;
-    pendingReadingsCount: number;
-    hasDuplicatePendingReadings: boolean;
 }
 
 export interface Announcement {

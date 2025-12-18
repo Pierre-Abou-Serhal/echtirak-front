@@ -13,10 +13,11 @@ import { InputIcon } from 'primeng/inputicon';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { AcceptBillsResponse } from '@/core/services/api/response';
 import { NotificationService } from '@/core/services/notification.service';
+import { Tooltip } from 'primeng/tooltip';
 
 @Component({
     selector: 'app-bills-preview-component',
-    imports: [TableModule, FormsModule, InputText, Button, DecimalPipe, InputNumber, Tag, DatePipe, ButtonDirective, IconField, InputIcon],
+    imports: [TableModule, FormsModule, InputText, Button, DecimalPipe, InputNumber, Tag, DatePipe, ButtonDirective, IconField, InputIcon, Tooltip],
     templateUrl: './bills-preview.component.html',
     styleUrl: './bills-preview.component.scss'
 })
@@ -114,38 +115,38 @@ export class BillsPreviewComponent {
     }
 
     // Accept Bills
-    acceptBills(){
+    acceptBills() {
         this.isAcceptBillsLoading = true;
 
-        if(this.selectedBills.length === 0) {
+        if (this.selectedBills.length === 0) {
             this.isAcceptBillsLoading = false;
             this.notificationService.warn('Warning', 'Please select subscribers to generate their bills');
             return;
         }
 
-        this.generatorOwnerService.acceptBills({
-            bills: this.selectedBills
-        }).subscribe({
-            next: (response: AcceptBillsResponse) => {
+        this.generatorOwnerService
+            .acceptBills({
+                bills: this.selectedBills
+            })
+            .subscribe({
+                next: (response: AcceptBillsResponse) => {
+                    if (response.success) {
+                        this.notificationService.success('Bill Accepted', `Successfully inserted: ${response.billsInserted} bills`);
+                    } else {
+                        this.notificationService.error('Bill Rejected', `Something wen wrong while inserting bills`);
+                    }
 
-                if(response.success){
-                    this.notificationService.success('Bill Accepted', `Successfully inserted: ${response.billsInserted} bills`);
+                    this.billsPreview = [];
+                    this.selectedBills = [];
+
+                    this.isAcceptBillsLoading = false;
+                },
+                error: (err) => {
+                    console.log(err);
+                    this.billsPreview = [];
+                    this.selectedBills = [];
+                    this.isAcceptBillsLoading = false;
                 }
-                else{
-                    this.notificationService.error('Bill Rejected', `Something wen wrong while inserting bills`);
-                }
-
-                this.billsPreview = [];
-                this.selectedBills = [];
-
-                this.isAcceptBillsLoading = false;
-            },
-            error: (err) => {
-                console.log(err);
-                this.billsPreview = [];
-                this.selectedBills = [];
-                this.isAcceptBillsLoading = false;
-            }
-        });
+            });
     }
 }

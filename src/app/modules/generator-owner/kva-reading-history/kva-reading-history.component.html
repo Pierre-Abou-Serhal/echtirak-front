@@ -1,1 +1,400 @@
-<p>kva-reading-history.component works!</p>
+<h1 class="text-3xl font-bold mb-4">KWH Readings</h1>
+
+<div class="card">
+
+    <!-- FILTERS BAR -->
+    <div class="mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- Keyword -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterKeyword">Keyword</label>
+                <p-iconfield iconPosition="left" class="w-full">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input
+                        id="filterKeyword"
+                        pInputText
+                        type="text"
+                        class="w-full"
+                        [(ngModel)]="filter.keyword"
+                        (keyup.enter)="applyFilters()"
+                        placeholder="Search"
+                    />
+                </p-iconfield>
+            </div>
+
+            <!-- Created At From -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterCreatedAtFrom">Created At From</label>
+                <p-datepicker
+                    inputId="filterCreatedAtFrom"
+                    [(ngModel)]="filter.createdAtFrom"
+                    [showIcon]="true"
+                    [iconDisplay]="'input'"
+                    dateFormat="yy-mm-dd"
+                    appendTo="body"
+                    class="w-full"
+                ></p-datepicker>
+            </div>
+
+            <!-- Created At To -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterCreatedAtTo">Created At To</label>
+                <p-datepicker
+                    inputId="filterCreatedAtTo"
+                    [(ngModel)]="filter.createdAtTo"
+                    [showIcon]="true"
+                    [iconDisplay]="'input'"
+                    dateFormat="yy-mm-dd"
+                    appendTo="body"
+                    class="w-full"
+                ></p-datepicker>
+            </div>
+
+            <!-- Generator -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterGenerator">Generator</label>
+                <p-select
+                    inputId="filterGenerator"
+                    class="w-full"
+                    [options]="generators"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="All generators"
+                    [showClear]="true"
+                    [(ngModel)]="filter.generatorId"
+                    [loading]="isGeneratorsLoading"
+                ></p-select>
+            </div>
+
+            <!-- Subscriber Id -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterSubscriberId">Subscriber ID</label>
+                <input
+                    id="filterSubscriberId"
+                    pInputText
+                    type="number"
+                    class="w-full"
+                    [(ngModel)]="filter.subscriberId"
+                    (keyup.enter)="applyFilters()"
+                    placeholder="e.g. 123"
+                />
+            </div>
+
+            <!-- Status -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterStatus">Status</label>
+
+                @if (statuses.length) {
+                    <p-select
+                        inputId="filterStatus"
+                        class="w-full"
+                        [options]="statuses"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="All statuses"
+                        [showClear]="true"
+                        [(ngModel)]="filter.status"
+                        [loading]="isStatusesLoading"
+                    ></p-select>
+                } @else {
+                    <input
+                        id="filterStatus"
+                        pInputText
+                        type="text"
+                        class="w-full"
+                        [(ngModel)]="filter.status"
+                        (keyup.enter)="applyFilters()"
+                        placeholder="Status (free text)"
+                    />
+                }
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-end gap-2">
+                <p-button
+                    label="Apply"
+                    icon="pi pi-filter"
+                    (click)="applyFilters()"
+                    [loading]="loading"
+                ></p-button>
+
+                <p-button
+                    label="Reset"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    text
+                    (click)="resetFilters()"
+                ></p-button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Top pager controls -->
+    <div class="mb-4">
+        <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
+        <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
+        <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
+    </div>
+
+    <p-table
+        #dt
+        [value]="kvaReadings"
+        dataKey="id"
+        [rows]="rows"
+        editMode="row"
+        [totalRecords]="totalRecords"
+        responsiveLayout="scroll"
+        [loading]="loading"
+        rowHover
+        showGridlines
+        paginator
+        stripedRows
+        [first]="first"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [(selection)]="selectedReadings"
+        (onPage)="pageChange($event)"
+    >
+
+        <ng-template #caption>
+            <div class="flex justify-between items-center flex-column sm:flex-row gap-3 pb-4">
+                <div class="flex flex-wrap items-center gap-2 ml-auto">
+                    <p-button
+                        icon="pi pi-external-link"
+                        label="Export CSV"
+                        (click)="exportToCsv()"
+                    />
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center flex-column sm:flex-row gap-3">
+                <button
+                    pButton
+                    label="Clear"
+                    class="p-button-outlined mb-2"
+                    icon="pi pi-filter-slash"
+                    (click)="clear(dt)"
+                ></button>
+            </div>
+        </ng-template>
+
+        <ng-template #header>
+            <tr>
+                <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+
+                <th style="width: 5rem"></th>
+
+                <th class="no-wrap-text" pSortableColumn="subscriberFirstName">
+                    <div class="flex justify-between items-center gap-2">
+                        Subscriber
+                        <p-sortIcon field="subscriberFirstName" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="generatorCode">
+                    <div class="flex justify-between items-center gap-2">
+                        Generator
+                        <p-sortIcon field="generatorCode" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="electricMeterNumber">
+                    <div class="flex justify-between items-center gap-2">
+                        Meter #
+                        <p-sortIcon field="electricMeterNumber" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="kvaReading">
+                    <div class="flex justify-between items-center gap-2">
+                        KWH Reading
+                        <p-sortIcon field="kvaReading" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="kvaPrevious">
+                    <div class="flex justify-between items-center gap-2">
+                        KWH Previous
+                        <p-sortIcon field="kvaPrevious" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="kvaCurrent">
+                    <div class="flex justify-between items-center gap-2">
+                        KWH Current
+                        <p-sortIcon field="kvaCurrent" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="status">
+                    <div class="flex justify-between items-center gap-2">
+                        Status
+                        <p-sortIcon field="status" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="createdAt">
+                    <div class="flex justify-between items-center gap-2">
+                        Created
+                        <p-sortIcon field="createdAt" />
+                    </div>
+                </th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-row let-editing="editing" let-ri="rowIndex">
+            <tr [pEditableRow]="row">
+                <td>
+                    <p-tableCheckbox [value]="row" />
+                </td>
+
+                <td>
+                    <div class="flex items-center justify-center gap-2">
+                        @if(!editing){
+                            <!-- start editing -->
+                            <p-button
+                                pInitEditableRow
+                                icon="pi pi-pencil"
+                                styleClass="p-button-sm"
+                                (click)="onRowEditInit(row)"
+                                severity="info"
+                                rounded
+                                [disabled]="row.status !== KvaReadingStatus.PENDING"
+                            />
+
+                            <!-- Open KVA Reading image -->
+                            <p-button
+                                icon="pi pi-eye"
+                                styleClass="p-button-sm"
+                                (click)="onKvaReadingViewImage(row)"
+                                severity="secondary"
+                                rounded
+                                [disabled]="!row.kvaReadingUrl"
+                            />
+                        }
+
+                        @if(editing){
+                            <!-- save -->
+                            <p-button
+                                icon="pi pi-check"
+                                styleClass="p-button-sm"
+                                (click)="onRowEditSave(row)"
+                                severity="primary"
+                                rounded
+                                [loading]="isKvaReadingSaving"
+                            />
+
+                            <!-- cancel -->
+                            <p-button
+                                icon="pi pi-times"
+                                styleClass="p-button-sm"
+                                (click)="onRowEditCancel(row, ri)"
+                                severity="danger"
+                                rounded
+                            />
+                        }
+                    </div>
+                </td>
+
+                <td class="no-wrap-text">
+                    {{ row.subscriberFirstName }} {{ row.subscriberLastName }}
+                    <div class="text-xs opacity-70">{{ row.subscriberPhoneNumber }}</div>
+                </td>
+
+                <td class="no-wrap-text">{{ row.generatorCode }}</td>
+
+                <td class="no-wrap-text">{{ row.electricMeterNumber }}</td>
+
+                <td>
+                    <p-cellEditor>
+                        <ng-template #input>
+                            <p-inputnumber
+                                [(ngModel)]="row.kvaReading"
+                                mode="decimal"
+                                [minFractionDigits]="0"
+                                [maxFractionDigits]="4"
+                            ></p-inputnumber>
+                        </ng-template>
+                        <ng-template #output>
+                            {{ row.kvaReading | number:'1.0-4' }}
+                        </ng-template>
+                    </p-cellEditor>
+                </td>
+                <td>{{ row.kvaPrevious | number:'1.0-4' }}</td>
+                <td>{{ row.kvaCurrent | number:'1.0-4' }}</td>
+
+                <td>
+                    <p-cellEditor>
+                        <ng-template #input>
+                            <p-select
+                                [options]="statuses"
+                                [(ngModel)]="row.status"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Select status"
+                                [overlayOptions]="getOverlayOptions()"
+                            />
+                        </ng-template>
+                        <ng-template #output>
+                            <p-tag
+                                [value]="row.status"
+                                [severity]="getKvaReadingSeverity(row.status)"
+                            />
+                        </ng-template>
+                    </p-cellEditor>
+                </td>
+
+                <td class="no-wrap-text">
+                    {{ row.createdAt | date:'yyyy-MM-dd' }}
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="10">No KWH readings found.</td>
+            </tr>
+        </ng-template>
+
+        <ng-template #loadingbody>
+            <tr>
+                <td colspan="10">Loading KWH readings data. Please wait.</td>
+            </tr>
+        </ng-template>
+
+    </p-table>
+</div>
+
+<!-- KVA Reading image -->
+<p-dialog
+    [(visible)]="isKvaImageDialogOpen"
+    header="KWH Reading Image"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '520px', maxWidth: '95vw' }"
+    (onHide)="hideKvaImageDialog()"
+>
+    <ng-template #content>
+        @if (loadingKvaImage) {
+            <p-skeleton width="100%" height="280px"></p-skeleton>
+        } @else if (kvaImageUrl) {
+            <div class="flex justify-end mb-2">
+                <p-button
+                    icon="pi pi-download"
+                    label="Download"
+                    severity="primary"
+                    (onClick)="downloadKvaImage()"
+                />
+            </div>
+
+            <img [src]="kvaImageUrl" class="w-full rounded-lg border border-surface-200" />
+        }
+    </ng-template>
+</p-dialog>
+

@@ -238,7 +238,6 @@ export class GeneratorOwnerService {
         return this.apiService.getBlob(path);
     }
 
-    // TODO: implement in new component for GOs
     public getKVAReadings(queryParams: GetKVAReadingsQueryParams): Observable<GetKVAReadingsResponse> {
         let params = this.apiService.buildParams(queryParams);
 
