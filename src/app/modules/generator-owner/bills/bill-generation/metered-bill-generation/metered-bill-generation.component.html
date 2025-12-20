@@ -89,7 +89,7 @@
         </tr>
     </ng-template>
     <ng-template #body let-kvaReading let-editing="editing" let-ri="rowIndex">
-        <tr [pEditableRow]="kvaReading">
+        <tr [pEditableRow]="kvaReading" [pSelectableRow]="kvaReading">
             <td>
                 <p-tableCheckbox [value]="kvaReading" />
             </td>

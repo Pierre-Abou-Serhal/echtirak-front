@@ -268,7 +268,7 @@
         </ng-template>
 
         <ng-template pTemplate="body" let-transaction>
-            <tr>
+            <tr [pSelectableRow]="transaction">
                 <td>
                     <p-tableCheckbox [value]="transaction" />
                 </td>

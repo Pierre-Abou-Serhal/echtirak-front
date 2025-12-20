@@ -86,7 +86,7 @@
             </tr>
         </ng-template>
         <ng-template #body let-subscriptionBillingModel>
-            <tr>
+            <tr [pSelectableRow]="subscriptionBillingModel">
                 <td>
                     <p-tableCheckbox [value]="subscriptionBillingModel" />
                 </td>

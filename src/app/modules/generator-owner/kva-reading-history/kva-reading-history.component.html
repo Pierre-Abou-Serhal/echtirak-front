@@ -248,7 +248,7 @@
         </ng-template>
 
         <ng-template #body let-row let-editing="editing" let-ri="rowIndex">
-            <tr [pEditableRow]="row">
+            <tr [pEditableRow]="row" [pSelectableRow]="row">
                 <td>
                     <p-tableCheckbox [value]="row" />
                 </td>
@@ -393,7 +393,7 @@
                 />
             </div>
 
-            <img [src]="kvaImageUrl" class="w-full rounded-lg border border-surface-200" />
+            <img [src]="kvaImageUrl" class="w-full rounded-lg border border-surface-200" alt="KWH img"/>
         }
     </ng-template>
 </p-dialog>

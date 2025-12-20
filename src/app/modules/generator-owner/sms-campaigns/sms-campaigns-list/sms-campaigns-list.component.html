@@ -190,7 +190,7 @@
                 </tr>
             </ng-template>
             <ng-template #body let-campaign>
-                <tr>
+                <tr [pSelectableRow]="campaign">
                     <td>
                         <p-tableCheckbox [value]="campaign" />
                     </td>

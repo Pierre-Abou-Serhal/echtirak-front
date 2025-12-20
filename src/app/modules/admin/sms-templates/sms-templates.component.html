@@ -1,0 +1,300 @@
+<h1 class="text-3xl font-bold mb-4">SMS Templates</h1>
+
+<div class="card">
+    <!-- FILTERS BAR -->
+    <div class="mb-4">
+        <form [formGroup]="filterForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <!-- GeneratorOwnerUserId (required) -->
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2" for="goId">
+                        Generator Owner User ID
+                    </label>
+
+                    <p-select
+                        inputId="goId"
+                        class="w-full"
+                        [options]="generatorOwners"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Generator Owner"
+                        [showClear]="false"
+                        formControlName="generatorOwnerUserId"
+                        [overlayOptions]="getOverlayOptions()"
+                    ></p-select>
+
+                    @if (filterForm.get('generatorOwnerUserId')?.invalid && (filterForm.get('generatorOwnerUserId')?.touched)) {
+                        <p-message severity="error" size="small" variant="simple">
+                            GeneratorOwnerUserId is required.
+                        </p-message>
+                    }
+                </div>
+
+                <!-- Keyword -->
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2" for="keyword">Keyword</label>
+                    <input
+                        id="keyword"
+                        pInputText
+                        type="text"
+                        class="w-full"
+                        formControlName="keyword"
+                        (keyup.enter)="loadTemplates()"
+                        placeholder="Search name/body..."
+                    />
+                </div>
+
+                <!-- Language -->
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2" for="lang">Language</label>
+                    <p-select
+                        inputId="lang"
+                        class="w-full"
+                        [options]="languageOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="All"
+                        [showClear]="true"
+                        formControlName="language"
+                        [overlayOptions]="getOverlayOptions()"
+                    ></p-select>
+                </div>
+
+                <!-- Active -->
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2" for="active">Status</label>
+                    <p-select
+                        inputId="active"
+                        class="w-full"
+                        [options]="activeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="All"
+                        [showClear]="true"
+                        formControlName="isActive"
+                        [overlayOptions]="getOverlayOptions()"
+                    ></p-select>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-end gap-2">
+                    <p-button
+                        label="Apply"
+                        icon="pi pi-filter"
+                        (click)="loadTemplates()"
+                        [loading]="loading"
+                    ></p-button>
+
+                    <p-button
+                        label="Reset"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        text
+                        (click)="resetFilters()"
+                    ></p-button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <p-table
+        #dt
+        [value]="templates"
+        dataKey="id"
+        responsiveLayout="scroll"
+        [loading]="loading"
+        rowHover
+        showGridlines
+        stripedRows
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50, 100]"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [(selection)]="selectedTemplates"
+    >
+        <ng-template #caption>
+            <div class="flex justify-between items-center flex-column sm:flex-row gap-3 pb-4">
+                <div class="flex flex-wrap items-center gap-2 ml-auto">
+                    <p-button
+                        icon="pi pi-external-link"
+                        label="Export CSV"
+                        (click)="exportToCsv()"
+                    />
+                    <p-button icon="pi pi-plus" class="me-2" label="New" severity="info" (click)="openNew()" />
+                </div>
+            </div>
+        </ng-template>
+
+        <ng-template #header>
+            <tr>
+                <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+                <th style="width: 5rem"></th>
+                <th class="no-wrap-text">Name</th>
+                <th class="no-wrap-text">Preview EN</th>
+                <th class="no-wrap-text">Preview AR</th>
+                <th class="no-wrap-text">Language</th>
+                <th class="no-wrap-text">Status</th>
+                <th class="no-wrap-text">Created</th>
+                <th class="no-wrap-text">Modified</th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-row>
+            <tr [pSelectableRow]="row">
+                <td>
+                    <p-tableCheckbox [value]="row" />
+                </td>
+                <td>
+                    <div class="flex">
+                        <p-button
+                            icon="pi pi-pencil"
+                            styleClass="p-button-sm me-1"
+                            severity="info"
+                            rounded
+                            (click)="editTemplate(row)"
+                        />
+
+                        <p-button
+                            icon="pi pi-trash"
+                            styleClass="p-button-sm"
+                            severity="danger"
+                            rounded
+                            [loading]="deletingId === row.id"
+                            [disabled]="deletingId === row.id"
+                            (click)="deleteTemplate(row)"
+                        />
+                    </div>
+                </td>
+
+                <td class="no-wrap-text font-medium">
+                    <div>{{ row.name }}</div>
+                    @if (row.nameAr) {
+                        <div class="text-sm opacity-70">{{ row.nameAr }}</div>
+                    }
+                </td>
+
+                <td>
+                    <div class="line-clamp-2 text-sm opacity-80">{{ row.body }}</div>
+                </td>
+
+                <td>
+                    <div class="line-clamp-2 text-sm opacity-80">{{ row.bodyAr }}</div>
+                </td>
+
+
+                <td class="no-wrap-text">
+                    <p-tag [value]="row.language" [severity]="languageSeverity(row.language)"></p-tag>
+                </td>
+
+                <td class="no-wrap-text">
+                    <p-tag [value]="row.isActive ? 'Active' : 'Inactive'" [severity]="activeSeverity(row.isActive)"></p-tag>
+                </td>
+
+                <td class="no-wrap-text">
+                    {{ row.createdAt | date:'yyyy-MM-dd' }}
+                </td>
+
+                <td class="no-wrap-text">
+                    {{ row.modifiedAt | date:'yyyy-MM-dd' }}
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="9">No SMS templates found.</td>
+            </tr>
+        </ng-template>
+
+        <ng-template #loadingbody>
+            <tr>
+                <td colspan="9">Loading templates. Please wait.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Add/Edit Template Dialog -->
+    <p-dialog
+        [(visible)]="isDialogOpen"
+        header="SMS Template Details"
+        [modal]="true"
+        [style]="{ width: '760px', maxWidth: '95vw' }"
+    >
+        <ng-template #content>
+            <form [formGroup]="templateForm" class="dialog-form">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Name (EN)</label>
+                        <input pInputText class="w-full" placeholder="e.g. Payment Reminder" formControlName="name" [invalid]="isInvalid('name')" />
+                        @if (isInvalid('name')) {
+                            <p-message severity="error" size="small" variant="simple">Name is required.</p-message>
+                        }
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Name (AR)</label>
+                        <input pInputText class="w-full" placeholder="اختياري" formControlName="nameAr" />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Language</label>
+                        <p-select
+                            class="w-full"
+                            [options]="languageOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            formControlName="language"
+                            [invalid]="isInvalid('language')"
+                            [overlayOptions]="getOverlayOptions()"
+                        ></p-select>
+                        @if (isInvalid('language')) {
+                            <p-message severity="error" size="small" variant="simple">Language is required.</p-message>
+                        }
+                    </div>
+
+                    <div class="flex items-center gap-3 mt-6">
+                        <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
+                        <span class="font-medium">Active</span>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-sm font-semibold mb-2">Body (EN)</label>
+                    <textarea
+                        pInputTextarea
+                        rows="6"
+                        class="w-full"
+                        placeholder="Write the SMS body..."
+                        formControlName="body"
+                        [invalid]="isInvalid('body')"
+                    ></textarea>
+                    @if (isInvalid('body')) {
+                        <p-message severity="error" size="small" variant="simple">Body is required.</p-message>
+                    }
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-sm font-semibold mb-2">Body (AR)</label>
+                    <textarea
+                        pInputTextarea
+                        rows="6"
+                        class="w-full"
+                        placeholder="اختياري"
+                        formControlName="bodyAr"
+                    ></textarea>
+                </div>
+
+            </form>
+        </ng-template>
+
+        <ng-template #footer>
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()"></p-button>
+                <p-button label="Save" icon="pi pi-check" (click)="saveTemplate()" [loading]="isSaving"></p-button>
+            </div>
+        </ng-template>
+    </p-dialog>
+</div>

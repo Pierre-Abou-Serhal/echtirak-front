@@ -238,3 +238,39 @@ export interface GetKVAReadingsQueryParams {
     createdAtTo?: string;
     keyword?: string;
 }
+
+export interface GetAdminAnnouncementsQueryParams {
+    pageNumber: number;
+    pageSize: number;
+    isPublished?: boolean;
+    keyword?: string;
+}
+
+export interface UpsertAnnouncementRequest {
+    id: number;
+    title: string;
+    content: string;
+    expiresAt: string;
+    priority: string;
+}
+
+export interface PublishAnnouncementRequest {
+    announcementId: number;
+    publishToAll: boolean;
+    generatorOwnerUserIds: number[];
+}
+
+export interface GetSmsTemplatesQueryParams {
+    generatorOwnerUserId: number;
+}
+
+export interface UpsertSmsTemplateRequest {
+    id: number;
+    generatorOwnerUserId: number;
+    name: string;
+    nameAr: string;
+    body: string;
+    bodyAr: string;
+    language: string;
+    isActive: boolean;
+}

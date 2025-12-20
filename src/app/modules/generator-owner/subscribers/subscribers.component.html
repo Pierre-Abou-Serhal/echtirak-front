@@ -174,7 +174,7 @@
             </tr>
         </ng-template>
         <ng-template #body let-subscriber>
-            <tr>
+            <tr [pSelectableRow]="subscriber">
                 <td>
                     <p-tableCheckbox [value]="subscriber" />
                 </td>

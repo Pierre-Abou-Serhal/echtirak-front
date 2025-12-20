@@ -106,7 +106,7 @@
             </tr>
         </ng-template>
         <ng-template #body let-generatorOwner>
-            <tr>
+            <tr [pSelectableRow]="generatorOwner">
                 <td>
                     <p-tableCheckbox [value]="generatorOwner" />
                 </td>

@@ -210,7 +210,6 @@ export class KvaReadingsComponent implements OnInit {
                 },
                 error: (err) => {
                     console.error(err);
-                    this.notificationService.error('Failed', 'Could not update reading.');
                 }
             });
     }

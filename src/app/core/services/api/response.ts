@@ -17,7 +17,8 @@ import {
     Forecast,
     KvaReading,
     Announcement,
-    AdminGeneratorOwnerProfile
+    AdminGeneratorOwnerProfile,
+    AdminAnnouncement
 } from '@/core/models/model';
 import {
     AdminDashboard,
@@ -289,7 +290,7 @@ export interface ReactivateGeneratorOwnerRequestResponse {
 }
 
 // TODO: Implement once ready
-export interface DeactivateGeneratorOwnerRequestResponse {
+export interface DeactivateGeneratorOwnerResponse {
     generatorOwnerUserId: number;
     statusCode: string;
     deactivatedAt: string;
@@ -308,4 +309,35 @@ export interface GetKVAReadingsPage {
     totalPages: number;
     hasNext: boolean;
     hasPrevious: boolean;
+}
+
+export interface GetAdminAnnouncementsResponse {
+    page: GetAdminAnnouncementsPage;
+}
+
+export interface GetAdminAnnouncementsPage {
+    items: AdminAnnouncement[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface UpsertAnnouncementResponse {
+    announcement: AdminAnnouncement;
+}
+
+export interface PublishAnnouncementResponse {
+    response: {
+        announcementId: number;
+        recipientCount: number;
+        isPublished: boolean;
+        publishedAt: string;
+    };
+}
+
+export interface UpsertSmsTemplateResponse {
+    template: SmsTemplate;
 }

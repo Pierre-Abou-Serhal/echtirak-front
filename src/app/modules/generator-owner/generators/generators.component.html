@@ -71,7 +71,7 @@
             </tr>
         </ng-template>
         <ng-template #body let-generator>
-            <tr>
+            <tr [pSelectableRow]="generator">
                 <td>
                     <p-tableCheckbox [value]="generator" />
                 </td>

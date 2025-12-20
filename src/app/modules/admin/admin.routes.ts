@@ -3,6 +3,8 @@ import { ADMIN_MENU } from '@/modules/admin/admin.menu';
 import { GeneratorOwnersComponent } from '@/modules/admin/generator-owners/generator-owners.component';
 import { ADMIN_PROFILE_MENU } from '@/modules/admin/admin-profile.menu';
 import { DashboardComponent } from '@/modules/admin/dashboard/dashboard.component';
+import { AnnouncementsComponent } from '@/modules/admin/announcements/announcements.component';
+import { SmsTemplatesComponent } from '@/modules/admin/sms-templates/sms-templates.component';
 
 export const ADMIN_ROUTES: Routes = [
     {
@@ -13,7 +15,9 @@ export const ADMIN_ROUTES: Routes = [
         },
         children: [
             { path: 'dashboard', component: DashboardComponent },
-            { path: 'generator-owners', component: GeneratorOwnersComponent }
+            { path: 'generator-owners', component: GeneratorOwnersComponent },
+            { path: 'announcements', component: AnnouncementsComponent },
+            { path: 'sms-templates', component: SmsTemplatesComponent },
         ]
     }
 ] as Routes;

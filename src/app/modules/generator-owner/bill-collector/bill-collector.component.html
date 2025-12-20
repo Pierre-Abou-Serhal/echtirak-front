@@ -78,7 +78,7 @@
             </tr>
         </ng-template>
         <ng-template #body let-billCollector>
-            <tr>
+            <tr [pSelectableRow]="billCollector">
                 <td>
                     <p-tableCheckbox [value]="billCollector" />
                 </td>

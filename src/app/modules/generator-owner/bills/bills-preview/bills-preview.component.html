@@ -181,7 +181,7 @@
             </tr>
         </ng-template>
         <ng-template #body let-bill let-editing="editing" let-ri="rowIndex">
-            <tr [pEditableRow]="bill">
+            <tr [pEditableRow]="bill" [pSelectableRow]="bill">
                 <td>
                     <p-tableCheckbox [value]="bill" />
                 </td>

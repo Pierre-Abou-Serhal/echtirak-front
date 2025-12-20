@@ -1,8 +1,21 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
 import { Observable } from 'rxjs';
-import { GetDashboardQueryParams, ReactivateGeneratorOwnerRequest, UpdateGeneratorOwnerRequest } from '@/core/services/api/request';
-import { DeactivateGeneratorOwnerRequestResponse, GetDashboardResponse, GetGeneratorOwnersResponse, ReactivateGeneratorOwnerRequestResponse, UpdateGeneratorOwnerResponse } from '@/core/services/api/response';
+import { GetAdminAnnouncementsQueryParams, GetDashboardQueryParams, GetSmsTemplatesQueryParams, PublishAnnouncementRequest, ReactivateGeneratorOwnerRequest, UpdateGeneratorOwnerRequest, UpsertAnnouncementRequest,
+    UpsertSmsTemplateRequest
+} from '@/core/services/api/request';
+import {
+    DeactivateGeneratorOwnerResponse,
+    GetAdminAnnouncementsResponse,
+    GetDashboardResponse,
+    GetGeneratorOwnersResponse,
+    GetSmsTemplatesResponse,
+    PublishAnnouncementResponse,
+    ReactivateGeneratorOwnerRequestResponse,
+    UpdateGeneratorOwnerResponse,
+    UpsertAnnouncementResponse,
+    UpsertSmsTemplateResponse
+} from '@/core/services/api/response';
 
 class DeactivateGeneratorOwnerRequest {}
 
@@ -32,7 +45,39 @@ export class AdminService {
     }
 
     // TODO: Implement once ready
-    public deactivateGeneratorOwner(request: DeactivateGeneratorOwnerRequest): Observable<DeactivateGeneratorOwnerRequestResponse> {
-        return this.apiService.post<DeactivateGeneratorOwnerRequestResponse>('/Admin/GeneratorOwner/Deactivate', request);
+    public deactivateGeneratorOwner(request: DeactivateGeneratorOwnerRequest): Observable<DeactivateGeneratorOwnerResponse> {
+        return this.apiService.post<DeactivateGeneratorOwnerResponse>('/Admin/GeneratorOwner/Deactivate', request);
+    }
+
+    public getAnnouncements(queryParams: GetAdminAnnouncementsQueryParams): Observable<GetAdminAnnouncementsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetAdminAnnouncementsResponse>('/Admin/Announcement', { params: params });
+    }
+
+    public upsertAnnouncement(request: UpsertAnnouncementRequest): Observable<UpsertAnnouncementResponse> {
+        return this.apiService.post<UpsertAnnouncementResponse>('/Admin/Announcement', request);
+    }
+
+    public deleteAnnouncement(announcementId: number): Observable<void> {
+        return this.apiService.delete<void>(`/Admin/Announcement/${announcementId}`);
+    }
+
+    public publishAnnouncement(request: PublishAnnouncementRequest): Observable<PublishAnnouncementResponse> {
+        return this.apiService.post<PublishAnnouncementResponse>(`/Admin/Announcement/${request.announcementId}/Publish`, request);
+    }
+
+    public getSmsTemplates(queryParams: GetSmsTemplatesQueryParams): Observable<GetSmsTemplatesResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetSmsTemplatesResponse>('/Admin/SmsTemplates', { params: params });
+    }
+
+    public upsertSmsTemplate(request: UpsertSmsTemplateRequest): Observable<UpsertSmsTemplateResponse> {
+        return this.apiService.post<UpsertSmsTemplateResponse>('/Admin/SmsTemplates', request);
+    }
+
+    public deleteSmsTemplate(templateId: number): Observable<void> {
+        return this.apiService.delete<void>(`/Admin/SmsTemplates/${templateId}`);
     }
 }

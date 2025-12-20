@@ -163,7 +163,7 @@
         </ng-template>
 
         <ng-template pTemplate="body" let-rate>
-            <tr>
+            <tr [pSelectableRow]="rate">
                 <td>
                     <p-tableCheckbox [value]="rate" />
                 </td>

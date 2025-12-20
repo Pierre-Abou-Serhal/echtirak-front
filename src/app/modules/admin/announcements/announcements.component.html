@@ -1,0 +1,441 @@
+<h1 class="text-3xl font-bold mb-4">Admin Announcements</h1>
+
+<div class="card">
+    <!-- FILTERS BAR -->
+    <div class="mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Keyword -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterKeyword">Keyword</label>
+                <p-iconfield iconPosition="left" class="w-full">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input
+                        id="filterKeyword"
+                        pInputText
+                        type="text"
+                        class="w-full"
+                        [(ngModel)]="filter.keyword"
+                        (keyup.enter)="applyFilters()"
+                        placeholder="Search"
+                    />
+                </p-iconfield>
+            </div>
+
+            <!-- Published -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterPublished">Published</label>
+                <p-select
+                    inputId="filterPublished"
+                    class="w-full"
+                    [options]="publishedOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="All"
+                    [showClear]="false"
+                    [(ngModel)]="filter.isPublished"
+                ></p-select>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-end gap-2">
+                <p-button
+                    label="Apply"
+                    icon="pi pi-filter"
+                    (click)="applyFilters()"
+                    [loading]="loading"
+                ></p-button>
+
+                <p-button
+                    label="Reset"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    text
+                    (click)="resetFilters()"
+                ></p-button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top pager controls -->
+    <div class="mb-4">
+        <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
+        <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
+        <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
+    </div>
+
+    <p-table
+        #dt
+        [value]="announcements"
+        dataKey="id"
+        [rows]="rows"
+        [totalRecords]="totalRecords"
+        responsiveLayout="scroll"
+        [loading]="loading"
+        rowHover
+        showGridlines
+        paginator
+        stripedRows
+        [first]="first"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [(selection)]="selectedAnnouncements"
+        (onPage)="pageChange($event)"
+    >
+        <ng-template #caption>
+            <div class="flex justify-between items-center flex-column sm:flex-row gap-3 pb-4">
+                <div class="flex flex-wrap items-center gap-2 ml-auto">
+                    <p-button icon="pi pi-plus" class="me-2" label="New" severity="info" (click)="openNewAnnouncement()" />
+
+                    <p-button
+                        icon="pi pi-external-link"
+                        label="Export CSV"
+                        (click)="exportToCsv()"
+                    />
+                </div>
+            </div>
+
+        </ng-template>
+
+        <ng-template #header>
+            <tr>
+                <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+
+                <th style="width: 5rem"></th>
+
+                <th class="no-wrap-text" pSortableColumn="title">
+                    <div class="flex justify-between items-center gap-2">
+                        Title
+                        <p-sortIcon field="title" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text">
+                    Preview
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="priority">
+                    <div class="flex justify-between items-center gap-2">
+                        Priority
+                        <p-sortIcon field="priority" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="isPublished">
+                    <div class="flex justify-between items-center gap-2">
+                        Published
+                        <p-sortIcon field="isPublished" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="publishedAt">
+                    <div class="flex justify-between items-center gap-2">
+                        Published At
+                        <p-sortIcon field="publishedAt" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="expiresAt">
+                    <div class="flex justify-between items-center gap-2">
+                        Expires At
+                        <p-sortIcon field="expiresAt" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text">
+                    Stats
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="createdAt">
+                    <div class="flex justify-between items-center gap-2">
+                        Created
+                        <p-sortIcon field="createdAt" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text">
+                    Author
+                </th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-row>
+            <tr [pSelectableRow]="row">
+                <td>
+                    <p-tableCheckbox [value]="row" />
+                </td>
+
+                <td>
+                    <div class="flex">
+                        <p-button icon="pi pi-pencil" styleClass="p-button-sm me-1" (click)="editAnnouncement(row)" severity="info" rounded />
+
+                        <p-button
+                            icon="pi pi-send"
+                            styleClass="p-button-sm me-1"
+                            severity="success"
+                            rounded
+                            [disabled]="row.isPublished"
+                            (onClick)="openPublishDialog(row)"
+                        />
+
+                        <p-button
+                            icon="pi pi-trash"
+                            size="small"
+                            severity="danger"
+                            [loading]="deletingId === row.id"
+                            [disabled]="deletingId === row.id"
+                            (onClick)="deleteAnnouncement(row)">
+                        </p-button>
+                    </div>
+                </td>
+
+                <td class="no-wrap-text font-medium">
+                    {{ row.title }}
+                </td>
+
+                <td>
+                    <div class="line-clamp-2 text-sm opacity-80">
+                        {{ row.content }}
+                    </div>
+                </td>
+
+                <td class="no-wrap-text">
+                    <p-tag [value]="row.priority" [severity]="prioritySeverity(row.priority)"></p-tag>
+                </td>
+
+                <td class="no-wrap-text">
+                    <p-tag
+                        [value]="row.isPublished ? 'Published' : 'Unpublished'"
+                        [severity]="getPublishedSeverity(row.isPublished)"
+                    ></p-tag>
+                </td>
+
+                <td class="no-wrap-text">
+                    {{ row.publishedAt | date:'yyyy-MM-dd' }}
+                </td>
+
+                <td class="no-wrap-text">
+                    {{ row.expiresAt | date:'yyyy-MM-dd' }}
+                </td>
+
+                <td class="no-wrap-text text-sm">
+                    <div>Recipients: {{ row.recipientCount }}</div>
+                    <div>Reads: {{ row.readCount }}</div>
+                </td>
+
+                <td class="no-wrap-text">
+                    {{ row.createdAt | date:'yyyy-MM-dd' }}
+                </td>
+
+                <td class="no-wrap-text text-sm">
+                    <div class="opacity-70">Created: {{ row.createdByUsername }}</div>
+
+                    @if (row.modifiedByUsername) {
+                        <div class="opacity-70">Edited: {{ row.modifiedByUsername }}</div>
+                    }
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="11">No announcements found.</td>
+            </tr>
+        </ng-template>
+
+        <ng-template #loadingbody>
+            <tr>
+                <td colspan="11">Loading announcements. Please wait.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Add/Edit Announcement Dialog -->
+    <p-dialog
+        [(visible)]="isAnnouncementDialogOpen"
+        header="Announcement Details"
+        [modal]="true"
+        [style]="{ width: '720px', maxWidth: '95vw' }"
+    >
+        <ng-template #content>
+            <form [formGroup]="announcementForm" class="dialog-form">
+
+                <label class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">
+                    Title
+                </label>
+                <input
+                    pInputText
+                    type="text"
+                    placeholder="Announcement title"
+                    class="w-full mb-2"
+                    formControlName="title"
+                    [invalid]="isInvalid('title')"
+                />
+
+                @if (isInvalid('title')) {
+                    <p-message severity="error" size="small" variant="simple">
+                        Title is required.
+                    </p-message>
+                }
+
+                <div class="spacer"></div>
+
+                <label class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">
+                    Content
+                </label>
+                <textarea
+                    pInputTextarea
+                    rows="6"
+                    placeholder="Write the announcement content..."
+                    class="w-full mb-2"
+                    formControlName="content"
+                    [invalid]="isInvalid('content')"
+                ></textarea>
+
+                @if (isInvalid('content')) {
+                    <p-message severity="error" size="small" variant="simple">
+                        Content is required.
+                    </p-message>
+                }
+
+                <div class="spacer"></div>
+
+                <div class="grid-2">
+                    <div>
+                        <label class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">
+                            Priority
+                        </label>
+                        <p-select
+                            [options]="priorityOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            formControlName="priority"
+                            [style]="{ width: '100%' }"
+                            [invalid]="isInvalid('priority')"
+                            [overlayOptions]="getOverlayOptions()"
+                        />
+                        @if (isInvalid('priority')) {
+                            <p-message severity="error" size="small" variant="simple">
+                                Priority is required.
+                            </p-message>
+                        }
+                    </div>
+
+                    <div>
+                        <label class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">
+                            Expires At
+                        </label>
+
+                        <p-datepicker
+                            formControlName="expiresAt"
+                            [showIcon]="true"
+                            [iconDisplay]="'input'"
+                            dateFormat="yy-mm-dd"
+                            appendTo="body"
+                            class="w-full"
+                            [invalid]="isInvalid('expiresAt')"
+                        ></p-datepicker>
+
+                        <!-- If your PrimeNG uses p-datepicker instead, tell me and I’ll swap it -->
+
+                        @if (isInvalid('expiresAt')) {
+                            <p-message severity="error" size="small" variant="simple">
+                                Expiration date/time is required.
+                            </p-message>
+                        }
+                    </div>
+                </div>
+
+            </form>
+        </ng-template>
+
+        <ng-template #footer>
+            <div class="flex justify-end gap-2">
+                <p-button
+                    label="Cancel"
+                    icon="pi pi-times"
+                    text
+                    (click)="hideAnnouncementDialog()"
+                ></p-button>
+
+                <p-button
+                    label="Save"
+                    icon="pi pi-check"
+                    (click)="saveAnnouncement()"
+                    [loading]="isAnnouncementSaving"
+                ></p-button>
+            </div>
+        </ng-template>
+    </p-dialog>
+
+    <!-- Publish Announcement Form  -->
+    <p-dialog
+        [(visible)]="isPublishDialogOpen"
+        header="Publish Announcement"
+        [modal]="true"
+        [style]="{ width: '640px', maxWidth: '95vw' }"
+        (onHide)="hidePublishDialog()"
+    >
+        <ng-template #content>
+            <form [formGroup]="publishForm" class="dialog-form">
+                <div class="text-sm opacity-70 mb-3">
+                    Announcement ID: <b>{{ publishForm.get('announcementId')?.value }}</b>
+                </div>
+
+                <div class="flex items-center gap-2 mb-4">
+                    <p-checkbox
+                        binary="true"
+                        formControlName="publishToAll"
+                        inputId="publishToAll"
+                    ></p-checkbox>
+                    <label for="publishToAll" class="font-medium">
+                        Publish to all Generator Owners
+                    </label>
+                </div>
+
+                @if (publishForm.get('publishToAll')?.value === false) {
+                    <label class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">
+                        Select Generator Owners
+                    </label>
+
+                    <p-multiSelect
+                        [options]="generatorOwnerOptions"
+                        formControlName="generatorOwnerUserIds"
+                        optionLabel="label"
+                        optionValue="value"
+                        [filter]="true"
+                        [loading]="generatorOwnersLoading"
+                        placeholder="Choose generator owners..."
+                        class="w-full"
+                        appendTo="body"
+                    ></p-multiSelect>
+
+                    <div class="text-xs opacity-70 mt-2">
+                        Selected: {{ (publishForm.get('generatorOwnerUserIds')?.value?.length ?? 0) }}
+                    </div>
+                }
+            </form>
+        </ng-template>
+
+        <ng-template #footer>
+            <div class="flex justify-end gap-2">
+                <p-button
+                    label="Cancel"
+                    icon="pi pi-times"
+                    text
+                    (click)="hidePublishDialog()"
+                ></p-button>
+
+                <p-button
+                    label="Publish"
+                    icon="pi pi-check"
+                    severity="success"
+                    (click)="submitPublishAnnouncement()"
+                    [loading]="isPublishSaving"
+                ></p-button>
+            </div>
+        </ng-template>
+    </p-dialog>
+</div>

@@ -107,7 +107,6 @@ export class AddKvaReadingComponent implements OnInit {
                 },
                 error: (err) => {
                     console.error(err);
-                    this.notificationService.error('Failed', 'Could not submit KVA reading.');
                 }
             });
     }

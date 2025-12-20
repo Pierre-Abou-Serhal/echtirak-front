@@ -57,13 +57,15 @@ export interface BillCollectorProfile {
 
 export interface SmsTemplate {
     id: number;
+    generatorOwnerUserId: number;
     name: string;
     nameAr?: string;
     body: string;
     bodyAr?: string;
     language: string;
     isActive: boolean;
-    templateVariables: string[];
+    createdAt: string;
+    modifiedAt: string;
 }
 
 export interface SubscriptionBillingModel {
@@ -249,4 +251,22 @@ export interface AdminGeneratorOwnerProfile {
     paymentMethod: string;
     overrideWalletCap: number;
     overrideCapReason: string;
+}
+
+export interface AdminAnnouncement {
+    id: number;
+    title: string;
+    content: string;
+    isPublished: boolean;
+    publishedAt: string;
+    expiresAt: string;
+    priority: string;
+    createdAt: string;
+    createdBy: number;
+    createdByUsername: string;
+    modifiedAt: string;
+    modifiedBy: number;
+    modifiedByUsername: string;
+    recipientCount: number;
+    readCount: number;
 }
