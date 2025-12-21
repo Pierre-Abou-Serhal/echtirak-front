@@ -9,22 +9,28 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Table, TableModule } from 'primeng/table';
 import * as Papa from 'papaparse';
 import { InputIcon } from 'primeng/inputicon';
+import { Dialog } from 'primeng/dialog';
+import {
+    GeneratorOwnerManagementComponent
+} from '@/modules/admin/generator-owners/generator-owner-management/generator-owner-management.component';
+import { NotificationService } from '@/core/services/notification.service';
 
 @Component({
     selector: 'app-generator-owners.component',
-    imports: [ReactiveFormsModule, TableModule, Button, IconField, InputText, InputIcon],
+    imports: [ReactiveFormsModule, TableModule, Button, IconField, InputText, InputIcon, Dialog, GeneratorOwnerManagementComponent],
     templateUrl: './generator-owners.component.html',
     styleUrl: './generator-owners.component.scss'
 })
 export class GeneratorOwnersComponent implements OnInit {
     private readonly adminService: AdminService = inject(AdminService);
+    private readonly notificationService = inject(NotificationService);
 
     generatorOwners: AdminGeneratorOwnerProfile[] = [];
     isGeneratorOwnersLoading: boolean = false;
 
     rowsPerPageOptions = [10, 20, 50, 100];
-    first = 0;
-    rows = 10;
+    first: number = 0;
+    rows: number = 10;
     selectGeneratorOwners: AdminGeneratorOwnerProfile[] = [];
 
     ngOnInit() {
@@ -101,11 +107,6 @@ export class GeneratorOwnersComponent implements OnInit {
     }
 
     // TODO: implement once ready
-    editGeneratorOwner(go: AdminGeneratorOwnerProfile) {
-        console.log(go);
-    }
-
-    // TODO: implement once ready
     reactivateGeneratorOwner(go: AdminGeneratorOwnerProfile) {
         console.log(go);
     }
@@ -113,5 +114,51 @@ export class GeneratorOwnersComponent implements OnInit {
     // TODO: implement once ready
     deactivateGeneratorOwner(go: AdminGeneratorOwnerProfile) {
         console.log(go);
+    }
+
+    // Update/Create GO Modal
+    isGoDialogVisible = false;
+    selectedGo?: AdminGeneratorOwnerProfile; // undefined => create
+
+    openCreateGo() {
+        this.selectedGo = undefined; // create mode
+        this.isGoDialogVisible = true;
+    }
+
+    editGeneratorOwner(go: AdminGeneratorOwnerProfile) {
+        this.selectedGo = go; // edit mode
+        this.isGoDialogVisible = true;
+    }
+
+    closeGoDialog() {
+        this.isGoDialogVisible = false;
+    }
+
+    updateGoList(profile?: AdminGeneratorOwnerProfile) {
+        if (profile) {
+            const idx = this.findIndexById(profile.id);
+
+            if (idx !== -1) {
+                this.generatorOwners[idx] = profile;
+            } else {
+                this.generatorOwners.push(profile);
+            }
+
+            this.generatorOwners = [...this.generatorOwners];
+
+            this.notificationService.success('Successful', `Generator Owner ${idx !== -1 ? 'Updated' : 'Created' } Successfully`);
+        }
+    }
+
+    findIndexById(id: number): number {
+        let index = -1;
+        for (let i = 0; i < this.generatorOwners.length; i++) {
+            if (this.generatorOwners[i].id === id) {
+                index = i;
+                break;
+            }
+        }
+
+        return index;
     }
 }

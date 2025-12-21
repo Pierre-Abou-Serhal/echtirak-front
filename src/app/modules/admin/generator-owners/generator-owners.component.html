@@ -28,7 +28,7 @@
     >
         <ng-template #caption>
             <div class="text-end pb-4">
-<!--                <p-button icon="pi pi-plus" class="me-2" label="New" severity="info" (click)="openNew()" />-->
+                <p-button icon="pi pi-plus" class="me-2" label="New" severity="info" (click)="openCreateGo()" />
                 <p-button icon="pi pi-external-link" label="Export" (click)="exportToCsv()" />
             </div>
 
@@ -89,20 +89,6 @@
                         <p-sortIcon field="phoneNumber" />
                     </div>
                 </th>
-
-                <th class="no-wrap-text" pSortableColumn="gracePeriodDays">
-                    <div class="flex justify-between items-center gap-2">
-                        Grace Period Days
-                        <p-sortIcon field="gracePeriodDays" />
-                    </div>
-                </th>
-
-                <th class="no-wrap-text" pSortableColumn="smsDisplayName">
-                    <div class="flex justify-between items-center gap-2">
-                        Sms Display Name
-                        <p-sortIcon field="smsDisplayName" />
-                    </div>
-                </th>
             </tr>
         </ng-template>
         <ng-template #body let-generatorOwner>
@@ -135,26 +121,31 @@
                 <td>
                     {{ generatorOwner.phoneNumber }}
                 </td>
-                <td>
-                    {{ generatorOwner.gracePeriodDays }}
-                </td>
-                <td>
-                    {{ generatorOwner.smsDisplayName }}
-                </td>
             </tr>
         </ng-template>
         <ng-template #emptymessage>
             <tr>
-                <td colspan="10">No generators found.</td>
+                <td colspan="8">No generators found.</td>
             </tr>
         </ng-template>
         <ng-template #loadingbody>
             <tr>
-                <td colspan="10">Loading generators data. Please wait.</td>
+                <td colspan="8">Loading generators data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>
-
-    <!-- TODO: Add add/edit modal once ready -->
-
 </div>
+
+
+<p-dialog
+    [(visible)]="isGoDialogVisible"
+    [modal]="true"
+    [style]="{ width: '70rem' }"
+    [header]="selectedGo ? 'Edit Generator Owner' : 'Create Generator Owner'"
+    (onHide)="closeGoDialog()"
+>
+    <app-generator-owner-management
+        [generatorOwnerProfile]="selectedGo"
+        (savedGeneratorOwnerProfile)="updateGoList($event); isGoDialogVisible=false"
+    ></app-generator-owner-management>
+</p-dialog>

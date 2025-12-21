@@ -239,7 +239,7 @@ export interface AdminGeneratorOwnerProfile {
     fixedPlatformFeeMonthly: number;
     pricePerSubscriberMonthly: number;
     pricePerSms: number;
-    isYearlyPayment: true;
+    isYearlyPayment: boolean;
     yearlyDiscountFixedFee: number;
     yearlyDiscountPerSubscriber: number;
     yearlyDiscountPerSms: number;

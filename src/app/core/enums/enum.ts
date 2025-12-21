@@ -75,3 +75,11 @@ export enum AnnouncementPriority {
     MEDIUM = 'MEDIUM',
     LOW = 'LOW'
 }
+
+// TODO: REMOVE ONCE DOMAIN LOOKUP WORKS FOR ADMINS
+export enum PaymentMethod {
+    BANK_TRANSFER = 'Bank transfer',
+    WHISH = 'Whish payment',
+    OMT = 'OMT payment',
+    CASH = 'Cash payment',
+}
