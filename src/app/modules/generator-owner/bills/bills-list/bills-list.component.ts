@@ -374,7 +374,7 @@ export class BillsListComponent implements OnInit {
             subscriptionAmps: bill.subscriptionAmps,
             subscriptionFeeFixed: bill.subscriptionFeeFixed,
             subscriptionFeeVar: bill.subscriptionFeeVar,
-            status: bill.statusCode // TODO: Remove
+            status: bill.statusCode
         };
 
         this.generatorOwnerService.updateBill(request).subscribe({

@@ -274,3 +274,27 @@ export interface UpsertSmsTemplateRequest {
     language: string;
     isActive: boolean;
 }
+
+
+export interface TopUpGoWalletRequest {
+    generatorOwnerUserId: number;
+    amount: number;
+    paymentMethod: string;
+    referenceNumber: string;
+    notes: string;
+}
+
+export interface SetCapOverrideGoWalletRequest {
+    generatorOwnerUserId: number;
+    overrideCap: number;
+    reason: string;
+}
+
+export interface GetGoWalletTransactionsQueryParams {
+    generatorOwnerUserId: number;
+    PageNumber: number;
+    PageSize: number;
+    FromDate?: string;
+    ToDate?: string;
+    Type?: string;
+}

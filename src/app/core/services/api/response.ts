@@ -279,22 +279,24 @@ export interface UpdateGeneratorOwnerResponse {
     owner: AdminGeneratorOwnerProfile;
 }
 
-// TODO: Implement once ready
-export interface ReactivateGeneratorOwnerRequestResponse {
-    generatorOwnerUserId: number;
-    previousStatus: string;
-    newStatus: string;
-    pendingBillingCycleAmount: 0;
-    newBalance: number;
-    reactivatedAt: string;
+export interface ReactivateGeneratorOwnerResponse {
+    response: {
+        generatorOwnerUserId: number;
+        previousStatus: string;
+        newStatus: string;
+        pendingBillingCycleAmount: 0;
+        newBalance: number;
+        reactivatedAt: string;
+    };
 }
 
-// TODO: Implement once ready
 export interface DeactivateGeneratorOwnerResponse {
-    generatorOwnerUserId: number;
-    statusCode: string;
-    deactivatedAt: string;
-    reason: string;
+    response: {
+        generatorOwnerUserId: number;
+        statusCode: string;
+        deactivatedAt: string;
+        reason: string;
+    };
 }
 
 export interface GetKVAReadingsResponse {
@@ -340,4 +342,65 @@ export interface PublishAnnouncementResponse {
 
 export interface UpsertSmsTemplateResponse {
     template: SmsTemplate;
+}
+
+export interface TopUpGoWalletResponse {
+    topUp: {
+        topUpId: number;
+        walletTransactionId: number;
+        generatorOwnerUserId: number;
+        amount: number;
+        newBalance: number;
+        paymentMethod: string;
+        referenceNumber: string;
+        processedAt: string;
+    };
+}
+
+export interface SetCapOverrideGoWalletResponse {
+    capOverride: {
+        generatorOwnerUserId: number;
+        oldCap: number;
+        newOverrideCap: number;
+        effectiveCap: number;
+        reason: string;
+        setByUserId: number;
+        setAt: string;
+    };
+}
+
+export interface GetGoWalletBalanceResponse {
+    balance: {
+        balance: number;
+        projectedNextCycleCharge: number;
+        availableBalance: number;
+        effectiveCap: number;
+        defaultCap: number;
+        overrideCap: number;
+        daysUntilNextBilling: number;
+        nextBillingDate: string;
+        warningMessage: string;
+    };
+}
+
+export interface GetGoWalletTransactionsResponse {
+    page: GetGoWalletTransactionsPage;
+}
+
+export interface GetGoWalletTransactionsPage {
+    items: WalletTransaction[];
+    pageNumber: 0;
+    pageSize: 0;
+    totalCount: 0;
+    totalPages: 0;
+    hasNext: true;
+    hasPrevious: true;
+}
+
+export interface GetGoStatusResponse {
+    status: {
+        generatorOwnerUserId: number;
+        statusCode: string;
+        canUsePlatform: boolean;
+    };
 }

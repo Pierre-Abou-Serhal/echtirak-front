@@ -1,7 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
 import { Observable } from 'rxjs';
-import { GetAdminAnnouncementsQueryParams, GetDashboardQueryParams, GetSmsTemplatesQueryParams, PublishAnnouncementRequest, ReactivateGeneratorOwnerRequest, UpdateGeneratorOwnerRequest, UpsertAnnouncementRequest,
+import {
+    GetAdminAnnouncementsQueryParams,
+    GetDashboardQueryParams,
+    GetGoWalletTransactionsQueryParams,
+    GetSmsTemplatesQueryParams,
+    PublishAnnouncementRequest,
+    ReactivateGeneratorOwnerRequest,
+    SetCapOverrideGoWalletRequest,
+    TopUpGoWalletRequest,
+    UpdateGeneratorOwnerRequest,
+    UpsertAnnouncementRequest,
     UpsertSmsTemplateRequest
 } from '@/core/services/api/request';
 import {
@@ -11,10 +21,15 @@ import {
     GetGeneratorOwnersResponse,
     GetSmsTemplatesResponse,
     PublishAnnouncementResponse,
-    ReactivateGeneratorOwnerRequestResponse,
+    ReactivateGeneratorOwnerResponse,
     UpdateGeneratorOwnerResponse,
     UpsertAnnouncementResponse,
-    UpsertSmsTemplateResponse
+    TopUpGoWalletResponse,
+    UpsertSmsTemplateResponse,
+    SetCapOverrideGoWalletResponse,
+    GetGoWalletTransactionsResponse,
+    GetGoStatusResponse,
+    GetGoWalletBalanceResponse
 } from '@/core/services/api/response';
 
 class DeactivateGeneratorOwnerRequest {}
@@ -29,22 +44,18 @@ export class AdminService {
         return this.apiService.get<GetDashboardResponse>('/Admin/Dashboard', { params: params });
     }
 
-    // TODO: Need to fetch all GO data that will be updated using POST
     public getGeneratorOwners(): Observable<GetGeneratorOwnersResponse> {
         return this.apiService.get<GetGeneratorOwnersResponse>('/Admin/GeneratorOwner');
     }
 
-    // TODO: Implement once ready
     public updateGeneratorOwner(request: UpdateGeneratorOwnerRequest): Observable<UpdateGeneratorOwnerResponse> {
         return this.apiService.post<UpdateGeneratorOwnerResponse>('/Admin/GeneratorOwner', request);
     }
 
-    // TODO: Implement once ready
-    public reactivateGeneratorOwner(request: ReactivateGeneratorOwnerRequest): Observable<ReactivateGeneratorOwnerRequestResponse> {
-        return this.apiService.post<ReactivateGeneratorOwnerRequestResponse>('/Admin/GeneratorOwner/Reactivate', request);
+    public reactivateGeneratorOwner(request: ReactivateGeneratorOwnerRequest): Observable<ReactivateGeneratorOwnerResponse> {
+        return this.apiService.post<ReactivateGeneratorOwnerResponse>('/Admin/GeneratorOwner/Reactivate', request);
     }
 
-    // TODO: Implement once ready
     public deactivateGeneratorOwner(request: DeactivateGeneratorOwnerRequest): Observable<DeactivateGeneratorOwnerResponse> {
         return this.apiService.post<DeactivateGeneratorOwnerResponse>('/Admin/GeneratorOwner/Deactivate', request);
     }
@@ -79,5 +90,27 @@ export class AdminService {
 
     public deleteSmsTemplate(templateId: number): Observable<void> {
         return this.apiService.delete<void>(`/Admin/SmsTemplates/${templateId}`);
+    }
+
+    public topUpGoWallet(request: TopUpGoWalletRequest): Observable<TopUpGoWalletResponse> {
+        return this.apiService.post<TopUpGoWalletResponse>('/Admin/Wallet/TopUp', request);
+    }
+
+    public setCapOverrideGoWallet(request: SetCapOverrideGoWalletRequest): Observable<SetCapOverrideGoWalletResponse> {
+        return this.apiService.post<SetCapOverrideGoWalletResponse>('/Admin/Wallet/SetCapOverride', request);
+    }
+
+    public getGoWalletBalance(generatorOwnerUserId: number): Observable<GetGoWalletBalanceResponse> {
+        return this.apiService.get<GetGoWalletBalanceResponse>(`/Admin/Wallet/Balance/${generatorOwnerUserId}`);
+    }
+
+    public getGoWalletTransactions(queryParams: GetGoWalletTransactionsQueryParams): Observable<GetGoWalletTransactionsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetGoWalletTransactionsResponse>(`/Admin/Wallet/Transactions/${queryParams.generatorOwnerUserId}`, { params: params });
+    }
+
+    public getGoStatus(generatorOwnerUserId: number): Observable<GetGoStatusResponse> {
+        return this.apiService.get<GetGoStatusResponse>(`/Admin/GeneratorOwner/${generatorOwnerUserId}/Status`);
     }
 }

@@ -98,9 +98,15 @@
                 </td>
                 <td>
                     <div class="flex">
-                        <p-button icon="pi pi-pencil" styleClass="p-button-sm me-1" (click)="editGeneratorOwner(generatorOwner)" severity="info" rounded />
-                        <p-button icon="pi pi-check-circle" styleClass="p-button-sm me-1" (click)="reactivateGeneratorOwner(generatorOwner)" severity="primary" rounded />
-                        <p-button icon="pi pi-minus-circle" styleClass="p-button-sm" (click)="deactivateGeneratorOwner(generatorOwner)" severity="danger" rounded />
+                        <p-button icon="pi pi-pencil" styleClass="p-button-sm me-2" (click)="editGeneratorOwner(generatorOwner)" severity="info" rounded />
+
+                        <p-button
+                            icon="pi pi-wallet"
+                            styleClass="p-button-sm me-1"
+                            (click)="openWallet(generatorOwner)"
+                            severity="success"
+                            rounded
+                        />
                     </div>
                 </td>
                 <td>
@@ -136,7 +142,7 @@
     </p-table>
 </div>
 
-
+<!-- Create/Update Modal -->
 <p-dialog
     [(visible)]="isGoDialogVisible"
     [modal]="true"
@@ -148,4 +154,21 @@
         [generatorOwnerProfile]="selectedGo"
         (savedGeneratorOwnerProfile)="updateGoList($event); isGoDialogVisible=false"
     ></app-generator-owner-management>
+</p-dialog>
+
+<!-- GO Wallet Modal -->
+<p-dialog
+    [(visible)]="isWalletDialogVisible"
+    [modal]="true"
+    [style]="{ width: '80rem' }"
+    header="Wallet Management"
+    (onHide)="closeWalletDialog()"
+>
+    @if (walletSelectedGo) {
+        <app-generator-owner-wallet-management
+            [generatorOwnerUserId]="walletSelectedGo.id"
+            (changed)="onWalletChanged()"
+            [generatorOwnerUsername]="walletSelectedGo.username"
+        ></app-generator-owner-wallet-management>
+    }
 </p-dialog>

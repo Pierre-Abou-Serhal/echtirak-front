@@ -14,10 +14,13 @@ import {
     GeneratorOwnerManagementComponent
 } from '@/modules/admin/generator-owners/generator-owner-management/generator-owner-management.component';
 import { NotificationService } from '@/core/services/notification.service';
+import {
+    GeneratorOwnerWalletManagementComponent
+} from '@/modules/admin/generator-owners/generator-owner-wallet-management/generator-owner-wallet-management.component';
 
 @Component({
     selector: 'app-generator-owners.component',
-    imports: [ReactiveFormsModule, TableModule, Button, IconField, InputText, InputIcon, Dialog, GeneratorOwnerManagementComponent],
+    imports: [ReactiveFormsModule, TableModule, Button, IconField, InputText, InputIcon, Dialog, GeneratorOwnerManagementComponent, GeneratorOwnerWalletManagementComponent],
     templateUrl: './generator-owners.component.html',
     styleUrl: './generator-owners.component.scss'
 })
@@ -32,6 +35,9 @@ export class GeneratorOwnersComponent implements OnInit {
     first: number = 0;
     rows: number = 10;
     selectGeneratorOwners: AdminGeneratorOwnerProfile[] = [];
+
+    isWalletDialogVisible = false;
+    walletSelectedGo?: AdminGeneratorOwnerProfile;
 
     ngOnInit() {
         this.loadGeneratorOwners();
@@ -106,16 +112,6 @@ export class GeneratorOwnersComponent implements OnInit {
         URL.revokeObjectURL(url);
     }
 
-    // TODO: implement once ready
-    reactivateGeneratorOwner(go: AdminGeneratorOwnerProfile) {
-        console.log(go);
-    }
-
-    // TODO: implement once ready
-    deactivateGeneratorOwner(go: AdminGeneratorOwnerProfile) {
-        console.log(go);
-    }
-
     // Update/Create GO Modal
     isGoDialogVisible = false;
     selectedGo?: AdminGeneratorOwnerProfile; // undefined => create
@@ -146,8 +142,27 @@ export class GeneratorOwnersComponent implements OnInit {
 
             this.generatorOwners = [...this.generatorOwners];
 
-            this.notificationService.success('Successful', `Generator Owner ${idx !== -1 ? 'Updated' : 'Created' } Successfully`);
+            this.notificationService.success('Successful', `Generator Owner ${idx !== -1 ? 'Updated' : 'Created'} Successfully`);
         }
+    }
+
+    // Wallet Modal functions
+    openWallet(go: AdminGeneratorOwnerProfile) {
+        this.walletSelectedGo = go;
+        this.isWalletDialogVisible = true;
+    }
+
+    closeWalletDialog() {
+        this.isWalletDialogVisible = false;
+        this.walletSelectedGo = undefined;
+    }
+
+    /** Keep UI in sync after wallet/status updates */
+    onWalletChanged() {
+        // safest + consistent: reload list from server
+        // this.loadGeneratorOwners();
+
+        console.log('Go Wallet Have Changed');
     }
 
     findIndexById(id: number): number {

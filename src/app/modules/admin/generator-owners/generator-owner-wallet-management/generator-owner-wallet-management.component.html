@@ -1,0 +1,323 @@
+<div class="flex flex-col gap-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-lg font-semibold">Generator Owner: <span class="font-medium">{{ generatorOwnerUsername }}</span>
+                <span class="text-surface-400">(#{{ generatorOwnerUserId }})</span>
+            </h2>
+        </div>
+
+        <button pButton type="button" icon="pi pi-refresh" label="Refresh" (click)="loadHeader(); applyTxFilters()"></button>
+    </div>
+
+    <!-- Balance + Actions -->
+    <section class="space-y-4">
+
+        <!-- Header / Balance -->
+        <div class="p-4 border rounded-xl">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-semibold">Wallet Overview</h3>
+                    <p class="text-sm text-surface-500">Balance, cap, and billing info.</p>
+                </div>
+
+                @if (status) {
+                    <p-tag [value]="status.statusCode" [severity]="statusSeverity()"></p-tag>
+                }
+            </div>
+
+            @if (isLoadingHeader) {
+                <p class="text-sm text-surface-500 mt-3">Loading...</p>
+            } @else {
+                @if (balance) {
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div class="p-3 border rounded-lg">
+                            <div class="text-sm text-surface-500">Balance</div>
+                            <div class="text-xl font-semibold">{{ balance.balance | currency:'USD':'symbol':'1.0-4' }}</div>
+                        </div>
+
+                        <div class="p-3 border rounded-lg">
+                            <div class="text-sm text-surface-500">Available</div>
+                            <div class="text-xl font-semibold">{{ balance.availableBalance | currency:'USD':'symbol':'1.0-4' }}</div>
+                        </div>
+
+                        <div class="p-3 border rounded-lg">
+                            <div class="text-sm text-surface-500">Effective Cap</div>
+                            <div class="text-xl font-semibold">{{ balance.effectiveCap | currency:'USD':'symbol':'1.0-4' }}</div>
+                        </div>
+
+                        <div class="p-3 border rounded-lg">
+                            <div class="text-sm text-surface-500">Next Billing Date</div>
+                            <div class="text-base font-medium">{{ balance.nextBillingDate | date: 'yyyy-MM-dd' }}</div>
+                            <div class="text-sm text-surface-500">{{ balance.daysUntilNextBilling }} days</div>
+                        </div>
+                    </div>
+
+                    @if (balance.warningMessage) {
+                        <div class="mt-3">
+                            <p-message severity="warn" size="small" variant="simple">
+                                {{ balance.warningMessage }}
+                            </p-message>
+                        </div>
+                    }
+                } @else {
+                    <p class="text-sm text-surface-500 mt-3">No balance loaded.</p>
+                }
+            }
+        </div>
+
+        <!-- Top Up -->
+        <div class="p-4 border rounded-xl">
+            <h3 class="text-base font-semibold mb-1">Top Up Wallet</h3>
+            <p class="text-sm text-surface-500 mb-4">Add funds to the generator owner wallet.</p>
+
+            <form [formGroup]="topUpForm" class="grid grid-cols-1 gap-3">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Amount</label>
+                    <p-inputNumber
+                        class="w-full"
+                        formControlName="amount"
+                        [min]="1"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                    ></p-inputNumber>
+                    @if (isInvalid(topUpForm, 'amount')) {
+                        <p-message severity="error" size="small" variant="simple">Amount must be at least 1.</p-message>
+                    }
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Payment Method</label>
+                    <p-select
+                        class="w-full"
+                        [options]="paymentMethodOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Select method"
+                        formControlName="paymentMethod"
+                    ></p-select>
+                    @if (isInvalid(topUpForm, 'paymentMethod')) {
+                        <p-message severity="error" size="small" variant="simple">Payment method is required.</p-message>
+                    }
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Reference Number</label>
+                    <input pInputText class="w-full" formControlName="referenceNumber" />
+                    @if (isInvalid(topUpForm, 'referenceNumber')) {
+                        <p-message severity="error" size="small" variant="simple">Reference number is required.</p-message>
+                    }
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Notes</label>
+                    <textarea pTextarea rows="3" class="w-full" formControlName="notes"></textarea>
+                </div>
+
+                <div class="flex justify-end">
+                    <button pButton type="button" label="Top Up" icon="pi pi-plus" (click)="topUp()" [loading]="isTopUpSaving"></button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Cap Override -->
+        <div class="p-4 border rounded-xl">
+            <h3 class="text-base font-semibold mb-1">Cap Override</h3>
+            <p class="text-sm text-surface-500 mb-4">Override wallet cap (0 means no override).</p>
+
+            <form [formGroup]="capForm" class="grid grid-cols-1 gap-3">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Override Cap</label>
+                    <p-inputNumber
+                        class="w-full"
+                        formControlName="overrideCap"
+                        [min]="1"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                    ></p-inputNumber>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Reason</label>
+                    <textarea pTextarea rows="3" class="w-full" formControlName="reason"></textarea>
+                    @if (isInvalid(capForm, 'reason')) {
+                        <p-message severity="error" size="small" variant="simple">Reason is required</p-message>
+                    }
+                </div>
+
+                <div class="flex justify-end">
+                    <button pButton type="button" label="Set Override" icon="pi pi-lock" (click)="setCapOverride()" [loading]="isCapSaving"></button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Status actions -->
+        <div class="p-4 border rounded-xl">
+            <h3 class="text-base font-semibold mb-1">Status</h3>
+            <p class="text-sm text-surface-500 mb-4">Deactivate or reactivate access to platform.</p>
+
+            <form [formGroup]="statusForm" class="grid grid-cols-1 gap-3">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Reason</label>
+                    <textarea pTextarea rows="3" class="w-full" formControlName="reason"></textarea>
+                    @if (isInvalid(statusForm, 'reason')) {
+                        <p-message severity="error" size="small" variant="simple">Reason is required.</p-message>
+                    }
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button pButton type="button" severity="danger" label="Deactivate" icon="pi pi-minus-circle" (click)="deactivate()" [loading]="isStatusSaving"></button>
+                    <button pButton type="button" severity="success" label="Reactivate" icon="pi pi-check-circle" (click)="reactivate()" [loading]="isStatusSaving"></button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Transactions -->
+    <section class="space-y-4">
+        <div class="p-4 border rounded-xl">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-semibold">Transactions</h3>
+                    <p class="text-sm text-surface-500">History of wallet transactions.</p>
+                </div>
+            </div>
+
+            <p-divider></p-divider>
+
+            <!-- Filters -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4" [formGroup]="txFilters">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">From</label>
+                    <p-datePicker class="w-full" formControlName="fromDate" [showTime]="false"></p-datePicker>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">To</label>
+                    <p-datePicker class="w-full" formControlName="toDate" [showTime]="false"></p-datePicker>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Transaction Type</label>
+
+                    <p-iconfield iconPosition="left" class="w-full">
+                        <p-select
+                            class="w-full"
+                            [options]="walletTransactionTypes"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Transaction Type"
+                            [showClear]="true"
+                            formControlName="type"
+                            [loading]="isWalletTransactionTypesLoading"
+                        ></p-select>
+                    </p-iconfield>
+
+                </div>
+                <div class="flex items-end gap-2">
+                    <button pButton type="button" label="Apply" icon="pi pi-filter" (click)="applyTxFilters()"></button>
+                    <button pButton type="button" label="Clear" icon="pi pi-filter-slash" severity="secondary" (click)="clearTxFilters()"></button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <p-table
+                [value]="transactions"
+                [lazy]="true"
+                (onLazyLoad)="onTxLazyLoad($event)"
+                [paginator]="true"
+                [rows]="pageSize"
+                [totalRecords]="totalTransactions"
+                [loading]="txLoading"
+                responsiveLayout="scroll"
+                showGridlines
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+
+                        <th pSortableColumn="timestamp" >
+                            <div class="flex justify-between items-center gap-2">
+                                Date & Time
+                                <p-sortIcon field="timestamp" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="type" >
+                            <div class="flex justify-between items-center gap-2">
+                                Type
+                                <p-sortIcon field="type" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="quantity" >
+                            <div class="flex justify-between items-center gap-2">
+                                Quantity
+                                <p-sortIcon field="quantity" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="unitPrice" >
+                            <div class="flex justify-between items-center gap-2">
+                                Unit Price
+                                <p-sortIcon field="unitPrice" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="totalAmount" >
+                            <div class="flex justify-between items-center gap-2">
+                                Total Amount
+                                <p-sortIcon field="totalAmount" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="balanceAfter" >
+                            <div class="flex justify-between items-center gap-2">
+                                Balance After
+                                <p-sortIcon field="balanceAfter" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="refId" >
+                            <div class="flex justify-between items-center gap-2">
+                                Reference ID
+                                <p-sortIcon field="refId" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="description" >
+                            <div class="flex justify-between items-center gap-2">
+                                Description
+                                <p-sortIcon field="description" />
+                            </div>
+                        </th>
+
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-transaction>
+                    <tr [pSelectableRow]="transaction">
+                        <td>
+                            <p-tableCheckbox [value]="transaction" />
+                        </td>
+
+                        <td>{{ transaction.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+                        <td>{{ transaction.type }}</td>
+                        <td>{{ transaction.quantity | number:'1.0-4' }}</td>
+                        <td>{{ transaction.unitPrice | currency:'USD':'symbol':'1.0-4' }}</td>
+                        <td>{{ transaction.totalAmount | currency:'USD':'symbol':'1.0-4' }}</td>
+                        <td>{{ transaction.balanceAfter | currency:'USD':'symbol':'1.0-4' }}</td>
+                        <td>{{ transaction.refId }}</td>
+                        <td>{{ transaction.description }}</td>
+
+                    </tr>
+                </ng-template>
+
+                <ng-template #emptymessage>
+                    <tr>
+                        <td colspan="9">No transactions found.</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </section>
+</div>

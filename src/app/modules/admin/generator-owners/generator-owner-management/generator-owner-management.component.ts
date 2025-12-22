@@ -1,5 +1,5 @@
 import { Component, Inject, inject, Input, LOCALE_ID, OnInit, output } from '@angular/core';
-import { AdminGeneratorOwnerProfile, Bill, Currency, CurrencyRate, GeneratorOwnerProfile, Lookup } from '@/core/models/model';
+import { AdminGeneratorOwnerProfile, Currency, CurrencyRate, Lookup } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { AdminService } from '@/core/services/admin.service';
 import { GetCurrenciesResponse, GetLookupResponse, UpdateGeneratorOwnerResponse } from '@/core/services/api/response';
@@ -188,11 +188,10 @@ export class GeneratorOwnerManagementComponent implements OnInit {
                         value: method.code,
                         label: method.description
                     }));
-                    this.fillHarCodedPaymentMethods();
                 },
                 error: (err) => {
                     console.log(err);
-                    // this.paymentMethods = [];
+                    this.paymentMethods = [];
                     this.fillHarCodedPaymentMethods();
                 }
             });
