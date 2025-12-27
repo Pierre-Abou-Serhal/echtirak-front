@@ -106,6 +106,11 @@ export class SmsCampaignsListComponent {
     private subscriberSearch$ = new Subject<string>();
     private overlayScrollAttached = false;
 
+    // Preview modal state
+    public showTemplatePreviewDialog = false;
+    public previewTemplate: SmsTemplate | null = null;
+    public previewLang: 'en' | 'ar' = 'en';
+
     constructor(@Inject(LOCALE_ID) private locale: string) {
         this.createForm = this.fb.group({
             campaignName: ['', Validators.required],
@@ -113,6 +118,19 @@ export class SmsCampaignsListComponent {
             selectionCriteriaType: [null, Validators.required],
             customSubscriberIds: [null],
             language: ['AUTO', Validators.required]
+        });
+
+        const templateCtrl = this.createForm.get('templateId');
+
+        templateCtrl?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((templateId: number | null) => {
+            this.previewTemplate = this.templates.find((t) => t.id === templateId) ?? null;
+
+            // Optional: reset preview language when template changes
+            this.previewLang = 'en';
+
+            // Option A (recommended): do NOT auto-open. User clicks Preview button.
+            // Option B (auto-open): uncomment next line if you want it to open immediately
+            // if (this.previewTemplate) this.showTemplatePreviewDialog = true;
         });
 
         // Stream of search terms → reset state → load first API page
@@ -321,9 +339,9 @@ export class SmsCampaignsListComponent {
 
         this.generatorOwnerService.createSmsCampaign(request).subscribe({
             next: (response: CreateSmsCampaignResponse) => {
-                console.log(response.campaign);
+                console.log(response);
                 // Add
-                this.campaigns.push(response.campaign);
+                this.campaigns.push(response);
                 this.notificationService.success('Successful', 'SMS Campaign Created');
 
                 this.campaigns = [...this.campaigns];
@@ -333,7 +351,7 @@ export class SmsCampaignsListComponent {
 
                 this.showCreateDialog = false;
                 this.isCampaignSaving = false;
-                this.displayConfirmation  = false;
+                this.displayConfirmation = false;
             },
             error: (err) => {
                 console.log(err);

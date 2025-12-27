@@ -15,7 +15,11 @@ import { DatePicker } from 'primeng/datepicker';
 import { Select } from 'primeng/select';
 import { ButtonDirective } from 'primeng/button';
 import { ToggleSwitch } from 'primeng/toggleswitch';
-import { LookupDomain, PaymentMethod } from '@/core/enums/enum';
+import { LookupDomain } from '@/core/enums/enum';
+import { InputGroup } from 'primeng/inputgroup';
+import { InputGroupAddon } from 'primeng/inputgroupaddon';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { addLebanonPrefix, stripLebanonPrefix } from '@/core/utils/utils';
 
 type CurrencyRateForm = FormGroup<{
     id: FormControl<number>;
@@ -56,13 +60,17 @@ type GoForm = FormGroup<{
     paymentMethod: FormControl<string>;
     overrideWalletCap: FormControl<number | null>;
     overrideCapReason: FormControl<string>;
+    overrideCapSetAt: FormControl<string>;
+
+    topUpReferenceNumber: FormControl<string>;
 }>;
 
 @Component({
     selector: 'app-generator-owner-management',
-    imports: [ReactiveFormsModule, Message, InputText, InputNumber, DatePicker, Select, ButtonDirective, ToggleSwitch],
+    imports: [ReactiveFormsModule, Message, InputText, InputNumber, DatePicker, Select, ButtonDirective, ToggleSwitch, InputGroup, InputGroupAddon, NgxMaskDirective],
     templateUrl: './generator-owner-management.component.html',
-    styleUrl: './generator-owner-management.component.scss'
+    styleUrl: './generator-owner-management.component.scss',
+    providers: [provideNgxMask()]
 })
 export class GeneratorOwnerManagementComponent implements OnInit {
     private fb = inject(FormBuilder);
@@ -107,13 +115,15 @@ export class GeneratorOwnerManagementComponent implements OnInit {
 
         freeTrialMonths: this.fb.control<number | null>(0, [Validators.min(0)]),
         freeTrialEnabled: this.fb.nonNullable.control(false),
-        billingCycleDays: this.fb.control<number | null>(0, [Validators.min(1)]),
+        billingCycleDays: this.fb.control<number | null>(0, [Validators.min(0)]),
         billingStartDate: this.fb.control<Date | null>(null),
 
         initialBalance: this.fb.control<number | null>(0),
-        paymentMethod: this.fb.nonNullable.control('', [Validators.required]),
+        paymentMethod: this.fb.nonNullable.control(''),
         overrideWalletCap: this.fb.control<number | null>(0, [Validators.min(0)]),
-        overrideCapReason: this.fb.nonNullable.control('')
+        overrideCapReason: this.fb.nonNullable.control(''),
+        overrideCapSetAt: this.fb.nonNullable.control<string>(''),
+        topUpReferenceNumber: this.fb.nonNullable.control(''),
     });
 
     get isEditMode(): boolean {
@@ -192,33 +202,8 @@ export class GeneratorOwnerManagementComponent implements OnInit {
                 error: (err) => {
                     console.log(err);
                     this.paymentMethods = [];
-                    this.fillHarCodedPaymentMethods();
                 }
             });
-    }
-
-    // TODO: REMOVE ONCE DOMAIN LOOKUP WORKS FOR ADMINS
-    private fillHarCodedPaymentMethods() {
-        if (this.paymentMethods.length === 0) {
-            this.paymentMethods = [
-                {
-                    value: 'OMT',
-                    label: PaymentMethod.OMT
-                },
-                {
-                    value: 'WHISH',
-                    label: PaymentMethod.WHISH
-                },
-                {
-                    value: 'CASH',
-                    label: PaymentMethod.CASH
-                },
-                {
-                    value: 'BANK_TRANSFER',
-                    label: PaymentMethod.BANK_TRANSFER
-                }
-            ];
-        }
     }
 
     private applyModeValidators() {
@@ -254,7 +239,7 @@ export class GeneratorOwnerManagementComponent implements OnInit {
             firstName: p.firstName ?? '',
             lastName: p.lastName ?? '',
             businessName: p.businessName ?? '',
-            phoneNumber: p.phoneNumber ?? '',
+            phoneNumber: stripLebanonPrefix(p.phoneNumber) ?? '',
             smsDisplayName: p.smsDisplayName ?? '',
             gracePeriodDays: p.gracePeriodDays ?? 0,
 
@@ -275,7 +260,9 @@ export class GeneratorOwnerManagementComponent implements OnInit {
             initialBalance: p.initialBalance ?? 0,
             paymentMethod: p.paymentMethod ?? '',
             overrideWalletCap: p.overrideWalletCap ?? 0,
-            overrideCapReason: p.overrideCapReason ?? ''
+            overrideCapReason: p.overrideCapReason ?? '',
+            overrideCapSetAt: p.overrideCapSetAt ?? '',
+            topUpReferenceNumber: p.topUpReferenceNumber ?? ''
         });
 
         // Patch currency rates
@@ -326,7 +313,7 @@ export class GeneratorOwnerManagementComponent implements OnInit {
             firstName: raw.firstName,
             lastName: raw.lastName,
             businessName: raw.businessName,
-            phoneNumber: raw.phoneNumber,
+            phoneNumber: addLebanonPrefix(raw.phoneNumber),
             smsDisplayName: raw.smsDisplayName,
             gracePeriodDays: raw.gracePeriodDays ?? 0,
 
@@ -352,7 +339,9 @@ export class GeneratorOwnerManagementComponent implements OnInit {
             initialBalance: raw.initialBalance ?? 0,
             paymentMethod: raw.paymentMethod,
             overrideWalletCap: raw.overrideWalletCap ?? 0,
-            overrideCapReason: raw.overrideCapReason
+            overrideCapReason: raw.overrideCapReason,
+            overrideCapSetAt: raw.overrideCapSetAt,
+            topUpReferenceNumber: raw.topUpReferenceNumber
         };
 
         this.isSaving = true;

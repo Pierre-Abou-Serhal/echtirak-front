@@ -229,6 +229,8 @@ export interface AdminGeneratorOwnerProfile {
     id: number;
     username: string;
     password: string;
+    statusCode: string;
+    statusDomain: string;
     firstName: string;
     lastName: string;
     businessName: string;
@@ -251,6 +253,8 @@ export interface AdminGeneratorOwnerProfile {
     paymentMethod: string;
     overrideWalletCap: number;
     overrideCapReason: string;
+    overrideCapSetAt: string;
+    topUpReferenceNumber: string;
 }
 
 export interface AdminAnnouncement {

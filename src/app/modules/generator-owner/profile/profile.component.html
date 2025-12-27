@@ -182,15 +182,21 @@
                     >
                         Phone Number
                     </label>
-                    <input
-                        pInputText
-                        id="dialogPhoneNumber"
-                        type="text"
-                        placeholder="Phone Number"
-                        class="w-full"
-                        formControlName="phoneNumber"
-                        [invalid]="isInvalid('phoneNumber')"
-                    />
+
+                    <p-inputgroup>
+                        <p-inputgroup-addon>+961</p-inputgroup-addon>
+                        <input
+                            id="dialogPhoneNumber"
+                            pInputText
+                            placeholder="Phone Number"
+                            class="w-full"
+                            formControlName="phoneNumber"
+                            [invalid]="isInvalid('phoneNumber')"
+                            mask="00 000 000"
+                            [dropSpecialCharacters]="true"
+                        />
+                    </p-inputgroup>
+
                     @if (isInvalid('phoneNumber')) {
                         <p-message
                             severity="error"

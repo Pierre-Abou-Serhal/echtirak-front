@@ -17,10 +17,13 @@ import { NotificationService } from '@/core/services/notification.service';
 import {
     GeneratorOwnerWalletManagementComponent
 } from '@/modules/admin/generator-owners/generator-owner-wallet-management/generator-owner-wallet-management.component';
+import { LbPhonePipe } from '@/core/pipes/pipes';
+import { Tag } from 'primeng/tag';
+import { GeneratorOwnerStatus } from '@/core/enums/enum';
 
 @Component({
     selector: 'app-generator-owners.component',
-    imports: [ReactiveFormsModule, TableModule, Button, IconField, InputText, InputIcon, Dialog, GeneratorOwnerManagementComponent, GeneratorOwnerWalletManagementComponent],
+    imports: [ReactiveFormsModule, TableModule, Button, IconField, InputText, InputIcon, Dialog, GeneratorOwnerManagementComponent, GeneratorOwnerWalletManagementComponent, LbPhonePipe, Tag],
     templateUrl: './generator-owners.component.html',
     styleUrl: './generator-owners.component.scss'
 })
@@ -176,4 +179,20 @@ export class GeneratorOwnersComponent implements OnInit {
 
         return index;
     }
+
+    getGoSeverity(statusCode: String) {
+        switch (statusCode) {
+            case GeneratorOwnerStatus.DEACTIVATED:
+                return 'error';
+
+            case GeneratorOwnerStatus.SUSPENDED:
+                return 'warn';
+
+            case GeneratorOwnerStatus.ACTIVE:
+                return 'success';
+
+            default:
+                return null;
+        }
+    };
 }

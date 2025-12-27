@@ -1,7 +1,7 @@
 import { Component, Inject, inject, LOCALE_ID, OnInit } from '@angular/core';
 import { Button } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
-import { AsyncPipe, CurrencyPipe, DatePipe, DecimalPipe, formatDate } from '@angular/common';
+import { AsyncPipe, CurrencyPipe, DatePipe, DecimalPipe, formatDate, NgClass } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IconField } from 'primeng/iconfield';
 import { PrimeTemplate } from 'primeng/api';
@@ -21,7 +21,7 @@ import { UserContextService } from '@/core/services/user-context.service';
 
 @Component({
     selector: 'app-wallet-component',
-    imports: [Button, DatePicker, DatePipe, DecimalPipe, FormsModule, IconField, PrimeTemplate, ReactiveFormsModule, Select, TableModule, ProgressSpinner, AsyncPipe, CurrencyPipe],
+    imports: [Button, DatePicker, DatePipe, DecimalPipe, FormsModule, IconField, PrimeTemplate, ReactiveFormsModule, Select, TableModule, ProgressSpinner, AsyncPipe, CurrencyPipe, NgClass],
     templateUrl: './wallet-component.html',
     styleUrl: './wallet-component.scss'
 })

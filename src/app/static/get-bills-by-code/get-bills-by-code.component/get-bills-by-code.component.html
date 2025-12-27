@@ -1,6 +1,17 @@
 <div class="bills-page">
 
-    <h1 class="page-title">Pending Bills</h1>
+    <header class="bills-header">
+        <img
+            src="/logo/logo.svg"
+            alt="Echtirak Logo"
+            class="bills-logo"
+        />
+
+        <div class="bills-header-text">
+            <h1 class="page-title">Pending Bills</h1>
+            <p class="page-subtitle">Check your pending bills and details</p>
+        </div>
+    </header>
 
     <!-- Loading -->
     @if (loading) {
@@ -127,3 +138,10 @@
     }
 
 </div>
+
+@if (!loading) {
+    <footer class="bills-footer">
+        <span>Powered by</span>
+        <span class="footer-brand">Echtirak</span>
+    </footer>
+}

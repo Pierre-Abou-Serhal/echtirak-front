@@ -89,6 +89,13 @@
                         <p-sortIcon field="phoneNumber" />
                     </div>
                 </th>
+
+                <th class="no-wrap-text" pSortableColumn="status">
+                    <div class="flex justify-between items-center gap-2">
+                        Status
+                        <p-sortIcon field="status" />
+                    </div>
+                </th>
             </tr>
         </ng-template>
         <ng-template #body let-generatorOwner>
@@ -125,7 +132,12 @@
                     {{ generatorOwner.businessName }}
                 </td>
                 <td>
-                    {{ generatorOwner.phoneNumber }}
+                    {{ generatorOwner.phoneNumber | lbPhone }}
+                </td>
+                <td>
+                    <p-tag
+                        [value]="generatorOwner.statusCode"
+                        [severity]="getGoSeverity(generatorOwner.statusCode)"></p-tag>
                 </td>
             </tr>
         </ng-template>

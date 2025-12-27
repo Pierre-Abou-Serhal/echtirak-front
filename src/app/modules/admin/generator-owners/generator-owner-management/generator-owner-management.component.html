@@ -68,7 +68,19 @@
 
                         <div>
                             <label class="block text-sm font-semibold mb-2">Phone Number</label>
-                            <input pInputText class="w-full" formControlName="phoneNumber" [invalid]="isInvalid('phoneNumber')" />
+
+                            <p-inputgroup>
+                                <p-inputgroup-addon>+961</p-inputgroup-addon>
+                                <input
+                                    pInputText
+                                    class="w-full"
+                                    formControlName="phoneNumber"
+                                    [invalid]="isInvalid('phoneNumber')"
+                                    mask="00 000 000"
+                                    [dropSpecialCharacters]="true"
+                                />
+                            </p-inputgroup>
+
                             @if (isInvalid('phoneNumber')) {
                                 <p-message severity="error" size="small" variant="simple">Phone number is required.</p-message>
                             }
@@ -110,10 +122,9 @@
                             <p-inputNumber
                                 class="w-full"
                                 formControlName="billingCycleDays"
-                                [min]="1"
                             ></p-inputNumber>
                             @if (isInvalid('billingCycleDays')) {
-                                <p-message severity="error" size="small" variant="simple">Billing cycle days must be at least 1.</p-message>
+                                <p-message severity="error" size="small" variant="simple">Billing cycle days must be positive.</p-message>
                             }
                         </div>
 
@@ -122,24 +133,6 @@
                             <p-datePicker class="w-full" formControlName="billingStartDate" [showTime]="false"></p-datePicker>
                             @if (isInvalid('billingStartDate')) {
                                 <p-message severity="error" size="small" variant="simple">Billing start date is required.</p-message>
-                            }
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold mb-2">Payment Method</label>
-                            <p-select
-                                class="w-full"
-                                [options]="paymentMethods"
-                                optionLabel="label"
-                                optionValue="value"
-                                formControlName="paymentMethod"
-                                [loading]="isPaymentMethodLoading"
-                                placeholder="Select a payment method"
-                                [invalid]="isInvalid('paymentMethod')"
-                            ></p-select>
-
-                            @if (isInvalid('paymentMethod')) {
-                                <p-message severity="error" size="small" variant="simple">Payment method is required.</p-message>
                             }
                         </div>
 
@@ -295,6 +288,45 @@
                                         <input pInputText class="w-full" formControlName="overrideCapReason" />
                                     </div>
                                 }
+
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2">Override Cap At</label>
+
+                                    <p-datepicker
+                                        inputId="filterBillDateFrom"
+                                        formControlName="overrideCapSetAt"
+                                        [showIcon]="true"
+                                        [iconDisplay]="'input'"
+                                        dateFormat="yy-mm-dd"
+                                        appendTo="body"
+                                        class="w-full"
+                                    ></p-datepicker>
+
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2">Payment Method</label>
+                                    <p-select
+                                        class="w-full"
+                                        [options]="paymentMethods"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        formControlName="paymentMethod"
+                                        [loading]="isPaymentMethodLoading"
+                                        placeholder="Select a payment method"
+                                    ></p-select>
+
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2">Reference Number</label>
+                                    <input
+                                        pInputText
+                                        type="text"
+                                        class="w-full"
+                                        formControlName="topUpReferenceNumber"
+                                    />
+                                </div>
                             </div>
                         </div>
 

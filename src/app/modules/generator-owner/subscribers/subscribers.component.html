@@ -187,7 +187,7 @@
 
                 </td>
                 <td>
-                    {{ subscriber.phoneNumber }}
+                    {{ subscriber.phoneNumber | lbPhone }}
                 </td>
                 <td>
                     {{ subscriber.generatorCode }}
@@ -249,15 +249,19 @@
                     <label for="dialogPhoneNumber" class="block text-sm font-semibold mb-2">
                         Phone Number
                     </label>
-                    <input
-                        type="text"
-                        pInputText
-                        id="dialogPhoneNumber"
-                        [(ngModel)]="selectedSubscriber.phoneNumber"
-                        required
-                        autofocus
-                        class="w-full"
-                    />
+                    <p-inputgroup>
+                        <p-inputgroup-addon>+961</p-inputgroup-addon>
+                        <input
+                            pInputText
+                            id="dialogPhoneNumber"
+                            class="w-full"
+                            [(ngModel)]="selectedSubscriber.phoneNumber"
+                            mask="00 000 000"
+                            [dropSpecialCharacters]="true"
+                            (blur)="selectedSubscriber.phoneNumber = (selectedSubscriber.phoneNumber || '').trim()"
+                        />
+                    </p-inputgroup>
+
                     @if (submitted && !selectedSubscriber.phoneNumber) {
                         <small class="text-red-500">Phone Number is required.</small>
                     }
@@ -329,6 +333,7 @@
                         [minFractionDigits]="0"
                         [maxFractionDigits]="4"
                         class="w-full"
+                        [disabled]="getSubscriptionBillingModel(selectedSubscriber.subscriptionBillingModelId) === BillingModel.FIXED"
                     ></p-inputnumber>
                 </div>
 
@@ -436,6 +441,12 @@
                     @if (submitted && !selectedSubscriber.previousKva) {
                         <small class="text-red-500">Previous KWH is required.</small>
                     }
+
+                    @if (submitted && selectedSubscriber.previousKva && selectedSubscriber.currentKva) {
+                        @if(selectedSubscriber.currentKva < selectedSubscriber.previousKva){
+                            <small class="text-red-500">Previous KWH must be smaller or equal to Current KWH.</small>
+                        }
+                    }
                 </div>
 
                 <div>
@@ -452,6 +463,12 @@
                     ></p-inputnumber>
                     @if (submitted && !selectedSubscriber.currentKva) {
                         <small class="text-red-500">Current KWH is required.</small>
+                    }
+
+                    @if (submitted && selectedSubscriber.previousKva && selectedSubscriber.currentKva) {
+                        @if(selectedSubscriber.currentKva < selectedSubscriber.previousKva){
+                            <small class="text-red-500">Current KWH must be greater or equal to Previous KWH.</small>
+                        }
                     }
                 </div>
 

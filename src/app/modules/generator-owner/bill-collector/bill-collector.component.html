@@ -95,7 +95,7 @@
                     {{ billCollector.lastName }}
                 </td>
                 <td>
-                    {{ billCollector.phoneNumber }}
+                    {{ billCollector.phoneNumber | lbPhone }}
                 </td>
             </tr>
         </ng-template>
@@ -141,7 +141,21 @@
                 }
 
                 <label for="dialogPhoneNumber" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Phone Number</label>
-                <input pInputText id="dialogPhoneNumber" type="text" placeholder="Phone Number" class="w-full md:w-120 mb-4"  formControlName="phoneNumber" [invalid]="isInvalid('phoneNumber')" />
+
+                <p-inputgroup>
+                    <p-inputgroup-addon>+961</p-inputgroup-addon>
+                    <input
+                        pInputText
+                        id="dialogPhoneNumber"
+                        type="text"
+                        placeholder="Phone Number"
+                        class="w-full md:w-120 mb-4"
+                        formControlName="phoneNumber"
+                        [invalid]="isInvalid('phoneNumber')"
+                        mask="00 000 000"
+                        [dropSpecialCharacters]="true"
+                    />
+                </p-inputgroup>
 
                 @if (isInvalid('phoneNumber')) {
                     <p-message severity="error" size="small" variant="simple">Phone Number is required.</p-message>

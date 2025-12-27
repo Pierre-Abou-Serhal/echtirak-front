@@ -216,6 +216,8 @@ export interface UpdateGeneratorOwnerRequest {
     paymentMethod: string;
     overrideWalletCap: number;
     overrideCapReason: string;
+    overrideCapSetAt: string;
+    topUpReferenceNumber: string;
 }
 
 export interface ReactivateGeneratorOwnerRequest {

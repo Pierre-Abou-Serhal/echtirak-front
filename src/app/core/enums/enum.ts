@@ -76,19 +76,8 @@ export enum AnnouncementPriority {
     LOW = 'LOW'
 }
 
-// TODO: REMOVE ONCE DOMAIN LOOKUP WORKS FOR ADMINS
-export enum PaymentMethod {
-    BANK_TRANSFER = 'Bank transfer',
-    WHISH = 'Whish payment',
-    OMT = 'OMT payment',
-    CASH = 'Cash payment',
-}
-
-// TODO: REMOVE ONCE DOMAIN LOOKUP WORKS FOR ADMINS
-export enum WalletTransactionType {
-    TOPUP = 'Wallet top-up',
-    MONTHLY_BILLING = 'Monthly billing cycle charge',
-    SMS_CHARGE = 'SMS campaign charge',
-    MANUAL_ADJUSTMENT = 'Manual adjustment',
-    SMS_REFUND = 'SMS refund for failed message'
+export enum GeneratorOwnerStatus {
+    ACTIVE = 'ACTIVE',
+    DEACTIVATED = 'DEACTIVATED',
+    SUSPENDED = 'SUSPENDED',
 }

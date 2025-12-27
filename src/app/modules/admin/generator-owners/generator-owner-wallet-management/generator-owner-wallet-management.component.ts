@@ -17,11 +17,11 @@ import { Tag } from 'primeng/tag';
 import { Divider } from 'primeng/divider';
 
 
-import { LookupDomain, PaymentMethod, WalletTransactionType } from '@/core/enums/enum';
+import { LookupDomain } from '@/core/enums/enum';
 import { GetGoStatusResponse, GetGoWalletBalanceResponse, GetGoWalletTransactionsResponse, GetLookupResponse, ReactivateGeneratorOwnerResponse } from '@/core/services/api/response';
 import { Lookup, WalletTransaction } from '@/core/models/model';
 import { DeactivateGeneratorOwnerRequest, GetGoWalletTransactionsQueryParams, ReactivateGeneratorOwnerRequest, SetCapOverrideGoWalletRequest, TopUpGoWalletRequest } from '@/core/services/api/request';
-import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { IconField } from 'primeng/iconfield';
 import { SelectOptionStrValue } from '@/core/dtos/dto';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
@@ -29,7 +29,7 @@ import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 @Component({
     selector: 'app-generator-owner-wallet-management',
     standalone: true,
-    imports: [ReactiveFormsModule, DatePicker, InputNumber, InputText, Textarea, Select, ButtonDirective, TableModule, Message, Tag, Divider, CurrencyPipe, DatePipe, DecimalPipe, IconField],
+    imports: [ReactiveFormsModule, DatePicker, InputNumber, InputText, Textarea, Select, ButtonDirective, TableModule, Message, Tag, Divider, CurrencyPipe, DatePipe, DecimalPipe, IconField, NgClass],
     templateUrl: './generator-owner-wallet-management.component.html',
     styleUrl: './generator-owner-wallet-management.component.scss'
 })
@@ -65,12 +65,8 @@ export class GeneratorOwnerWalletManagementComponent implements OnInit, OnChange
     status?: GetGoStatusResponse['status'];
 
     // ---------- Payment method options ----------
-    paymentMethodOptions = [
-        { value: 'OMT', label: PaymentMethod.OMT },
-        { value: 'WHISH', label: PaymentMethod.WHISH },
-        { value: 'CASH', label: PaymentMethod.CASH },
-        { value: 'BANK_TRANSFER', label: PaymentMethod.BANK_TRANSFER }
-    ];
+    paymentMethodOptions: SelectOptionStrValue[] = [];
+    isPaymentMethodLoading: boolean = true;
 
     // ---------- Forms ----------
     topUpForm = this.fb.nonNullable.group({
@@ -112,6 +108,7 @@ export class GeneratorOwnerWalletManagementComponent implements OnInit, OnChange
         this.setupCapReasonValidator();
         this.loadHeader(); // balance + status
         this.loadWalletTransactionTypes();
+        this.loadPaymentMethods();
         this.loadTransactions({ PageNumber: 1, PageSize: this.pageSize });
     }
 
@@ -130,37 +127,8 @@ export class GeneratorOwnerWalletManagementComponent implements OnInit, OnChange
                 console.log(err);
                 this.walletTransactionTypes = [];
                 this.isWalletTransactionTypesLoading = false;
-                this.fillHarCodedWalletTransactionTypes();
             }
         });
-    }
-
-    // TODO: REMOVE ONCE DOMAIN LOOKUP WORKS FOR ADMINS
-    private fillHarCodedWalletTransactionTypes() {
-        if (this.walletTransactionTypes.length === 0) {
-            this.walletTransactionTypes = [
-                {
-                    value: 'TOPUP',
-                    label: WalletTransactionType.TOPUP
-                },
-                {
-                    value: 'MONTHLY_BILLING',
-                    label: WalletTransactionType.MONTHLY_BILLING
-                },
-                {
-                    value: 'SMS_CHARGE',
-                    label: WalletTransactionType.SMS_CHARGE
-                },
-                {
-                    value: 'MANUAL_ADJUSTMENT',
-                    label: WalletTransactionType.MANUAL_ADJUSTMENT
-                },
-                {
-                    value: 'SMS_REFUND',
-                    label: WalletTransactionType.SMS_REFUND
-                }
-            ];
-        }
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -195,6 +163,27 @@ export class GeneratorOwnerWalletManagementComponent implements OnInit, OnChange
 
             reason.updateValueAndValidity({ emitEvent: false });
         });
+    }
+
+    private loadPaymentMethods() {
+        this.isPaymentMethodLoading = true;
+        this.generatorOwnerService
+            .getLookup({
+                domain: LookupDomain.PAYMENT_METHOD
+            })
+            .pipe(finalize(() => (this.isPaymentMethodLoading = false)))
+            .subscribe({
+                next: (response: GetLookupResponse) => {
+                    this.paymentMethodOptions = response.items.map((method: Lookup) => ({
+                        value: method.code,
+                        label: method.description
+                    }));
+                },
+                error: (err) => {
+                    console.log(err);
+                    this.paymentMethodOptions = [];
+                }
+            });
     }
 
     // ---------- Header loading ----------

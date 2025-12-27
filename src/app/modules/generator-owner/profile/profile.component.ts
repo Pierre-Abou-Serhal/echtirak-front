@@ -13,13 +13,18 @@ import { Skeleton } from 'primeng/skeleton';
 import { Avatar } from 'primeng/avatar';
 import { NotificationService } from '@/core/services/notification.service';
 import { InputNumber } from 'primeng/inputnumber';
+import { InputGroup } from 'primeng/inputgroup';
+import { InputGroupAddon } from 'primeng/inputgroupaddon';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { addLebanonPrefix, stripLebanonPrefix } from '@/core/utils/utils';
 
 @Component({
     selector: 'app-profile.component',
-    imports: [InputText, Message, ReactiveFormsModule, Button, Skeleton, Avatar, InputNumber],
+    imports: [InputText, Message, ReactiveFormsModule, Button, Skeleton, Avatar, InputNumber, InputGroup, InputGroupAddon, NgxMaskDirective],
     templateUrl: './profile.component.html',
     styleUrl: './profile.component.scss',
-    standalone: true
+    standalone: true,
+    providers: [provideNgxMask()]
 })
 export class ProfileComponent implements OnInit {
     generatorOwnerService: GeneratorOwnerService = inject(GeneratorOwnerService);
@@ -47,7 +52,7 @@ export class ProfileComponent implements OnInit {
                 this.profileForm.get('firstName')?.setValue(response.profile.firstName);
                 this.profileForm.get('lastName')?.setValue(response.profile.lastName);
                 this.profileForm.get('businessName')?.setValue(response.profile.businessName);
-                this.profileForm.get('phoneNumber')?.setValue(response.profile.phoneNumber);
+                this.profileForm.get('phoneNumber')?.setValue(stripLebanonPrefix(response.profile.phoneNumber));
                 this.profileForm.get('gracePeriodDays')?.setValue(response.profile.gracePeriodDays);
                 this.profileForm.get('smsDisplayName')?.setValue(response.profile.smsDisplayName);
                 this.profileForm.get('username')?.setValue(response.profile.username);
@@ -75,7 +80,7 @@ export class ProfileComponent implements OnInit {
             firstName: this.profileForm.get('firstName')?.value,
             lastName: this.profileForm.get('lastName')?.value,
             businessName: this.profileForm.get('businessName')?.value,
-            phoneNumber: this.profileForm.get('phoneNumber')?.value,
+            phoneNumber: addLebanonPrefix(this.profileForm.get('phoneNumber')?.value),
             gracePeriodDays: this.profileForm.get('gracePeriodDays')?.value,
             smsDisplayName: this.profileForm.get('smsDisplayName')?.value,
             username: this.profileForm.get('username')?.value

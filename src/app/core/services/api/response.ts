@@ -152,8 +152,7 @@ export interface GetSmsCampaignsResponse {
     page: GetSmsCampaignPage;
 }
 
-export interface CreateSmsCampaignResponse {
-    campaign: SmsCampaign;
+export interface CreateSmsCampaignResponse extends SmsCampaign {
 }
 
 export interface GetSmsCampaignDetailsResponse {

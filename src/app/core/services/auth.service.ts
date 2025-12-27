@@ -61,14 +61,14 @@ export class AuthService {
             userId: user.id,
             role: user.userRoleCode,
             accessToken: tokenPair.accessToken,
-            refreshToken: tokenPair.refreshToken,
+            refreshToken: tokenPair.refreshToken
         };
 
         this.sessionState.set(session);
         console.log(session);
     }
 
-    public async redirectUserByRole(){
+    public async redirectUserByRole() {
         const userRole = this.session()?.role;
 
         switch (userRole) {
@@ -93,18 +93,18 @@ export class AuthService {
 
     public async logout(): Promise<void> {
         this.sessionState.set(null);
-        await this.router.navigateByUrl('/');
+        await this.router.navigateByUrl('/auth/sign-in');
     }
 
     public hasRole(roles: UserRole[]): boolean {
         const role = this.getRole();
-        if(role) {
+        if (role) {
             return roles.includes(role);
         }
         return false;
     }
 
-    public isAuthenticated(){
+    public isAuthenticated() {
         return !!this.session()?.accessToken;
     }
 
@@ -131,7 +131,7 @@ export class AuthService {
         const updated: AuthSession = {
             ...current,
             accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
+            refreshToken: tokens.refreshToken
         };
 
         this.sessionState.set(updated);

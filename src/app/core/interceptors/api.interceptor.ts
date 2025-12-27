@@ -1,30 +1,11 @@
-import {
-    HttpErrorResponse,
-    HttpInterceptorFn,
-    HttpRequest,
-    HttpContextToken,
-} from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpRequest, HttpContextToken } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import {
-    BehaviorSubject,
-    catchError,
-    filter,
-    finalize,
-    switchMap,
-    take,
-    throwError,
-} from 'rxjs';
+import { Observable, catchError, defer, finalize, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { ApiError } from '@/core/services/api/api.service';
 import { inject } from '@angular/core';
 import { AuthService } from '@/core/services/auth.service';
 import { AuthSession } from '@/core/dtos/dto';
 import { NotificationService } from '@/core/services/notification.service';
-
-// ------ refresh control (shared by all calls of apiInterceptor) ------
-const isRefreshingToken = {
-    value: false,
-};
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 // context key to avoid infinite retry loops
 export const SKIP_REFRESH = new HttpContextToken<boolean>(() => false);
@@ -34,7 +15,7 @@ function addAuthHeaders(req: HttpRequest<any>, session: AuthSession | null): Htt
     const url = req.url.startsWith('http') ? req.url : environment.apiUrl + req.url;
 
     const headers: Record<string, string> = {
-        Accept: 'application/json',
+        Accept: 'application/json'
     };
 
     const isSignIn = req.url.includes('SignIn');
@@ -47,15 +28,61 @@ function addAuthHeaders(req: HttpRequest<any>, session: AuthSession | null): Htt
     return req.clone({ url, setHeaders: headers });
 }
 
+/**
+ * Refresh queue:
+ * - refreshInFlight$ exists only while refresh call is running.
+ * - shareReplay(1) ensures all queued requests reuse the same refresh result.
+ * - logout ONLY happens if the refresh call fails.
+ */
+let refreshInFlight$: Observable<any> | null = null;
+
+function getRefreshObservable(authService: AuthService): Observable<any> {
+    if (!refreshInFlight$) {
+        refreshInFlight$ = defer(() => {
+            const session = authService.session();
+            const rt = session?.refreshToken;
+
+            if (!rt) {
+                const missing: ApiError = {
+                    title: 'Unauthorized',
+                    status: 401,
+                    detail: 'Missing refresh token.'
+                };
+                return throwError(() => missing);
+            }
+
+            return authService.refreshToken({ refreshToken: rt });
+        }).pipe(
+            tap((refreshResponse) => {
+                // update tokens in AuthService (+localStorage via your signal effect)
+                authService.updateTokens(refreshResponse);
+            }),
+
+            // all queued requests will receive the same refresh result
+            shareReplay(1),
+
+            // logout ONLY if refresh-token API fails
+            catchError((refreshErr: HttpErrorResponse) => {
+                authService.logout();
+                return throwError(() => mapApiError(refreshErr));
+            }),
+
+            // allow future refresh cycles
+            finalize(() => {
+                refreshInFlight$ = null;
+            })
+        );
+    }
+
+    return refreshInFlight$;
+}
+
 // ------ interceptor ------
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
     const authService = inject(AuthService);
     const notify = inject(NotificationService);
 
-    // Get session from signal (your effect already keeps localStorage in sync)
-    let session: AuthSession | null = authService.session();
-
-    // Build initial request
+    const session: AuthSession | null = authService.session();
     const authReq = addAuthHeaders(req, session);
 
     return next(authReq).pipe(
@@ -68,59 +95,37 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
 
             // ---------- 401: try refresh token flow ----------
             if (apiError.status === 401 && hasRefreshToken && !skipRefresh) {
-                // if not already refreshing, start the refresh
-                if (!isRefreshingToken.value) {
-                    isRefreshingToken.value = true;
-                    refreshTokenSubject.next(null);
+                return getRefreshObservable(authService).pipe(
+                    switchMap(() => {
+                        // refresh succeeded -> retry original request with new token
+                        const newSession = authService.session();
+                        const retryReq = addAuthHeaders(req, newSession).clone({
+                            context: req.context.set(SKIP_REFRESH, true)
+                        });
 
-                    return authService.refreshToken({ refreshToken: session!.refreshToken! }).pipe(
-                        switchMap((refreshResponse) => {
-                            // update tokens in AuthService (+localStorage via signal)
-                            authService.updateTokens(refreshResponse);
+                        // IMPORTANT: handle retry errors here (no logout)
+                        return next(retryReq).pipe(
+                            catchError((retryErr: HttpErrorResponse) => {
+                                const mapped = mapApiError(retryErr);
 
-                            const newSession = authService.session();
-                            const retryReq = addAuthHeaders(req, newSession).clone({
-                                // mark this as already refreshed to avoid infinite loop
-                                context: req.context.set(SKIP_REFRESH, true)
-                            });
+                                if (mapped.status === 400 || mapped.status === 404 || mapped.status === 500) {
+                                    notify.error(mapped.title, mapped.detail);
+                                }
 
-                            // signal to waiting requests that we have a new token
-                            refreshTokenSubject.next(refreshResponse.accessToken);
-
-                            return next(retryReq);
-                        }),
-                        catchError((refreshErr: HttpErrorResponse) => {
-                            // refresh failed -> logout and propagate error
-                            authService.logout();
-                            const mappedRefreshError = mapApiError(refreshErr);
-                            return throwError(() => mappedRefreshError);
-                        }),
-                        finalize(() => {
-                            isRefreshingToken.value = false;
-                        })
-                    );
-                } else {
-                    // already refreshing: wait until refreshTokenSubject emits a non-null token
-                    return refreshTokenSubject.pipe(
-                        filter((token) => token != null),
-                        take(1),
-                        switchMap((token) => {
-                            const newSession = authService.session();
-                            const retryReq = addAuthHeaders(req, newSession).clone({
-                                context: req.context.set(SKIP_REFRESH, true)
-                            });
-                            return next(retryReq);
-                        })
-                    );
-                }
+                                // do NOT logout here — refresh already succeeded
+                                return throwError(() => mapped);
+                            })
+                        );
+                    })
+                );
             }
 
-            // ---------- other errors (or 401 without refresh token) ----------
+            // ---------- other errors ----------
             if (apiError.status === 400 || apiError.status === 500 || apiError.status === 404) {
                 notify.error(apiError.title, apiError.detail);
             }
 
-            // if 401 and we couldn't refresh -> logout
+            // if 401 and we couldn't refresh (no refresh token at all) -> logout
             if (apiError.status === 401 && !hasRefreshToken) {
                 authService.logout();
             }
@@ -131,40 +136,34 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
 };
 
 export function mapApiError(err: unknown): ApiError {
-    // Default/fallback
     const fallback: ApiError = {
         title: 'Unexpected Error',
         status: 0,
         detail: 'Something went wrong. Please try again.'
     };
 
-    // Angular wraps responses in HttpErrorResponse
     if (err && typeof err === 'object' && 'status' in err) {
         const httpErr = err as any;
-
         const errorBody = httpErr.error;
 
-        // Error sent from server
         if (errorBody && typeof errorBody === 'object' && ('title' in errorBody || 'detail' in errorBody)) {
             return {
                 title: String((errorBody as any).title ?? 'Error'),
                 status: Number(httpErr.status ?? (errorBody as any).status ?? 0),
                 detail: (errorBody as any).detail ? String((errorBody as any).detail) : undefined,
                 correlationId: (errorBody as any).correlationId ? String((errorBody as any).correlationId) : undefined,
-                ...errorBody // extra fields if added later
+                ...errorBody
             };
         }
 
-        // If body is text or HTML
         if (typeof errorBody === 'string') {
             return {
                 ...fallback,
                 status: Number(httpErr.status ?? 0),
-                detail: errorBody.slice(0, 500) // only take first 500 chars
+                detail: errorBody.slice(0, 500)
             };
         }
 
-        // Network error (no response)
         if (httpErr.status === 0) {
             return {
                 ...fallback,
@@ -173,7 +172,6 @@ export function mapApiError(err: unknown): ApiError {
             };
         }
 
-        // Unknown shape
         return {
             ...fallback,
             status: Number(httpErr.status ?? 0),
@@ -181,6 +179,5 @@ export function mapApiError(err: unknown): ApiError {
         };
     }
 
-    // Totally non-HTTP error (programmatic throw, RxJS, etc.)
     return fallback;
 }

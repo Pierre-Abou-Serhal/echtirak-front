@@ -23,13 +23,20 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Skeleton } from 'primeng/skeleton';
 import { WalletForecastRequest } from '@/core/services/api/request';
 import { WalletService } from '@/core/services/wallet.service';
+import { InputMaskModule } from 'primeng/inputmask';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { addLebanonPrefix, stripLebanonPrefix } from '@/core/utils/utils';
+import { LbPhonePipe } from '@/core/pipes/pipes';
 
 @Component({
     selector: 'app-subscribers',
     standalone: true,
-    imports: [TableModule, InputIcon, IconField, FormsModule, ButtonDirective, InputText, Button, Tag, Dialog, Select, InputNumber, Textarea, Skeleton],
+    imports: [TableModule, InputIcon, IconField, FormsModule, ButtonDirective, InputText, Button, Tag, Dialog, Select, InputNumber, Textarea, Skeleton, InputMaskModule, InputGroupModule, InputGroupAddonModule, NgxMaskDirective, LbPhonePipe],
     templateUrl: './subscribers.component.html',
-    styleUrl: './subscribers.component.scss'
+    styleUrl: './subscribers.component.scss',
+    providers: [provideNgxMask()]
 })
 export class SubscribersComponent implements OnInit {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
@@ -350,7 +357,7 @@ export class SubscribersComponent implements OnInit {
     }
 
     editSubscriber(subscriber: Subscriber) {
-        this.selectedSubscriber = { ...subscriber };
+        this.selectedSubscriber = { ...subscriber, phoneNumber: stripLebanonPrefix(subscriber.phoneNumber) };
         this.isSubscriberDialogOpen = true;
         this.filterSubscriptionBillingModels(this.selectedSubscriber.generatorId);
         this.subscriptionBillingFee = this.getSubscriptionBillingFee(this.selectedSubscriber.subscriptionBillingModelId);
@@ -405,6 +412,7 @@ export class SubscribersComponent implements OnInit {
 
     updateSubscriber() {
         let isCreatingSub = this.selectedSubscriber.id === -1;
+        this.selectedSubscriber.phoneNumber = addLebanonPrefix(this.selectedSubscriber.phoneNumber);
         this.generatorOwnerService
             .upsertSubscriber({
                 ...this.selectedSubscriber
@@ -446,7 +454,8 @@ export class SubscribersComponent implements OnInit {
             this.selectedSubscriber.previousKva > 0 &&
             this.selectedSubscriber.currentKva > 0 &&
             this.selectedSubscriber.electricMeterNumber.length > 0 &&
-            this.selectedSubscriber.statusCode.length > 0
+            this.selectedSubscriber.statusCode.length > 0 &&
+            this.selectedSubscriber.currentKva >= this.selectedSubscriber.previousKva
         );
     }
 
@@ -463,10 +472,16 @@ export class SubscribersComponent implements OnInit {
 
     getSubscriptionBillingFee(subscriptionBillingModelId: number): string {
         let model = this.subscriptionBillingModels.find((model) => model.id === subscriptionBillingModelId);
-        console.log(model);
         if (!model) return '';
 
         return model.model === BillingModel.FIXED ? model.amountFixed.toString() : model.amountPerKva.toString();
+    }
+
+    getSubscriptionBillingModel(subscriptionBillingModelId: number): string {
+        let model = this.subscriptionBillingModels.find((model) => model.id === subscriptionBillingModelId);
+        if (!model) return '';
+
+        return model.model;
     }
 
     onChangeGenerator(generatorId: number) {
@@ -477,6 +492,9 @@ export class SubscribersComponent implements OnInit {
 
     onChangeSubscriptionBillingModel(subscriptionBillingModelId: number) {
         this.subscriptionBillingFee = this.getSubscriptionBillingFee(subscriptionBillingModelId);
+        if (this.getSubscriptionBillingModel(subscriptionBillingModelId) === BillingModel.FIXED) {
+            this.selectedSubscriber.overrideAmount = undefined;
+        }
     }
 
     previewSingleQrCode(subscriber: Subscriber) {
@@ -563,4 +581,6 @@ export class SubscribersComponent implements OnInit {
         this.displayWarning = false;
         this.isSubscriberSaving = false;
     }
+
+    protected readonly BillingModel = BillingModel;
 }

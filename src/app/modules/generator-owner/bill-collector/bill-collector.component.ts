@@ -25,13 +25,19 @@ import * as Papa from 'papaparse';
 import { UpsertBillCollectorRequest } from '@/core/services/api/request';
 import { firstValueFrom } from 'rxjs';
 import { Password } from 'primeng/password';
+import { LbPhonePipe } from '@/core/pipes/pipes';
+import { InputGroup } from 'primeng/inputgroup';
+import { InputGroupAddon } from 'primeng/inputgroupaddon';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { addLebanonPrefix, stripLebanonPrefix } from '@/core/utils/utils';
 
 @Component({
     selector: 'app-bill-collector.component',
-    imports: [Button, TableModule, IconField, InputIcon, Dialog, ReactiveFormsModule, Message, InputText, Password],
+    imports: [Button, TableModule, IconField, InputIcon, Dialog, ReactiveFormsModule, Message, InputText, Password, LbPhonePipe, InputGroup, InputGroupAddon, NgxMaskDirective],
     templateUrl: './bill-collector.component.html',
     styleUrl: './bill-collector.component.scss',
-    standalone: true
+    standalone: true,
+    providers: [provideNgxMask()]
 })
 export class BillCollectorComponent {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
@@ -182,7 +188,7 @@ export class BillCollectorComponent {
         this.billCollectorForm.get('username')?.setValue(billCollector.username);
         this.billCollectorForm.get('firstName')?.setValue(billCollector.firstName);
         this.billCollectorForm.get('lastName')?.setValue(billCollector.lastName);
-        this.billCollectorForm.get('phoneNumber')?.setValue(billCollector.phoneNumber);
+        this.billCollectorForm.get('phoneNumber')?.setValue(stripLebanonPrefix(billCollector.phoneNumber));
         this.billCollectorForm.get('newPassword')?.reset();
         this.billCollectorForm.get('confirmPassword')?.reset();
 
@@ -219,7 +225,7 @@ export class BillCollectorComponent {
             username: this.billCollectorForm.get('username')?.value,
             firstName: this.billCollectorForm.get('firstName')?.value,
             lastName: this.billCollectorForm.get('lastName')?.value,
-            phoneNumber: this.billCollectorForm.get('phoneNumber')?.value,
+            phoneNumber: addLebanonPrefix(this.billCollectorForm.get('phoneNumber')?.value),
             password: this.billCollectorForm.get('newPassword')?.value
         };
 

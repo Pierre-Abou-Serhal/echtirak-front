@@ -16,10 +16,11 @@ import { Tag } from 'primeng/tag';
 import { SelectOptionNumValue } from '@/core/dtos/dto';
 import { Select } from 'primeng/select';
 import { BillsPreviewComponent } from '@/modules/generator-owner/bills/bills-preview/bills-preview.component';
+import { LbPhonePipe } from '@/core/pipes/pipes';
 
 @Component({
     selector: 'app-custom-bill-generation-component',
-    imports: [Button, TableModule, ButtonDirective, IconField, InputIcon, InputText, FormsModule, Tag, Select, BillsPreviewComponent],
+    imports: [Button, TableModule, ButtonDirective, IconField, InputIcon, InputText, FormsModule, Tag, Select, BillsPreviewComponent, LbPhonePipe],
     templateUrl: './custom-bill-generation.component.html',
     styleUrl: './custom-bill-generation.component.scss',
     standalone: true

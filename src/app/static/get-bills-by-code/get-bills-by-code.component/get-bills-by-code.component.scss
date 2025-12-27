@@ -2,11 +2,12 @@
    PAGE WRAPPER
 ========================= */
 .bills-page {
-    min-height: 100%;
-    padding: 1rem;
+    min-height: 100vh;
+    padding: 1rem 1rem 4.5rem;
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    flex: 1;
 }
 
 /* =========================
@@ -241,4 +242,72 @@
     .notes-text {
         font-size: 0.95rem;
     }
+}
+
+
+/* =========================
+   HEADER (LOGO + TITLE)
+========================= */
+.bills-header {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.bills-logo {
+    width: 62px;
+    height: 62px;
+    padding: 8px;
+    flex-shrink: 0;
+}
+
+.bills-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+/* subtitle under title */
+.page-subtitle {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #64748b;
+    line-height: 1.2;
+}
+
+/* override your page-title margin because header handles spacing */
+.bills-header .page-title {
+    margin: 0;
+}
+
+/* =========================
+   FOOTER (POWERED BY)
+========================= */
+.bills-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+    padding: 0.9rem 1rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #64748b;
+
+    border-top: 1px solid #e5e7eb;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    z-index: 50;
+}
+
+.footer-brand {
+    font-weight: 800;
+    color: #0f172a;
+    margin-left: 0.25rem;
 }

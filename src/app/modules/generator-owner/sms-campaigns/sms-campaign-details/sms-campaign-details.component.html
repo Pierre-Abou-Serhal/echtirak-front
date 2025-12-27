@@ -44,7 +44,19 @@
             <div class="flex gap-4 mb-4">
                 <input pInputText placeholder="Subscriber Name" [(ngModel)]="filterSubscriberName"
                        (keyup.enter)="onFilter()" />
-                <input pInputText placeholder="Phone Number" [(ngModel)]="filterPhoneNumber" (keyup.enter)="onFilter()" />
+
+                <p-inputgroup>
+                    <p-inputgroup-addon>+961</p-inputgroup-addon>
+                    <input
+                        pInputText
+                        placeholder="Phone Number"
+                        [(ngModel)]="filterPhoneNumber"
+                        (keyup.enter)="onFilter()"
+                        mask="00 000 000"
+                        [dropSpecialCharacters]="true"
+                    />
+                </p-inputgroup>
+
                 <p-select
                     [options]="smsStatuses()"
                     optionLabel="label"
@@ -62,30 +74,97 @@
                     (onClick)="onFilter()"
                     [loading]="loading()"
                 ></p-button>
+                <p-button
+                    icon="pi pi-external-link"
+                    label="CSV"
+                    (click)="exportToCsv()"
+                />
             </div>
 
-            <p-table [value]="messages()" [lazy]="true" (onLazyLoad)="onPageChange($event)" [paginator]="true"
-                     [rows]="pageSize" [totalRecords]="totalRecords()" [loading]="loading()" styleClass="p-datatable-sm" stripedRows rowHover>
+            <p-table
+                [value]="messages()"
+                [lazy]="true"
+                (onLazyLoad)="onPageChange($event)"
+                [paginator]="true"
+                [rows]="pageSize"
+                [totalRecords]="totalRecords()"
+                [loading]="loading()"
+                responsiveLayout="scroll"
+                showGridlines
+                stripedRows
+                rowHover
+                [(selection)]="selectedMessages"
+            >
                 <ng-template pTemplate="header">
                     <tr>
-                        <th>Subscriber</th>
-                        <th>Phone</th>
-                        <th>Message</th>
-                        <th>Status</th>
-                        <th>Sent At</th>
-                        <th>Delivered At</th>
+                        <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+
+                        <th pSortableColumn="subscriberName" class="no-wrap-text">
+                            <div class="flex justify-between items-center gap-2">
+                                Subscriber
+                                <p-sortIcon field="subscriberName" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="phoneNumber" class="no-wrap-text">
+                            <div class="flex justify-between items-center gap-2">
+                                Phone Number
+                                <p-sortIcon field="phoneNumber" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="messageBody" class="no-wrap-text">
+                            <div class="flex justify-between items-center gap-2">
+                                Message
+                                <p-sortIcon field="messageBody" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="status" class="no-wrap-text">
+                            <div class="flex justify-between items-center gap-2">
+                                Status
+                                <p-sortIcon field="status" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="sentAt" class="no-wrap-text">
+                            <div class="flex justify-between items-center gap-2">
+                                Sent At
+                                <p-sortIcon field="sentAt" />
+                            </div>
+                        </th>
+
+                        <th pSortableColumn="deliveredAt" class="no-wrap-text">
+                            <div class="flex justify-between items-center gap-2">
+                                Delivered At
+                                <p-sortIcon field="deliveredAt" />
+                            </div>
+                        </th>
+
                     </tr>
                 </ng-template>
+
                 <ng-template pTemplate="body" let-msg>
-                    <tr>
+                    <tr [pSelectableRow]="msg">
+                        <td>
+                            <p-tableCheckbox [value]="msg" />
+                        </td>
+
                         <td>{{ msg.subscriberName }}</td>
-                        <td>{{ msg.phoneNumber }}</td>
-                        <td [title]="msg.messageBody" class="max-w-xs truncate">{{ msg.messageBody }}</td>
+                        <td>{{ msg.phoneNumber | lbPhone }}</td>
+                        <td>{{ msg.messageBody }}</td>
                         <td>
                             <p-tag [value]="msg.status" [severity]="getStatusSeverity(msg.status)"></p-tag>
                         </td>
                         <td>{{ msg.sentAt | date:'yyyy-MM-dd, h:mm a' }}</td>
                         <td>{{ msg.deliveredAt | date:'yyyy-MM-dd, h:mm a' }}</td>
+
+                    </tr>
+                </ng-template>
+
+                <ng-template #emptymessage>
+                    <tr>
+                        <td colspan="7">No SMS found.</td>
                     </tr>
                 </ng-template>
             </p-table>

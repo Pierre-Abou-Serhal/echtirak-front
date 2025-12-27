@@ -13,13 +13,19 @@ import { SmsMessage } from '@/core/models/model';
 import { LookupDomain, SmsCampaignStatus, SmsMessageStatus } from '@/core/enums/enum';
 import { SelectOptionStrValue } from '@/core/dtos/dto';
 import { Select } from 'primeng/select';
+import { LbPhonePipe } from '@/core/pipes/pipes';
+import { InputGroup } from 'primeng/inputgroup';
+import { InputGroupAddon } from 'primeng/inputgroupaddon';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import * as Papa from 'papaparse';
 
 @Component({
     selector: 'app-sms-campaign-details',
     standalone: true,
-    imports: [CommonModule, TableModule, CardModule, TagModule, ButtonModule, InputTextModule, FormsModule, Select],
+    imports: [CommonModule, TableModule, CardModule, TagModule, ButtonModule, InputTextModule, FormsModule, Select, LbPhonePipe, InputGroupAddon, NgxMaskDirective, InputGroup],
     templateUrl: './sms-campaign-details.component.html',
-    styleUrl: './sms-campaign-details.component.scss'
+    styleUrl: './sms-campaign-details.component.scss',
+    providers: [provideNgxMask()]
 })
 export class SmsCampaignDetailsComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
@@ -31,6 +37,7 @@ export class SmsCampaignDetailsComponent implements OnInit {
     public details: WritableSignal<GetSmsCampaignDetailsResponse | null> = signal(null);
     public smsStatuses: WritableSignal<SelectOptionStrValue[] | undefined> = signal(undefined);
     public messages: WritableSignal<SmsMessage[]> = signal([]);
+    public selectedMessages: SmsMessage[] = [];
     public totalRecords: WritableSignal<number> = signal(0);
     public loading: WritableSignal<boolean> = signal(false);
     public isSmsStatusLoading: WritableSignal<boolean> = signal(true);
@@ -125,5 +132,24 @@ export class SmsCampaignDetailsComponent implements OnInit {
 
     backClicked(): void {
         this.location.back();
+    }
+
+    exportToCsv() {
+        if (!this.messages()?.length) return;
+
+        let listToExport: SmsMessage[] = this.messages();
+
+        if (this.selectedMessages?.length > 0) {
+            listToExport = this.selectedMessages;
+        }
+
+        const csv = Papa.unparse(listToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sms-campaign-details.csv';
+        a.click();
+        URL.revokeObjectURL(url);
     }
 }

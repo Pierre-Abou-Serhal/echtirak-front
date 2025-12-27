@@ -159,7 +159,7 @@
                     <p-tableCheckbox [value]="subscriber" />
                 </td>
                 <td>
-                    {{ subscriber.phoneNumber }}
+                    {{ subscriber.phoneNumber | lbPhone }}
                 </td>
                 <td>
                     {{ subscriber.generatorCode }}

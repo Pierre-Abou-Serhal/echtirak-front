@@ -95,6 +95,7 @@
                         optionValue="value"
                         placeholder="Select method"
                         formControlName="paymentMethod"
+                        [loading]="isPaymentMethodLoading"
                     ></p-select>
                     @if (isInvalid(topUpForm, 'paymentMethod')) {
                         <p-message severity="error" size="small" variant="simple">Payment method is required.</p-message>
@@ -303,8 +304,8 @@
                         <td>{{ transaction.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                         <td>{{ transaction.type }}</td>
                         <td>{{ transaction.quantity | number:'1.0-4' }}</td>
-                        <td>{{ transaction.unitPrice | currency:'USD':'symbol':'1.0-4' }}</td>
-                        <td>{{ transaction.totalAmount | currency:'USD':'symbol':'1.0-4' }}</td>
+                        <td [ngClass]="{'text-green-500 dark:text-green-200' : transaction.totalAmount >= 0, 'text-red-500 dark:text-red-200' : transaction.totalAmount < 0 }">{{ transaction.unitPrice | currency:'USD':'symbol':'1.0-4' }}</td>
+                        <td [ngClass]="{'text-green-500 dark:text-green-200' : transaction.totalAmount >= 0, 'text-red-500 dark:text-red-200' : transaction.totalAmount < 0 }">{{ transaction.totalAmount | currency:'USD':'symbol':'1.0-4' }}</td>
                         <td>{{ transaction.balanceAfter | currency:'USD':'symbol':'1.0-4' }}</td>
                         <td>{{ transaction.refId }}</td>
                         <td>{{ transaction.description }}</td>
