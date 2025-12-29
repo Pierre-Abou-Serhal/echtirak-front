@@ -10,7 +10,6 @@
     [globalFilterFields]="['subscriberFirstName', 'subscriberLastName', 'subscriberPhoneNumber', 'electricMeterNumber', 'kvaReading', 'kvaPrevious', 'kvaCurrent', 'status']"
     responsiveLayout="scroll"
     [loading]="isKvaReadingLoading"
-    editMode="row"
     rowHover
     showGridlines
     paginator
@@ -45,7 +44,7 @@
             <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
             <th style="width: 5rem"></th>
 
-            <th class="no-wrap-text" pSortableColumn="subscriberFirstName">
+            <th pSortableColumn="subscriberFirstName">
                 <div class="flex justify-between items-center gap-2">
                     Subscriber
                     <p-sortIcon field="subscriberFirstName" />
@@ -54,7 +53,7 @@
 
             <th class="no-wrap-text" pSortableColumn="electricMeterNumber">
                 <div class="flex justify-between items-center gap-2">
-                    Electric Meter Number
+                    Meter No.
                     <p-sortIcon field="electricMeterNumber" />
                 </div>
             </th>
@@ -68,14 +67,14 @@
 
             <th class="no-wrap-text" pSortableColumn="kvaPrevious">
                 <div class="flex justify-between items-center gap-2">
-                    KWH Previous
+                    Previous KWH
                     <p-sortIcon field="kvaPrevious" />
                 </div>
             </th>
 
             <th class="no-wrap-text" pSortableColumn="kvaCurrent">
                 <div class="flex justify-between items-center gap-2">
-                    KWH Current
+                    Current KWH
                     <p-sortIcon field="kvaCurrent" />
                 </div>
             </th>
@@ -88,81 +87,53 @@
             </th>
         </tr>
     </ng-template>
-    <ng-template #body let-kvaReading let-editing="editing" let-ri="rowIndex">
-        <tr [pEditableRow]="kvaReading" [pSelectableRow]="kvaReading">
+    <ng-template #body let-kvaReading>
+        <tr [pSelectableRow]="kvaReading">
             <td>
                 <p-tableCheckbox [value]="kvaReading" />
             </td>
             <!-- ACTIONS (edit / save / cancel) -->
             <td>
                 <div class="flex items-center justify-center gap-2">
-                    @if(!editing){
-                        <!-- start editing -->
-                        <p-button
-                            pInitEditableRow
-                            icon="pi pi-pencil"
-                            styleClass="p-button-sm"
-                            (click)="onRowEditInit(kvaReading)"
-                            severity="info"
-                            rounded
-                            [disabled]="kvaReading.status !== KvaReadingStatus.PENDING"
-                        />
 
-                        <!-- Open KVA Reading image -->
-                        <p-button
-                            icon="pi pi-eye"
-                            styleClass="p-button-sm"
-                            (click)="onKvaReadingViewImage(kvaReading)"
-                            severity="secondary"
-                            rounded
-                            [disabled]="!kvaReading.kvaReadingUrl"
-                        />
-                    }
+                    <!-- start editing -->
+                    <p-button
+                        icon="pi pi-pencil"
+                        styleClass="p-button-sm"
+                        (click)="openKvaEditModal(kvaReading)"
+                        severity="info"
+                        rounded
+                        [disabled]="kvaReading.status !== KvaReadingStatus.PENDING"
+                        [loading]="editBtnLoading[kvaReading.id]"
+                    />
 
-                    @if(editing){
-                        <!-- save -->
-                        <p-button
-                            icon="pi pi-check"
-                            styleClass="p-button-sm"
-                            (click)="onRowEditSave(kvaReading)"
-                            severity="primary"
-                            rounded
-                            [loading]="isKvaReadingSaving"
-                        />
+                    <!-- Open KVA Reading image -->
+                    <p-button
+                        icon="pi pi-eye"
+                        styleClass="p-button-sm"
+                        (click)="onKvaReadingViewImage(kvaReading)"
+                        severity="secondary"
+                        rounded
+                        [disabled]="!kvaReading.kvaReadingUrl"
+                    />
 
-                        <!-- cancel -->
-                        <p-button
-                            icon="pi pi-times"
-                            styleClass="p-button-sm"
-                            (click)="onRowEditCancel(kvaReading, ri)"
-                            severity="danger"
-                            rounded
-                        />
-                    }
                 </div>
             </td>
 
             <!-- NON-EDITABLE COLUMNS: normal display -->
             <td>
-                {{ kvaReading.subscriberFirstName }} {{ kvaReading.subscriberLastName }} {{ kvaReading.subscriberPhoneNumber }}
+                <div class="mb-2">
+                    {{ kvaReading.subscriberFirstName }} {{ kvaReading.subscriberLastName }}
+                </div>
+                <div class="text-sm text-color-secondary">
+                    {{ kvaReading.subscriberPhoneNumber | lbPhone }}
+                </div>
             </td>
             <td>
                 {{ kvaReading.electricMeterNumber }}
             </td>
             <td>
-                <p-cellEditor>
-                    <ng-template #input>
-                        <p-inputnumber
-                            [(ngModel)]="kvaReading.kvaReading"
-                            mode="decimal"
-                            [minFractionDigits]="0"
-                            [maxFractionDigits]="4"
-                        ></p-inputnumber>
-                    </ng-template>
-                    <ng-template #output>
-                        {{ kvaReading.kvaReading | number:'1.0-4' }}
-                    </ng-template>
-                </p-cellEditor>
+                {{ kvaReading.kvaReading | number:'1.0-4' }}
             </td>
             <td>
                 {{ kvaReading.kvaPrevious }}
@@ -171,24 +142,10 @@
                 {{ kvaReading.kvaCurrent }}
             </td>
             <td>
-                <p-cellEditor>
-                    <ng-template #input>
-                        <p-select
-                            [options]="kvaReadingStatuses"
-                            [(ngModel)]="kvaReading.status"
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="Select generator"
-                            [overlayOptions]="getOverlayOptions()"
-                        />
-                    </ng-template>
-                    <ng-template #output>
-                        <p-tag
-                            [value]="kvaReading.status"
-                            [severity]="getKvaReadingSeverity(kvaReading.status)"
-                        />
-                    </ng-template>
-                </p-cellEditor>
+                <p-tag
+                    [value]="kvaReading.status"
+                    [severity]="getKvaReadingSeverity(kvaReading.status)"
+                />
             </td>
         </tr>
     </ng-template>
@@ -231,3 +188,12 @@
         }
     </ng-template>
 </p-dialog>
+
+
+<app-kva-edit-modal
+    [(visible)]="kvaEditVisible"
+    [kvaReading]="kvaToEdit"
+    [kvaReadingStatuses]="kvaReadingStatuses"
+    (save)="onKvaEditSave($event)"
+    (cancel)="onKvaEditCancel()"
+/>

@@ -4,8 +4,7 @@ import { Bill } from '@/core/models/model';
 import { FormsModule } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { Button, ButtonDirective } from 'primeng/button';
-import { DatePipe, DecimalPipe } from '@angular/common';
-import { InputNumber } from 'primeng/inputnumber';
+import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { Tag } from 'primeng/tag';
 import { BillStatus } from '@/core/enums/enum';
 import { IconField } from 'primeng/iconfield';
@@ -14,10 +13,11 @@ import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { AcceptBillsResponse } from '@/core/services/api/response';
 import { NotificationService } from '@/core/services/notification.service';
 import { Tooltip } from 'primeng/tooltip';
+import { BillEditModalComponent } from '@/modules/generator-owner/bills/bill-edit-modal/bill-edit-modal.component';
 
 @Component({
     selector: 'app-bills-preview-component',
-    imports: [TableModule, FormsModule, InputText, Button, DecimalPipe, InputNumber, Tag, DatePipe, ButtonDirective, IconField, InputIcon, Tooltip],
+    imports: [TableModule, FormsModule, InputText, Button, DecimalPipe, Tag, DatePipe, ButtonDirective, IconField, InputIcon, Tooltip, BillEditModalComponent, NgClass],
     templateUrl: './bills-preview.component.html',
     styleUrl: './bills-preview.component.scss'
 })
@@ -29,40 +29,21 @@ export class BillsPreviewComponent {
 
     selectedBills: Bill[] = [];
 
-    // UI pagination (PrimeNG table)
     rowsPerPageOptions = [10, 20, 50, 100];
     first = 0;
     rows = 10;
 
-    // Edit inside table
-    clonedBills: { [id: string]: Bill } = {};
+    keyword = '';
+    isAcceptBillsLoading = false;
 
-    // Search keyword
-    keyword: string = '';
+    // expandable rows
+    expandedRows: Record<string, boolean> = {};
 
-    // Accept bills
-    isAcceptBillsLoading: boolean = false;
+    // edit modal
+    editVisible = false;
+    billToEdit: Bill | null = null;
 
-    // Edit inside table functions
-    onRowEditInit(bill: Bill) {
-        // Keep a clone so we can revert on cancel or error
-        this.clonedBills[bill.id] = { ...bill };
-    }
-
-    onRowEditSave(bill: Bill) {
-        // Update bill API call
-        console.log(bill);
-    }
-
-    onRowEditCancel(bill: Bill, index: number) {
-        // user cancelled → revert from clone
-        const original = this.clonedBills[bill.id];
-        if (original) {
-            this.billsPreview[index] = original;
-            delete this.clonedBills[bill.id];
-        }
-    }
-
+    // --- table helpers
     clear(table: Table) {
         table.clear();
     }
@@ -75,11 +56,9 @@ export class BillsPreviewComponent {
     next() {
         this.first = this.first + this.rows;
     }
-
     prev() {
         this.first = this.first - this.rows;
     }
-
     reset() {
         this.first = 0;
     }
@@ -97,24 +76,65 @@ export class BillsPreviewComponent {
         return this.billsPreview ? this.first === 0 : true;
     }
 
-    // UI styling
+    // --- row expansion
+    onRowExpand(event: any) {
+        const id = event.data?.id;
+        if (id != null) this.expandedRows[String(id)] = true;
+    }
+
+    onRowCollapse(event: any) {
+        const id = event.data?.id;
+        if (id != null) delete this.expandedRows[String(id)];
+    }
+
+    expandAll() {
+        this.expandedRows = Object.fromEntries(this.billsPreview.filter((b) => b?.id != null).map((b) => [String(b.id), true]));
+    }
+
+    collapseAll() {
+        this.expandedRows = {};
+    }
+
+    // --- modal open / save
+    openBillEditModal(bill: Bill) {
+        this.billToEdit = bill;
+        this.editVisible = true;
+    }
+
+    onBillEditSave(updatedBill: Bill) {
+        // Update billsPreview list item
+        const idx = this.billsPreview.findIndex((b) => b.id === updatedBill.id);
+        if (idx !== -1) this.billsPreview[idx] = updatedBill;
+
+        // Keep selectedBills in sync (important if user selected that row)
+        const sIdx = this.selectedBills.findIndex((b) => b.id === updatedBill.id);
+        if (sIdx !== -1) this.selectedBills[sIdx] = updatedBill;
+
+        // Optional: if the edited bill row is expanded, keep it expanded
+        if (updatedBill?.id != null && this.expandedRows[String(updatedBill.id)]) {
+            this.expandedRows[String(updatedBill.id)] = true;
+        }
+    }
+
+    onBillEditCancel() {
+        // optional
+    }
+
+    // --- UI styling
     getBillSeverity(statusCode: string) {
         switch (statusCode) {
             case BillStatus.PENDING:
                 return 'info';
-
             case BillStatus.PAID:
                 return 'success';
-
             case BillStatus.CANCELLED:
                 return 'danger';
-
             default:
                 return null;
         }
     }
 
-    // Accept Bills
+    // --- Accept Bills (unchanged)
     acceptBills() {
         this.isAcceptBillsLoading = true;
 
@@ -124,29 +144,29 @@ export class BillsPreviewComponent {
             return;
         }
 
-        this.generatorOwnerService
-            .acceptBills({
-                bills: this.selectedBills
-            })
-            .subscribe({
-                next: (response: AcceptBillsResponse) => {
-                    if (response.success) {
-                        this.notificationService.success('Bill Accepted', `Successfully inserted: ${response.billsInserted} bills`);
-                    } else {
-                        this.notificationService.error('Bill Rejected', `Something wen wrong while inserting bills`);
-                    }
-
-                    this.billsPreview = [];
-                    this.selectedBills = [];
-
-                    this.isAcceptBillsLoading = false;
-                },
-                error: (err) => {
-                    console.log(err);
-                    this.billsPreview = [];
-                    this.selectedBills = [];
-                    this.isAcceptBillsLoading = false;
+        this.generatorOwnerService.acceptBills({ bills: this.selectedBills }).subscribe({
+            next: (response: AcceptBillsResponse) => {
+                if (response.success) {
+                    this.notificationService.success('Bill Accepted', `Successfully inserted: ${response.billsInserted} bills`);
+                } else {
+                    this.notificationService.error('Bill Rejected', `Something went wrong while inserting bills`);
                 }
-            });
+
+                this.billsPreview = [];
+                this.selectedBills = [];
+                this.expandedRows = {};
+
+                this.isAcceptBillsLoading = false;
+            },
+            error: (err) => {
+                console.log(err);
+                this.billsPreview = [];
+                this.selectedBills = [];
+                this.expandedRows = {};
+                this.isAcceptBillsLoading = false;
+            }
+        });
     }
+
+    protected readonly BillStatus = BillStatus;
 }

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Inject, inject, LOCALE_ID, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, Inject, inject, LOCALE_ID, OnInit } from '@angular/core';
 import { Button, ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { IconField } from 'primeng/iconfield';
@@ -13,13 +13,13 @@ import { debounceTime, finalize, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import * as Papa from 'papaparse';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
-import { DatePipe, DecimalPipe, formatDate } from '@angular/common';
+import { DatePipe, DecimalPipe, formatDate, NgClass } from '@angular/common';
 import { DatePicker } from 'primeng/datepicker';
 import { Select } from 'primeng/select';
 import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
-import { InputNumber } from 'primeng/inputnumber';
 import { UpdateBillRequest } from '@/core/services/api/request';
 import { NotificationService } from '@/core/services/notification.service';
+import { BillEditModalComponent } from '@/modules/generator-owner/bills/bill-edit-modal/bill-edit-modal.component';
 
 export interface BillSearchFilter {
     generatorId?: number;
@@ -31,7 +31,7 @@ export interface BillSearchFilter {
 
 @Component({
     selector: 'app-bills-list-component',
-    imports: [Button, Tag, TableModule, FormsModule, IconField, InputIcon, InputText, DatePicker, Select, DatePipe, DecimalPipe, ButtonDirective, InputNumber],
+    imports: [Button, Tag, TableModule, FormsModule, IconField, InputIcon, InputText, DatePicker, Select, DatePipe, DecimalPipe, ButtonDirective, NgClass, BillEditModalComponent],
     templateUrl: './bills-list.component.html',
     styleUrl: './bills-list.component.scss',
     standalone: true
@@ -75,11 +75,17 @@ export class BillsListComponent implements OnInit {
     // Edit inside table
     clonedBills: { [id: string]: Bill } = {};
 
-    // Update Bill vars
-    isBillSaving: boolean = false;
-    @ViewChild('dt') table!: Table;
+    // per-row loading flags
+    editBtnLoading: Record<number, boolean> = {};
 
     private search$ = new Subject<BillSearchFilter>();
+
+    // Expandable Rows
+    expandedRows: Record<string, boolean> = {};
+
+    // Update Bill Modal
+    editVisible = false;
+    billToEdit: Bill | null = null;
 
     ngOnInit(): void {
         // Fetch subscriber statuses drop down items
@@ -339,24 +345,27 @@ export class BillsListComponent implements OnInit {
         this.clonedBills[bill.id] = { ...bill };
     }
 
-    onRowEditSave(bill: Bill) {
-        this.updateBill(bill);
+    openBillEditModal(bill: any) {
+        this.billToEdit = bill;
+        this.editVisible = true;
     }
 
-    onRowEditCancel(bill: Bill, index: number) {
-        // user canceled → revert from clone
-        const original = this.clonedBills[bill.id];
-        if (original) {
-            this.bills[index] = original;
-            delete this.clonedBills[bill.id];
-        }
-        this.table.cancelRowEdit(bill);
+    onBillEditSave(updatedBill: any) {
+        this.updateBill(updatedBill);
+    }
+
+    onBillEditCancel() {
+        // optional hook
+    }
+
+    onRowEditSave(bill: Bill) {
+        this.updateBill(bill);
     }
 
     updateBill(bill: Bill) {
         console.log('bill to update', bill);
 
-        this.isBillSaving = true;
+        this.setEditLoading(bill.id, true);
 
         let request: UpdateBillRequest = {
             billId: bill.id,
@@ -392,13 +401,11 @@ export class BillsListComponent implements OnInit {
                     this.bills.push(response.response.newBill);
                 }
 
-                this.isBillSaving = false;
-                this.table.cancelRowEdit(bill);
+                this.setEditLoading(bill.id, false);
             },
             error: (err) => {
                 console.log(err);
-                this.isBillSaving = false;
-                this.table.cancelRowEdit(bill);
+                this.setEditLoading(bill.id, false);
             }
         });
     }
@@ -423,6 +430,29 @@ export class BillsListComponent implements OnInit {
         }
 
         return index;
+    }
+
+    // Expandable row functions
+    onRowExpand(event: any) {
+        const id = event.data?.id;
+        if (id != null) this.expandedRows[id] = true;
+    }
+
+    onRowCollapse(event: any) {
+        const id = event.data?.id;
+        if (id != null) delete this.expandedRows[id];
+    }
+
+    expandAll() {
+        this.expandedRows = Object.fromEntries(this.bills.filter((s) => s?.id != null).map((s) => [String(s.id), true]));
+    }
+
+    collapseAll() {
+        this.expandedRows = {};
+    }
+
+    setEditLoading(id: number, value: boolean) {
+        this.editBtnLoading[id] = value;
     }
 
     protected readonly BillStatus = BillStatus;

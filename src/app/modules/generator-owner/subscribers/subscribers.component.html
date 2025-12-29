@@ -24,6 +24,9 @@
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
         [(selection)]="selectedSubscribers"
         (onPage)="pageChange($event)"
+        [expandedRowKeys]="expandedRows"
+        (onRowExpand)="onRowExpand($event)"
+        (onRowCollapse)="onRowCollapse($event)"
     >
         <ng-template #caption>
             <!-- Top row: New / Export / Download QR PDF -->
@@ -68,13 +71,19 @@
 
             <!-- Second row: Clear + Search -->
             <div class="flex justify-between items-center flex-column sm:flex-row gap-3">
-                <button
-                    pButton
-                    label="Clear"
-                    class="p-button-outlined mb-2"
-                    icon="pi pi-filter-slash"
-                    (click)="clear(dt)"
-                ></button>
+                <div>
+                    <button
+                        pButton
+                        label="Clear"
+                        class="p-button-outlined mb-2 me-2"
+                        icon="pi pi-filter-slash"
+                        (click)="clear(dt)"
+                    ></button>
+
+                    <p-button label="Expand All" icon="pi pi-plus" (onClick)="expandAll()" variant="outlined" class="me-2"/>
+                    <p-button label="Collapse All" icon="pi pi-minus" (onClick)="collapseAll()" variant="outlined" />
+                </div>
+
 
                 <p-iconfield iconPosition="left" class="ml-auto">
                     <p-inputicon>
@@ -102,66 +111,17 @@
                     </div>
                 </th>
 
-                <th pSortableColumn="generatorCode" style="min-width: 14rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Generator
-                        <p-sortIcon field="generatorCode" />
-                    </div>
-                </th>
-
                 <th pSortableColumn="firstName" style="min-width: 12rem">
                     <div class="flex justify-between items-center gap-2">
-                        First Name
+                        Full Name
                         <p-sortIcon field="firstName" />
                     </div>
                 </th>
 
-                <th pSortableColumn="lastName" style="min-width: 12rem">
+                <th pSortableColumn="generatorCode" style="min-width: 14rem">
                     <div class="flex justify-between items-center gap-2">
-                        Last Name
-                        <p-sortIcon field="lastName" />
-                    </div>
-                </th>
-
-                <th pSortableColumn="lastName" style="min-width: 12rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Address
-                        <p-sortIcon field="address" />
-                    </div>
-                </th>
-
-                <th pSortableColumn="previousKva" style="min-width: 14rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Previous KWH
-                        <p-sortIcon field="previousKva" />
-                    </div>
-                </th>
-
-                <th pSortableColumn="currentKva" style="min-width: 14rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Current KWH
-                        <p-sortIcon field="currentKva" />
-                    </div>
-                </th>
-
-                <th pSortableColumn="electricMeterNumber" style="min-width: 18rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Electric Meter Number
-                        <p-sortIcon field="electricMeterNumber" />
-                    </div>
-                </th>
-
-                <th pSortableColumn="subscriptionBillingModelId" style="min-width: 16rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Subscription Billing Mode
-                        <p-sortIcon field="subscriptionBillingModelId" />
-                    </div>
-                </th>
-
-                <th pSortableColumn="overrideAmount" style="min-width: 16rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Override Amount
-                        <p-sortIcon field="overrideAmount" />
+                        Generator
+                        <p-sortIcon field="generatorCode" />
                     </div>
                 </th>
 
@@ -173,62 +133,141 @@
                 </th>
             </tr>
         </ng-template>
-        <ng-template #body let-subscriber>
-            <tr [pSelectableRow]="subscriber">
-                <td>
+        <ng-template #body let-subscriber let-expanded="expanded">
+            <tr
+                [pSelectableRow]="subscriber"
+                [pRowToggler]="subscriber"
+                class="cursor-pointer"
+            >
+                <!-- Checkbox: do NOT toggle expansion -->
+                <td (click)="$event.stopPropagation()">
                     <p-tableCheckbox [value]="subscriber" />
                 </td>
-                <td>
-                    <div class="flex">
-                        <p-button icon="pi pi-qrcode" styleClass="p-button-sm me-2" (click)="previewSingleQrCode(subscriber)" severity="secondary" rounded />
 
-                        <p-button icon="pi pi-pencil" styleClass="p-button-sm" (click)="editSubscriber(subscriber)" severity="info" rounded />
+                <!-- Actions: do NOT toggle expansion -->
+                <td (click)="$event.stopPropagation()">
+                    <div class="flex items-center gap-2">
+                        <p-button
+                            icon="pi pi-qrcode"
+                            styleClass="p-button-sm"
+                            severity="secondary"
+                            rounded
+                            (click)="previewSingleQrCode(subscriber)"
+                        />
+
+                        <p-button
+                            icon="pi pi-pencil"
+                            styleClass="p-button-sm"
+                            severity="info"
+                            rounded
+                            (click)="editSubscriber(subscriber)"
+                        />
+
+                        <!-- Optional: keep a visual cue (not required for toggling anymore) -->
+                        <i
+                            class="pi text-500"
+                            [ngClass]="expanded ? 'pi-chevron-down' : 'pi-chevron-right'"
+                        ></i>
                     </div>
+                </td>
 
-                </td>
+                <td>{{ subscriber.phoneNumber | lbPhone }}</td>
+                <td>{{ subscriber.firstName + ' ' + subscriber.lastName }}</td>
+                <td>{{ subscriber.generatorCode }}</td>
                 <td>
-                    {{ subscriber.phoneNumber | lbPhone }}
+                    <p-tag
+                        [value]="subscriber.statusCode"
+                        [severity]="getSubscriberSeverity(subscriber.statusCode)"
+                    />
                 </td>
-                <td>
-                    {{ subscriber.generatorCode }}
-                </td>
-                <td>
-                    {{ subscriber.firstName }}
-                </td>
-                <td>
-                    {{ subscriber.lastName }}
-                </td>
-                <td>
-                    {{ subscriber.address }}
-                </td>
-                <td>
-                    {{ subscriber.previousKva }}
-                </td>
-                <td>
-                    {{ subscriber.currentKva }}
-                </td>
-                <td>
-                    {{ subscriber.electricMeterNumber }}
-                </td>
-                <td>
-                    {{ `${subscriber.billingModel} ${subscriber.subscriptionAmps} AMPs` }}
-                </td>
-                <td>
-                    {{ subscriber.overrideAmount }}
-                </td>
-                <td>
-                    <p-tag [value]="subscriber.statusCode" [severity]="getSubscriberSeverity(subscriber.statusCode)" />
+            </tr>
+        </ng-template>
+        <ng-template #expandedrow let-subscriber>
+            <tr>
+                <td colspan="6" class="p-0">
+                    <div class="p-2">
+                        <div class="subscriber-cards">
+                            <!-- Address -->
+                            <div class="detail-card detail-card--wide">
+                                <div class="detail-head">
+                                    <i class="pi pi-map-marker"></i>
+                                    <span class="detail-label">Address</span>
+                                </div>
+                                <div class="detail-value detail-value--multiline">
+                                    {{ subscriber.address || '—' }}
+                                </div>
+                            </div>
+
+                            <!-- Meter Number -->
+                            <div class="detail-card">
+                                <div class="detail-head">
+                                    <i class="pi pi-bolt"></i>
+                                    <span class="detail-label">Meter No.</span>
+                                </div>
+                                <div class="detail-value">
+                                    {{ subscriber.electricMeterNumber || '—' }}
+                                </div>
+                            </div>
+
+                            <!-- Previous -->
+                            <div class="detail-card">
+                                <div class="detail-head">
+                                    <i class="pi pi-history"></i>
+                                    <span class="detail-label">Previous KWH</span>
+                                </div>
+                                <div class="detail-value">
+                                    {{ subscriber.previousKva ?? '—' }}
+                                </div>
+                            </div>
+
+                            <!-- Current -->
+                            <div class="detail-card">
+                                <div class="detail-head">
+                                    <i class="pi pi-arrow-up"></i>
+                                    <span class="detail-label">Current KWH</span>
+                                </div>
+                                <div class="detail-value">
+                                    {{ subscriber.currentKva ?? '—' }}
+                                </div>
+                            </div>
+
+                            <!-- Billing -->
+                            <div class="detail-card">
+                                <div class="detail-head">
+                                    <i class="pi pi-credit-card"></i>
+                                    <span class="detail-label">Billing</span>
+                                </div>
+                                <div class="detail-value">
+                                    {{ subscriber.billingModel }} {{ subscriber.subscriptionAmps }} AMPs
+                                </div>
+                            </div>
+
+                            <!-- Override (only show if exists / non-zero) -->
+                            @if(subscriber.overrideAmount != null && subscriber.overrideAmount !== 0){
+                                <div class="detail-card">
+                                    <div class="detail-head">
+                                        <i class="pi pi-wallet"></i>
+                                        <span class="detail-label">Override</span>
+                                    </div>
+                                    <div class="detail-value">
+                                        {{ subscriber.overrideAmount }}
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
                 </td>
             </tr>
         </ng-template>
         <ng-template #emptymessage>
             <tr>
-                <td colspan="11">No customers found.</td>
+                <td colspan="6">No customers found.</td>
             </tr>
         </ng-template>
         <ng-template #loadingbody>
             <tr>
-                <td colspan="11">Loading customers data. Please wait.</td>
+                <td colspan="6">Loading customers data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>

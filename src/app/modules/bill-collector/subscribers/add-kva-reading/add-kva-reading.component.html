@@ -38,9 +38,10 @@
             <div>
                 <label class="block text-sm font-semibold mb-2">Reading Image *</label>
 
-                <!-- Hidden file input -->
+                <!-- Hidden inputs -->
+                <!-- Camera-only -->
                 <input
-                    #fileInput
+                    #cameraInput
                     type="file"
                     accept="image/*"
                     capture="environment"
@@ -48,17 +49,37 @@
                     (change)="onFileSelected($event)"
                 />
 
+                <!-- Gallery / Files -->
+                <input
+                    #galleryInput
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    (change)="onFileSelected($event)"
+                />
+
                 <div class="flex gap-2">
                     <p-button
                         class="flex-1"
+                        size="small"
                         icon="pi pi-camera"
-                        label="Camera / Gallery"
+                        label="Capture"
                         severity="secondary"
-                        (click)="fileInput.click()"
+                        (click)="cameraInput.click()"
+                    ></p-button>
+
+                    <p-button
+                        class="flex-1"
+                        size="small"
+                        icon="pi pi-image"
+                        label="Gallery"
+                        severity="secondary"
+                        (click)="galleryInput.click()"
                     ></p-button>
 
                     <p-button
                         icon="pi pi-times"
+                        size="small"
                         severity="secondary"
                         outlined
                         [disabled]="!imageFile"

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Inject, inject, LOCALE_ID, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, Inject, inject, LOCALE_ID, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, DecimalPipe, formatDate } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -21,12 +21,15 @@ import { GetGeneratorsResponse, GetLookupResponse, GetKVAReadingsResponse, Updat
 import { Generator, KvaReading, Lookup } from '@/core/models/model';
 import { KvaReadingStatus, LookupDomain } from '@/core/enums/enum';
 import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
-import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { UpdateKVAReadingRequest } from '@/core/services/api/request';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Dialog } from 'primeng/dialog';
 import { Skeleton } from 'primeng/skeleton';
-import { InputNumber } from 'primeng/inputnumber';
+import {
+    KvaEditModalComponent
+} from '@/modules/generator-owner/kva-reading-history/kva-edit-modal/kva-edit-modal.component';
+import { LbPhonePipe } from '@/core/pipes/pipes';
+import { provideNgxMask } from 'ngx-mask';
 
 export interface KvaReadingSearchFilter {
     generatorId?: number;
@@ -39,17 +42,16 @@ export interface KvaReadingSearchFilter {
 
 @Component({
     selector: 'app-kva-reading-history.component',
-    imports: [FormsModule, DatePipe, DecimalPipe, TableModule, Button, ButtonDirective, Tag, IconField, InputIcon, InputText, DatePicker, Select, Dialog, Skeleton, InputNumber],
+    imports: [FormsModule, DatePipe, DecimalPipe, TableModule, Button, ButtonDirective, Tag, IconField, InputIcon, InputText, DatePicker, Select, Dialog, Skeleton, KvaEditModalComponent, LbPhonePipe],
     templateUrl: './kva-reading-history.component.html',
     styleUrl: './kva-reading-history.component.scss',
-    standalone: true
+    standalone: true,
+    providers: [provideNgxMask()]
 })
 export class KvaReadingHistoryComponent implements OnInit {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly notificationService = inject(NotificationService);
     private readonly destroyRef = inject(DestroyRef);
-
-    @ViewChild('dt') table!: Table;
 
     constructor(@Inject(LOCALE_ID) private locale: string) {
         this.filter = {};
@@ -92,11 +94,17 @@ export class KvaReadingHistoryComponent implements OnInit {
 
     kvaImageUrl?: SafeUrl;
     private kvaImageObjectUrl?: string;
-    isKvaReadingSaving: boolean = false;
 
     private sanitizer = inject(DomSanitizer);
 
     private search$ = new Subject<KvaReadingSearchFilter>();
+
+    // modal state
+    kvaEditVisible = false;
+    kvaToEdit: KvaReading | null = null;
+
+    // per-row loading flags
+    editBtnLoading: Record<number, boolean> = {};
 
     ngOnInit(): void {
         // Generators dropdown
@@ -319,17 +327,6 @@ export class KvaReadingHistoryComponent implements OnInit {
         return index;
     }
 
-    getOverlayOptions(): OverlayOptions {
-        return {
-            listener: (event: Event, options?: OverlayListenerOptions) => {
-                if (options?.type === 'scroll') {
-                    return false;
-                }
-                return options?.valid;
-            }
-        };
-    }
-
     // See KVA reading image
     onKvaReadingViewImage(kvaReading: KvaReading) {
         if (!kvaReading?.id) return;
@@ -360,26 +357,6 @@ export class KvaReadingHistoryComponent implements OnInit {
             });
     }
 
-    // Edit inside table functions
-    onRowEditInit(kvaReading: KvaReading) {
-        // Keep a clone so we can revert on cancel or error
-        this.clonedKvaReading[kvaReading.id] = { ...kvaReading };
-    }
-
-    onRowEditSave(kvaReading: KvaReading) {
-        this.updateKvaReading(kvaReading);
-    }
-
-    onRowEditCancel(kvaReading: KvaReading, index: number) {
-        // user canceled → revert from clone
-        const original = this.clonedKvaReading[kvaReading.id];
-        if (original) {
-            this.kvaReadings[index] = original;
-            delete this.clonedKvaReading[kvaReading.id];
-        }
-        this.table.cancelRowEdit(kvaReading);
-    }
-
     updateKvaReading(kvaReading: KvaReading) {
         console.log('kva reading to update', kvaReading);
 
@@ -389,7 +366,7 @@ export class KvaReadingHistoryComponent implements OnInit {
             return;
         }
 
-        this.isKvaReadingSaving = true;
+        this.setEditLoading(kvaReading.id, true);
 
         let request: UpdateKVAReadingRequest = {
             id: kvaReading.id,
@@ -403,13 +380,11 @@ export class KvaReadingHistoryComponent implements OnInit {
 
                 this.kvaReadings[this.findIndexById(response.reading.id)] = response.reading;
 
-                this.isKvaReadingSaving = false;
-                this.table.cancelRowEdit(kvaReading);
+                this.setEditLoading(kvaReading.id, false);
             },
             error: (err) => {
                 console.log(err);
-                this.isKvaReadingSaving = false;
-                this.table.cancelRowEdit(kvaReading);
+                this.setEditLoading(kvaReading.id, false);
             }
         });
     }
@@ -432,6 +407,25 @@ export class KvaReadingHistoryComponent implements OnInit {
         a.href = this.kvaImageObjectUrl;
         a.download = `kva-reading-${Date.now()}.jpg`;
         a.click();
+    }
+
+    // Kva Reading edit modal functions
+    openKvaEditModal(kvaReading: KvaReading) {
+        this.kvaToEdit = kvaReading;
+        this.kvaEditVisible = true;
+    }
+
+    onKvaEditSave(updated: KvaReading) {
+        // call your existing API method
+        this.updateKvaReading(updated);
+    }
+
+    onKvaEditCancel() {
+        // optional hook
+    }
+
+    setEditLoading(id: number, value: boolean) {
+        this.editBtnLoading[id] = value;
     }
 
     protected readonly KvaReadingStatus = KvaReadingStatus;

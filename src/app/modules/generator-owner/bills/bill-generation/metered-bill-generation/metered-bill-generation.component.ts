@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit, output, ViewChild } from '@angular/core';
+import { Component, inject, Input, OnInit, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Bill, KvaReading, Lookup } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
@@ -14,20 +14,24 @@ import { Tag } from 'primeng/tag';
 import { GenerateBillsForMeteredSubscribersRequest, UpdateKVAReadingRequest } from '@/core/services/api/request';
 import { NotificationService } from '@/core/services/notification.service';
 import { DecimalPipe } from '@angular/common';
-import { InputNumber } from 'primeng/inputnumber';
-import { Select } from 'primeng/select';
 import { SelectOptionStrValue } from '@/core/dtos/dto';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { finalize } from 'rxjs';
 import { Dialog } from 'primeng/dialog';
 import { Skeleton } from 'primeng/skeleton';
+import { LbPhonePipe } from '@/core/pipes/pipes';
+import { provideNgxMask } from 'ngx-mask';
+import {
+    KvaEditModalComponent
+} from '@/modules/generator-owner/kva-reading-history/kva-edit-modal/kva-edit-modal.component';
 
 @Component({
     selector: 'app-metered-bill-generation',
-    imports: [FormsModule, Button, IconField, InputIcon, InputText, TableModule, Tag, DecimalPipe, InputNumber, Select, Dialog, Skeleton],
+    imports: [FormsModule, Button, IconField, InputIcon, InputText, TableModule, Tag, DecimalPipe, Dialog, Skeleton, LbPhonePipe, KvaEditModalComponent],
     templateUrl: './metered-bill-generation.component.html',
-    styleUrl: './metered-bill-generation.component.scss'
+    styleUrl: './metered-bill-generation.component.scss',
+    providers: [provideNgxMask()]
 })
 export class MeteredBillGenerationComponent implements OnInit {
     generatorId: number = 0;
@@ -55,9 +59,6 @@ export class MeteredBillGenerationComponent implements OnInit {
     clonedKvaReading: { [id: string]: KvaReading } = {};
 
     // Update KvaReadings vars
-    isKvaReadingSaving: boolean = false;
-    @ViewChild('dt') table!: Table;
-
     kvaReadingStatuses: SelectOptionStrValue[] = [];
 
     isBillsGenerating: boolean = false;
@@ -69,6 +70,13 @@ export class MeteredBillGenerationComponent implements OnInit {
     private kvaImageObjectUrl?: string;
 
     private sanitizer = inject(DomSanitizer);
+
+    // modal state
+    kvaEditVisible = false;
+    kvaToEdit: KvaReading | null = null;
+
+    // per-row loading flags
+    editBtnLoading: Record<number, boolean> = {};
 
     ngOnInit() {
         this.generatorOwnerService.getLookup({ domain: LookupDomain.KVA_READING_STATUS }).subscribe({
@@ -185,20 +193,6 @@ export class MeteredBillGenerationComponent implements OnInit {
         this.clonedKvaReading[kvaReading.id] = { ...kvaReading };
     }
 
-    onRowEditSave(kvaReading: KvaReading) {
-        this.updateKvaReading(kvaReading);
-    }
-
-    onRowEditCancel(kvaReading: KvaReading, index: number) {
-        // user canceled → revert from clone
-        const original = this.clonedKvaReading[kvaReading.id];
-        if (original) {
-            this.kvaReadings[index] = original;
-            delete this.clonedKvaReading[kvaReading.id];
-        }
-        this.table.cancelRowEdit(kvaReading);
-    }
-
     updateKvaReading(kvaReading: KvaReading) {
         console.log('kva reading to update', kvaReading);
 
@@ -208,7 +202,7 @@ export class MeteredBillGenerationComponent implements OnInit {
             return;
         }
 
-        this.isKvaReadingSaving = true;
+        this.setEditLoading(kvaReading.id, true);
 
         let request: UpdateKVAReadingRequest = {
             id: kvaReading.id,
@@ -226,13 +220,11 @@ export class MeteredBillGenerationComponent implements OnInit {
                     this.kvaReadings.splice(this.findIndexById(response.reading.id), 1);
                 }
 
-                this.isKvaReadingSaving = false;
-                this.table.cancelRowEdit(kvaReading);
+                this.setEditLoading(kvaReading.id, false);
             },
             error: (err) => {
                 console.log(err);
-                this.isKvaReadingSaving = false;
-                this.table.cancelRowEdit(kvaReading);
+                this.setEditLoading(kvaReading.id, false);
             }
         });
     }
@@ -344,5 +336,24 @@ export class MeteredBillGenerationComponent implements OnInit {
         a.href = this.kvaImageObjectUrl;
         a.download = `kva-reading-${Date.now()}.jpg`;
         a.click();
+    }
+
+    // Kva Reading edit modal functions
+    openKvaEditModal(kvaReading: KvaReading) {
+        this.kvaToEdit = kvaReading;
+        this.kvaEditVisible = true;
+    }
+
+    onKvaEditSave(updated: KvaReading) {
+        // call your existing API method
+        this.updateKvaReading(updated);
+    }
+
+    onKvaEditCancel() {
+        // optional hook
+    }
+
+    setEditLoading(id: number, value: boolean) {
+        this.editBtnLoading[id] = value;
     }
 }

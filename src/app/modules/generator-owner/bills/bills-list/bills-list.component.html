@@ -123,7 +123,6 @@
         #dt
         [value]="bills"
         dataKey="id"
-        editMode="row"
         [rows]="rows"
         [totalRecords]="totalRecords"
         responsiveLayout="scroll"
@@ -138,6 +137,9 @@
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
         [(selection)]="selectedBills"
         (onPage)="pageChange($event)"
+        [expandedRowKeys]="expandedRows"
+        (onRowExpand)="onRowExpand($event)"
+        (onRowCollapse)="onRowCollapse($event)"
     >
         <ng-template #caption>
             <!-- Top row: New / Export / Download QR PDF -->
@@ -155,13 +157,18 @@
 
             <!-- Second row: Clear + Search -->
             <div class="flex justify-between items-center flex-column sm:flex-row gap-3">
-                <button
-                    pButton
-                    label="Clear"
-                    class="p-button-outlined mb-2"
-                    icon="pi pi-filter-slash"
-                    (click)="clear(dt)"
-                ></button>
+                <div>
+                    <button
+                        pButton
+                        label="Clear"
+                        class="p-button-outlined mb-2 me-2"
+                        icon="pi pi-filter-slash"
+                        (click)="clear(dt)"
+                    ></button>
+
+                    <p-button label="Expand All" icon="pi pi-plus" (onClick)="expandAll()" variant="outlined" class="me-2"/>
+                    <p-button label="Collapse All" icon="pi pi-minus" (onClick)="collapseAll()" variant="outlined" />
+                </div>
 
             </div>
         </ng-template>
@@ -191,21 +198,6 @@
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="currentKva">
-                    <div class="flex justify-between items-center gap-2">
-                        Current KWH
-                        <p-sortIcon field="currentKva" />
-                    </div>
-                </th>
-
-                <th class="no-wrap-text" pSortableColumn="notes" style="min-width: 14rem">
-                    <div class="flex justify-between items-center gap-2">
-                        Notes
-                        <p-sortIcon field="notes" />
-                    </div>
-                </th>
-
-
                 <th class="no-wrap-text" pSortableColumn="amount">
                     <div class="flex justify-between items-center gap-2">
                         Amount
@@ -221,74 +213,54 @@
                 </th>
             </tr>
         </ng-template>
-        <ng-template #body let-bill let-editing="editing" let-ri="rowIndex">
-            <tr [pEditableRow]="bill" [pSelectableRow]="bill">
-                <td>
+        <ng-template #body let-bill let-expanded="expanded">
+            <tr [pSelectableRow]="bill"
+                [pRowToggler]="bill"
+                class="cursor-pointer">
+                <td (click)="$event.stopPropagation()">
                     <p-tableCheckbox [value]="bill" />
                 </td>
-
                 <!-- ACTIONS (edit / save / cancel) -->
-                <td>
+                <td (click)="$event.stopPropagation()">
                     <div class="flex items-center justify-center gap-2">
-                        @if(!editing){
-                            <!-- start editing -->
-                            <p-button
-                                pInitEditableRow
-                                icon="pi pi-pencil"
-                                styleClass="p-button-sm"
-                                (click)="onRowEditInit(bill)"
-                                severity="info"
-                                rounded
-                                [disabled]="bill.statusCode !== BillStatus.PENDING"
-                            />
+                        <p-button
+                            icon="pi pi-pencil"
+                            styleClass="p-button-sm"
+                            (click)="openBillEditModal(bill)"
+                            severity="info"
+                            rounded
+                            [disabled]="bill.statusCode !== BillStatus.PENDING"
+                            [loading]="editBtnLoading[bill.id]"
+                        />
 
-                            <!-- Paid Bill -->
-                            <p-button
-                                icon="pi pi-dollar"
-                                styleClass="p-button-sm"
-                                (click)="payBill(bill)"
-                                severity="primary"
-                                rounded
-                                [disabled]="bill.statusCode !== BillStatus.PENDING"
-                                [loading]="isBillSaving"
-                            />
+                        <!-- Paid Bill -->
+                        <p-button
+                            icon="pi pi-dollar"
+                            styleClass="p-button-sm"
+                            (click)="payBill(bill)"
+                            severity="primary"
+                            rounded
+                            [disabled]="bill.statusCode !== BillStatus.PENDING"
+                            [loading]="editBtnLoading[bill.id]"
+                        />
 
-                            <!-- Cancel Bill -->
-                            <p-button
-                                icon="pi pi-times-circle"
-                                styleClass="p-button-sm"
-                                (click)="cancelBill(bill)"
-                                severity="danger"
-                                rounded
-                                [disabled]="bill.statusCode !== BillStatus.PENDING"
-                                [loading]="isBillSaving"
-                            />
-                        }
+                        <!-- Cancel Bill -->
+                        <p-button
+                            icon="pi pi-times-circle"
+                            styleClass="p-button-sm"
+                            (click)="cancelBill(bill)"
+                            severity="danger"
+                            rounded
+                            [disabled]="bill.statusCode !== BillStatus.PENDING"
+                            [loading]="editBtnLoading[bill.id]"
+                        />
 
-                        @if(editing){
-                            <!-- save -->
-                            <p-button
-                                icon="pi pi-check"
-                                styleClass="p-button-sm"
-                                (click)="onRowEditSave(bill)"
-                                severity="primary"
-                                rounded
-                                [loading]="isBillSaving"
-                            />
-
-                            <!-- cancel -->
-                            <p-button
-                                icon="pi pi-times"
-                                styleClass="p-button-sm"
-                                (click)="onRowEditCancel(bill, ri)"
-                                severity="danger"
-                                rounded
-                            />
-                        }
+                        <i
+                            class="pi text-500"
+                            [ngClass]="expanded ? 'pi-chevron-down' : 'pi-chevron-right'"
+                        ></i>
                     </div>
                 </td>
-
-                <!-- NON-EDITABLE COLUMNS: normal display -->
                 <td>
                     {{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}
                 </td>
@@ -298,59 +270,9 @@
                 <td>
                     {{ bill.billDate | date:'yyyy-MM-dd' }}
                 </td>
-
-                <!-- CURRENT KVA: editable cell -->
                 <td>
-                    <p-cellEditor>
-                        <ng-template #input>
-                            <p-inputnumber
-                                [(ngModel)]="bill.currentKva"
-                                mode="decimal"
-                                [minFractionDigits]="0"
-                                [maxFractionDigits]="4"
-                                class="w-full"
-                            ></p-inputnumber>
-                        </ng-template>
-                        <ng-template #output>
-                            {{ bill.currentKva | number:'1.0-4' }}
-                        </ng-template>
-                    </p-cellEditor>
+                    {{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}
                 </td>
-
-                <!-- NOTES: editable cell -->
-                <td>
-                    <p-cellEditor>
-                        <ng-template #input>
-                            <input
-                                pInputText
-                                [(ngModel)]="bill.notes"
-                                fluid />
-                        </ng-template>
-                        <ng-template #output>
-                            {{ bill.notes }}
-                        </ng-template>
-                    </p-cellEditor>
-                </td>
-
-                <!-- AMOUNT: editable cell -->
-                <td>
-                    <p-cellEditor>
-                        <ng-template #input>
-                            <p-inputnumber
-                                [(ngModel)]="bill.amount"
-                                mode="decimal"
-                                [minFractionDigits]="0"
-                                [maxFractionDigits]="4"
-                                class="w-full"
-                            ></p-inputnumber>
-                        </ng-template>
-                        <ng-template #output>
-                            {{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}
-                        </ng-template>
-                    </p-cellEditor>
-                </td>
-
-                <!-- REST: read only -->
                 <td>
                     <p-tag
                         [value]="bill.statusCode"
@@ -359,16 +281,95 @@
                 </td>
             </tr>
         </ng-template>
+        <ng-template #expandedrow let-bill>
+            <tr>
+                <td colspan="7" class="p-0">
+                    <div class="p-2">
+                        <div class="bill-cards">
+
+                            <!-- Notes (full width) -->
+                            <div class="detail-card detail-card--wide">
+                                <div class="detail-head">
+                                    <i class="pi pi-pencil"></i>
+                                    <span class="detail-label">Notes</span>
+                                </div>
+                                <div class="detail-value">
+                                    {{ bill.notes || '—' }}
+                                </div>
+                            </div>
+
+                            <!-- Row 1: Previous / Current / Amps -->
+                            <div class="detail-card detail-card--third">
+                                <div class="detail-head">
+                                    <i class="pi pi-history"></i>
+                                    <span class="detail-label">Previous KWH</span>
+                                </div>
+                                <div class="detail-value">{{ bill.previousKva ?? '—' }}</div>
+                            </div>
+
+                            <div class="detail-card detail-card--third">
+                                <div class="detail-head">
+                                    <i class="pi pi-arrow-up"></i>
+                                    <span class="detail-label">Current KWH</span>
+                                </div>
+                                <div class="detail-value">{{ bill.currentKva ?? '—' }}</div>
+                            </div>
+
+                            <div class="detail-card detail-card--third">
+                                <div class="detail-head">
+                                    <i class="pi pi-bolt"></i>
+                                    <span class="detail-label">Subscription AMPS</span>
+                                </div>
+                                <div class="detail-value">{{ bill.subscriptionAmps ?? '—' }}</div>
+                            </div>
+
+                            <!-- Row 2: Fees -->
+                            <div class="detail-card detail-card--third">
+                                <div class="detail-head">
+                                    <i class="pi pi-tag"></i>
+                                    <span class="detail-label">KWH Fee</span>
+                                </div>
+                                <div class="detail-value">{{ bill.kvaFee ?? '—' }}</div>
+                            </div>
+
+                            <div class="detail-card detail-card--third">
+                                <div class="detail-head">
+                                    <i class="pi pi-percentage"></i>
+                                    <span class="detail-label">Subscription Fee Var</span>
+                                </div>
+                                <div class="detail-value">{{ bill.subscriptionFeeVar ?? '—' }}</div>
+                            </div>
+
+                            <div class="detail-card detail-card--third">
+                                <div class="detail-head">
+                                    <i class="pi pi-wallet"></i>
+                                    <span class="detail-label">Subscription Fee Fixed</span>
+                                </div>
+                                <div class="detail-value">{{ bill.subscriptionFeeFixed ?? '—' }}</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
         <ng-template #emptymessage>
             <tr>
-                <td colspan="11">No bills found.</td>
+                <td colspan="7">No bills found.</td>
             </tr>
         </ng-template>
         <ng-template #loadingbody>
             <tr>
-                <td colspan="11">Loading bills data. Please wait.</td>
+                <td colspan="7">Loading bills data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>
 
 </div>
+
+<app-bill-edit-modal
+    [(visible)]="editVisible"
+    [bill]="billToEdit"
+    (save)="onBillEditSave($event)"
+    (cancel)="onBillEditCancel()"
+/>

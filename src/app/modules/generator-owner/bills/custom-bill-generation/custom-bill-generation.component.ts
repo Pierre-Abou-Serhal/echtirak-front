@@ -17,10 +17,11 @@ import { SelectOptionNumValue } from '@/core/dtos/dto';
 import { Select } from 'primeng/select';
 import { BillsPreviewComponent } from '@/modules/generator-owner/bills/bills-preview/bills-preview.component';
 import { LbPhonePipe } from '@/core/pipes/pipes';
+import { NgClass } from '@angular/common';
 
 @Component({
     selector: 'app-custom-bill-generation-component',
-    imports: [Button, TableModule, ButtonDirective, IconField, InputIcon, InputText, FormsModule, Tag, Select, BillsPreviewComponent, LbPhonePipe],
+    imports: [Button, TableModule, ButtonDirective, IconField, InputIcon, InputText, FormsModule, Tag, Select, BillsPreviewComponent, LbPhonePipe, NgClass],
     templateUrl: './custom-bill-generation.component.html',
     styleUrl: './custom-bill-generation.component.scss',
     standalone: true
@@ -59,6 +60,9 @@ export class CustomBillGenerationComponent implements OnInit {
     isGeneratorsLoading: boolean = true;
 
     isGeneratingBills: boolean = false;
+
+    // Expandable Rows
+    expandedRows: Record<string, boolean> = {};
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -296,5 +300,24 @@ export class CustomBillGenerationComponent implements OnInit {
                     this.isGeneratingBills = false;
                 }
             });
+    }
+
+    // Expandable row functions
+    onRowExpand(event: any) {
+        const id = event.data?.id;
+        if (id != null) this.expandedRows[String(id)] = true;
+    }
+
+    onRowCollapse(event: any) {
+        const id = event.data?.id;
+        if (id != null) delete this.expandedRows[String(id)];
+    }
+
+    expandAll() {
+        this.expandedRows = Object.fromEntries(this.subscribers.filter((s) => s?.id != null).map((s) => [String(s.id), true]));
+    }
+
+    collapseAll() {
+        this.expandedRows = {};
     }
 }

@@ -17,13 +17,16 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Dialog } from 'primeng/dialog';
 import { NotificationService } from '@/core/services/notification.service';
 import { GetSubscribersResponse } from '@/core/services/api/response';
+import { LbPhonePipe } from '@/core/pipes/pipes';
+import { provideNgxMask } from 'ngx-mask';
 
 @Component({
     selector: 'app-subscribers.component',
-    imports: [IconField, InputIcon, Skeleton, DataView, Tag, FormsModule, InputText, Button, QrScannerComponent, Dialog],
+    imports: [IconField, InputIcon, Skeleton, DataView, Tag, FormsModule, InputText, Button, QrScannerComponent, Dialog, LbPhonePipe],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
-    standalone: true
+    standalone: true,
+    providers: [provideNgxMask()]
 })
 export class SubscribersComponent implements OnInit {
     private readonly billCollectorService = inject(BillCollectorService);

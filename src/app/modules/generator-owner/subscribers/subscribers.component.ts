@@ -29,11 +29,12 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { addLebanonPrefix, stripLebanonPrefix } from '@/core/utils/utils';
 import { LbPhonePipe } from '@/core/pipes/pipes';
+import { NgClass } from '@angular/common';
 
 @Component({
     selector: 'app-subscribers',
     standalone: true,
-    imports: [TableModule, InputIcon, IconField, FormsModule, ButtonDirective, InputText, Button, Tag, Dialog, Select, InputNumber, Textarea, Skeleton, InputMaskModule, InputGroupModule, InputGroupAddonModule, NgxMaskDirective, LbPhonePipe],
+    imports: [TableModule, InputIcon, IconField, FormsModule, ButtonDirective, InputText, Button, Tag, Dialog, Select, InputNumber, Textarea, Skeleton, InputMaskModule, InputGroupModule, InputGroupAddonModule, NgxMaskDirective, LbPhonePipe, NgClass],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
     providers: [provideNgxMask()]
@@ -97,6 +98,9 @@ export class SubscribersComponent implements OnInit {
     // Subscriber Warning vars
     displayWarning: boolean = false;
     forecastWallet: Forecast | null = null;
+
+    // Expandable Rows
+    expandedRows: Record<string, boolean> = {};
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -580,6 +584,25 @@ export class SubscribersComponent implements OnInit {
     closeWarning() {
         this.displayWarning = false;
         this.isSubscriberSaving = false;
+    }
+
+    // Expandable row functions
+    onRowExpand(event: any) {
+        const id = event.data?.id;
+        if (id != null) this.expandedRows[id] = true;
+    }
+
+    onRowCollapse(event: any) {
+        const id = event.data?.id;
+        if (id != null) delete this.expandedRows[id];
+    }
+
+    expandAll() {
+        this.expandedRows = Object.fromEntries(this.subscribers.filter((s) => s?.id != null).map((s) => [String(s.id), true]));
+    }
+
+    collapseAll() {
+        this.expandedRows = {};
     }
 
     protected readonly BillingModel = BillingModel;

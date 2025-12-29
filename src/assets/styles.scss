@@ -88,3 +88,100 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+
+// Bill Expandable Row
+.bill-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.detail-card {
+    padding: .5rem .6rem;
+    border: 1px solid var(--surface-border);
+    border-radius: .75rem;
+    background: var(--surface-0);
+}
+
+.detail-card--wide {
+    flex: 0 0 100%;
+}
+
+/* 3 cards per row on desktop, stack on mobile */
+.detail-card--third {
+    flex: 0 0 100%;
+}
+
+@media (min-width: 768px) {
+    .detail-card--third {
+        flex: 0 0 calc(33.333% - .34rem); /* gap compensation */
+    }
+}
+
+.detail-head {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--text-color-secondary);
+    font-size: .75rem;
+    line-height: 1.1;
+    margin-bottom: .25rem;
+}
+
+.detail-label {
+    font-weight: 600;
+}
+
+.detail-value {
+    font-weight: 600;
+    font-size: .9rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.25;
+}
+
+// Subscribers Expandable Row
+.subscriber-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.detail-card {
+    flex: 1 1 12rem;
+    min-width: 12rem;
+    padding: .5rem .6rem;
+    border: 1px solid var(--surface-border);
+    border-radius: .75rem;
+    background: var(--surface-0);
+}
+
+.detail-card--wide {
+    flex: 1 1 100%;
+    min-width: 100%;
+}
+
+.detail-head {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--text-color-secondary);
+    font-size: .75rem;
+    line-height: 1.1;
+    margin-bottom: .25rem;
+}
+
+.detail-value {
+    font-weight: 600;
+    font-size: .9rem;
+
+    /* no hiding */
+    white-space: normal;
+
+    /* handle long strings nicely (meter numbers, long addresses, etc.) */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.25;
+}

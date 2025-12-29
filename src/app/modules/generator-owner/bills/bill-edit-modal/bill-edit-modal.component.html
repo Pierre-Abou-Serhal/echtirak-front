@@ -1,0 +1,183 @@
+<p-dialog
+    [(visible)]="visible"
+    [style]="{ width: '640px', maxWidth: '95vw' }"
+    [breakpoints]="{ '960px': '75vw', '640px': '95vw' }"
+    header="Edit Bill"
+    [modal]="true"
+    [draggable]="true"
+    [resizable]="true"
+    (onHide)="close()"
+>
+    <ng-template #content>
+        @if (editableBill) {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <!-- Subscriber (disabled) -->
+                <div class="md:col-span-2">
+                    <label for="billSubscriber" class="block text-sm font-semibold mb-2">Subscriber</label>
+                    <input
+                        pInputText
+                        id="billSubscriber"
+                        class="w-full"
+                        [ngModel]="editableBill.subscriberFirstName + ' ' + editableBill.subscriberLastName"
+                        disabled
+                    />
+                </div>
+
+                <!-- Generator (disabled) -->
+                <div>
+                    <label for="billGenerator" class="block text-sm font-semibold mb-2">Generator</label>
+                    <input pInputText id="billGenerator" class="w-full" [ngModel]="editableBill.generatorCode" disabled />
+                </div>
+
+                <!-- Bill Date (disabled) -->
+                <div>
+                    <label for="billDate" class="block text-sm font-semibold mb-2">Bill Date</label>
+                    <input pInputText id="billDate" class="w-full" [ngModel]="(editableBill.billDate | date:'yyyy-MM-dd')" disabled />
+                </div>
+
+                <!-- Status (disabled) -->
+                <div>
+                    <label for="billStatus" class="block text-sm font-semibold mb-2">Status</label>
+                    <input pInputText id="billStatus" class="w-full" [ngModel]="editableBill.statusCode" disabled />
+                </div>
+
+                <!-- Currency (disabled) -->
+                <div>
+                    <label for="billCurrency" class="block text-sm font-semibold mb-2">Currency</label>
+                    <input pInputText id="billCurrency" class="w-full" [ngModel]="editableBill.currencyCode" disabled />
+                </div>
+
+                <!-- Previous KWH (disabled) -->
+                <div>
+                    <label for="billPreviousKva" class="block text-sm font-semibold mb-2">Previous KWH</label>
+                    <p-inputnumber
+                        inputId="billPreviousKva"
+                        [ngModel]="editableBill.previousKva"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                        [disabled]="true"
+                    ></p-inputnumber>
+                </div>
+
+                <!-- Subscription AMPS (disabled) -->
+                <div>
+                    <label for="billSubscriptionAmps" class="block text-sm font-semibold mb-2">Subscription AMPS</label>
+                    <p-inputnumber
+                        inputId="billSubscriptionAmps"
+                        [ngModel]="editableBill.subscriptionAmps"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                        [disabled]="true"
+                    ></p-inputnumber>
+                </div>
+
+                <!-- KWH Fee (disabled) -->
+                <div class="md:col-span-2">
+                    <label for="billKvaFee" class="block text-sm font-semibold mb-2">KWH Fee</label>
+                    <p-inputnumber
+                        inputId="billKvaFee"
+                        [ngModel]="editableBill.kvaFee"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                        [disabled]="true"
+                    ></p-inputnumber>
+                </div>
+
+                <!-- Subscription Fee Var (disabled) -->
+                <div>
+                    <label for="billSubFeeVar" class="block text-sm font-semibold mb-2">Subscription Fee Var</label>
+                    <p-inputnumber
+                        inputId="billSubFeeVar"
+                        [ngModel]="editableBill.subscriptionFeeVar"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                        [disabled]="true"
+                    ></p-inputnumber>
+                </div>
+
+                <!-- Subscription Fee Fixed (disabled) -->
+                <div>
+                    <label for="billSubFeeFixed" class="block text-sm font-semibold mb-2">Subscription Fee Fixed</label>
+                    <p-inputnumber
+                        inputId="billSubFeeFixed"
+                        [ngModel]="editableBill.subscriptionFeeFixed"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                        [disabled]="true"
+                    ></p-inputnumber>
+                </div>
+
+                <!-- Current KWH (editable) + validation -->
+                <div>
+                    <label for="billCurrentKva" class="block text-sm font-semibold mb-2">Current KWH</label>
+                    <p-inputnumber
+                        inputId="billCurrentKva"
+                        [(ngModel)]="editableBill.currentKva"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                    ></p-inputnumber>
+
+                    @if (submitted && isCurrentKvaInvalid()) {
+                        <small class="text-red-500">
+                            Current KWH must be greater than or equal to Previous KWH.
+                        </small>
+                    }
+                </div>
+
+                <!-- Amount (editable) + validation -->
+                <div>
+                    <label for="billAmount" class="block text-sm font-semibold mb-2">Amount</label>
+                    <p-inputnumber
+                        inputId="billAmount"
+                        [(ngModel)]="editableBill.amount"
+                        mode="decimal"
+                        [min]="0"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                    ></p-inputnumber>
+
+                    @if (submitted && isAmountInvalid()) {
+                        <small class="text-red-500">
+                            Amount is required and must be positive.
+                        </small>
+                    }
+                </div>
+
+                <!-- Notes (editable, full width) -->
+                <div class="md:col-span-2">
+                    <label for="billNotes" class="block text-sm font-semibold mb-2">Notes</label>
+                    <textarea
+                        pTextarea
+                        id="billNotes"
+                        rows="4"
+                        class="w-full"
+                        [(ngModel)]="editableBill.notes"
+                        placeholder="Write notes..."
+                    ></textarea>
+                </div>
+
+            </div>
+        }
+    </ng-template>
+
+    <ng-template #footer>
+        <div class="flex justify-end gap-2">
+            <p-button label="Cancel" icon="pi pi-times" text (click)="close()"></p-button>
+            <p-button label="Save" icon="pi pi-check" (click)="submit()" severity="primary"></p-button>
+        </div>
+    </ng-template>
+</p-dialog>
