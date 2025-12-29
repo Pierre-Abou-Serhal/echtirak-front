@@ -168,7 +168,7 @@
                     <p-tableCheckbox [value]="rate" />
                 </td>
                 <td>
-                    <p-button icon="pi pi-pencil" size="small" (click)="editCurrencyRate(rate)" />
+                    <p-button icon="pi pi-pencil" styleClass="p-button-sm me-2" (click)="editCurrencyRate(rate)" severity="info" rounded/>
                 </td>
                 <td>{{ rate.date | date:'yyyy-MM-dd' }}</td>
                 <td>{{ rate.fromCurrencyCode }}</td>

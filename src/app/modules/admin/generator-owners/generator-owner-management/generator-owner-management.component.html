@@ -13,7 +13,9 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold mb-2">Username</label>
+                            <label class="block text-sm font-semibold mb-2">
+                                Username <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i>
+                            </label>
                             <input pInputText class="w-full" formControlName="username" [invalid]="isInvalid('username')" />
                             @if (isInvalid('username')) {
                                 <p-message severity="error" size="small" variant="simple">Username is required.</p-message>
@@ -21,13 +23,16 @@
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold mb-2">Password</label>
+                            <label class="block text-sm font-semibold mb-2">
+                                Password @if (!isEditMode) { <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i> }</label>
                             <input pInputText type="password" class="w-full" formControlName="password" [invalid]="isInvalid('password')" />
-                            @if (isInvalid('password')) {
+
+                            @if (!isEditMode && isInvalid('password')) {
                                 <p-message severity="error" size="small" variant="simple">
-                                    @if (!isEditMode) { Password is required (min 6). } @else { Invalid password. }
+                                    Password is required (min 6 characters).
                                 </p-message>
                             }
+
                             @if (isEditMode) {
                                 <small class="text-surface-500">Leave empty if you don’t want to change it.</small>
                             }
@@ -43,7 +48,7 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold mb-2">First Name</label>
+                            <label class="block text-sm font-semibold mb-2">First Name <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i></label>
                             <input pInputText class="w-full" formControlName="firstName" [invalid]="isInvalid('firstName')" />
                             @if (isInvalid('firstName')) {
                                 <p-message severity="error" size="small" variant="simple">First name is required.</p-message>
@@ -51,7 +56,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold mb-2">Last Name</label>
+                            <label class="block text-sm font-semibold mb-2">Last Name <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i></label>
                             <input pInputText class="w-full" formControlName="lastName" [invalid]="isInvalid('lastName')" />
                             @if (isInvalid('lastName')) {
                                 <p-message severity="error" size="small" variant="simple">Last name is required.</p-message>
@@ -59,7 +64,7 @@
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold mb-2">Business Name</label>
+                            <label class="block text-sm font-semibold mb-2">Business Name <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i></label>
                             <input pInputText class="w-full" formControlName="businessName" [invalid]="isInvalid('businessName')" />
                             @if (isInvalid('businessName')) {
                                 <p-message severity="error" size="small" variant="simple">Business name is required.</p-message>
@@ -67,7 +72,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold mb-2">Phone Number</label>
+                            <label class="block text-sm font-semibold mb-2">Phone Number <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i></label>
 
                             <p-inputgroup>
                                 <p-inputgroup-addon>+961</p-inputgroup-addon>
@@ -88,11 +93,8 @@
 
                         <div>
                             <label class="block text-sm font-semibold mb-2">SMS Display Name</label>
-                            <input pInputText class="w-full" formControlName="smsDisplayName" [invalid]="isInvalid('smsDisplayName')" />
-                            @if (isInvalid('smsDisplayName')) {
-                                <p-message severity="error" size="small" variant="simple">SMS display name is required.</p-message>
-                            }
-                            <small class="text-surface-500">Example: “MyCompany”.</small>
+                            <input pInputText class="w-full" formControlName="smsDisplayName" />
+                            <small class="text-surface-500">Optional. Example: “MyCompany”.</small>
                         </div>
                     </div>
                 </div>
@@ -109,35 +111,37 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold mb-2">Grace Period Days</label>
-                            <p-inputNumber
-                                class="w-full"
-                                formControlName="gracePeriodDays"
-                                [min]="0"
-                            ></p-inputNumber>
-                            <small class="text-surface-500">Days allowed before penalties/actions.</small>
+                            <p-inputNumber class="w-full" formControlName="gracePeriodDays" [min]="0"></p-inputNumber>
+                            @if (isInvalid('gracePeriodDays')) {
+                                <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
+                            }
+                            <small class="text-surface-500">Optional.</small>
                         </div>
 
                         <div>
                             <label class="block text-sm font-semibold mb-2">Billing Cycle Days</label>
-                            <p-inputNumber
-                                class="w-full"
-                                formControlName="billingCycleDays"
-                            ></p-inputNumber>
+                            <p-inputNumber class="w-full" formControlName="billingCycleDays" [min]="0"></p-inputNumber>
                             @if (isInvalid('billingCycleDays')) {
-                                <p-message severity="error" size="small" variant="simple">Billing cycle days must be positive.</p-message>
+                                <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
                             }
+                            <small class="text-surface-500">Optional (default used if empty).</small>
                         </div>
 
                         <div>
                             <label class="block text-sm font-semibold mb-2">Billing Start Date</label>
                             <p-datePicker class="w-full" formControlName="billingStartDate" [showTime]="false"></p-datePicker>
-                            @if (isInvalid('billingStartDate')) {
-                                <p-message severity="error" size="small" variant="simple">Billing start date is required.</p-message>
-                            }
+                            <small class="text-surface-500">Optional.</small>
                         </div>
 
                         <div class="md:col-span-2 border-t pt-4 mt-2">
                             <h4 class="font-semibold mb-3">Pricing</h4>
+
+                            @if (!isEditMode) {
+                                <small class="text-surface-500 block mb-3">
+                                    Price per Subscriber and Price per SMS are required when creating a Generator Owner.
+                                </small>
+                            }
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-semibold mb-2">Fixed Platform Fee (Monthly)</label>
@@ -148,12 +152,18 @@
                                         [minFractionDigits]="0"
                                         [maxFractionDigits]="4"
                                         [min]="0"
-                                    >
-                                    </p-inputNumber>
+                                    ></p-inputNumber>
+                                    @if (isInvalid('fixedPlatformFeeMonthly')) {
+                                        <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
+                                    }
+                                    <small class="text-surface-500">Optional.</small>
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-semibold mb-2">Price per Subscriber (Monthly)</label>
+                                    <label class="block text-sm font-semibold mb-2">
+                                        Price per Subscriber (Monthly)
+                                        @if (!isEditMode) { <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i> }
+                                    </label>
                                     <p-inputNumber
                                         class="w-full"
                                         formControlName="pricePerSubscriberMonthly"
@@ -161,11 +171,21 @@
                                         [minFractionDigits]="0"
                                         [maxFractionDigits]="4"
                                         [min]="0"
+                                        [invalid]="!isEditMode && isInvalid('pricePerSubscriberMonthly')"
                                     ></p-inputNumber>
+
+                                    @if (!isEditMode && isInvalid('pricePerSubscriberMonthly')) {
+                                        <p-message severity="error" size="small" variant="simple">
+                                            Required on create and must be greater than 0.
+                                        </p-message>
+                                    }
                                 </div>
 
                                 <div class="md:col-span-2">
-                                    <label class="block text-sm font-semibold mb-2">Price per SMS</label>
+                                    <label class="block text-sm font-semibold mb-2">
+                                        Price per SMS
+                                        @if (!isEditMode) { <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i> }
+                                    </label>
                                     <p-inputNumber
                                         class="w-full"
                                         formControlName="pricePerSms"
@@ -173,7 +193,14 @@
                                         [minFractionDigits]="0"
                                         [maxFractionDigits]="4"
                                         [min]="0"
+                                        [invalid]="!isEditMode && isInvalid('pricePerSms')"
                                     ></p-inputNumber>
+
+                                    @if (!isEditMode && isInvalid('pricePerSms')) {
+                                        <p-message severity="error" size="small" variant="simple">
+                                            Required on create and must be greater than 0.
+                                        </p-message>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -191,40 +218,35 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     <div>
                                         <label class="block text-sm font-semibold mb-2">Yearly Discount (Fixed Fee)</label>
-                                        <p-inputNumber
-                                            class="w-full"
-                                            formControlName="yearlyDiscountFixedFee"
-                                            mode="decimal"
-                                            [minFractionDigits]="0"
-                                            [maxFractionDigits]="4"
-                                            [min]="0"
-                                        ></p-inputNumber>
+                                        <p-inputNumber class="w-full" formControlName="yearlyDiscountFixedFee" [min]="0"></p-inputNumber>
+                                        @if (isInvalid('yearlyDiscountFixedFee')) {
+                                            <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
+                                        }
                                     </div>
 
                                     <div>
                                         <label class="block text-sm font-semibold mb-2">Yearly Discount (Per Subscriber)</label>
-                                        <p-inputNumber
-                                            class="w-full"
-                                            formControlName="yearlyDiscountPerSubscriber"
-                                            mode="decimal"
-                                            [minFractionDigits]="0"
-                                            [maxFractionDigits]="4"
-                                            [min]="0"
-                                        ></p-inputNumber>
+                                        <p-inputNumber class="w-full" formControlName="yearlyDiscountPerSubscriber" [min]="0"></p-inputNumber>
+                                        @if (isInvalid('yearlyDiscountPerSubscriber')) {
+                                            <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
+                                        }
                                     </div>
 
                                     <div class="md:col-span-2">
                                         <label class="block text-sm font-semibold mb-2">Yearly Discount (Per SMS)</label>
-                                        <p-inputNumber
-                                            class="w-full"
-                                            formControlName="yearlyDiscountPerSms"
-                                            mode="decimal"
-                                            [minFractionDigits]="0"
-                                            [maxFractionDigits]="4"
-                                            [min]="0"
-                                        ></p-inputNumber>
+                                        <p-inputNumber class="w-full" formControlName="yearlyDiscountPerSms" [min]="0"></p-inputNumber>
+                                        @if (isInvalid('yearlyDiscountPerSms')) {
+                                            <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
+                                        }
                                     </div>
                                 </div>
+
+                                <!-- Cross-field rule: at least one discount should be provided -->
+                                @if (form.controls.isYearlyPayment.value && form.hasError('yearlyDiscountRequired') && (form.touched || form.dirty)) {
+                                    <p-message severity="error" size="small" variant="simple" class="mt-3 block">
+                                        Provide at least one yearly discount when Yearly Payment is enabled.
+                                    </p-message>
+                                }
                             } @else {
                                 <small class="text-surface-500 block mt-3">Discount fields are hidden when yearly payment is disabled.</small>
                             }
@@ -242,94 +264,67 @@
                             @if (form.controls.freeTrialEnabled.value) {
                                 <div class="mt-4">
                                     <label class="block text-sm font-semibold mb-2">Free Trial Months</label>
-                                    <p-inputNumber
-                                        class="w-full"
-                                        formControlName="freeTrialMonths"
-                                        mode="decimal"
-                                        [minFractionDigits]="0"
-                                        [maxFractionDigits]="4"
-                                        [min]="0"
-                                    ></p-inputNumber>
+                                    <p-inputNumber class="w-full" formControlName="freeTrialMonths" [min]="0"></p-inputNumber>
+                                    @if (isInvalid('freeTrialMonths')) {
+                                        <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
+                                    }
                                 </div>
                             }
                         </div>
 
-                        <div class="md:col-span-2 border-t pt-4 mt-2">
-                            <h4 class="font-semibold mb-3">Wallet</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-semibold mb-2">Initial Balance</label>
-                                    <p-inputNumber
-                                        class="w-full"
-                                        formControlName="initialBalance"
-                                        mode="decimal"
-                                        [minFractionDigits]="0"
-                                        [maxFractionDigits]="4"
-                                        [min]="0"
-                                    ></p-inputNumber>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-semibold mb-2">Override Wallet Cap</label>
-                                    <p-inputNumber
-                                        class="w-full"
-                                        formControlName="overrideWalletCap"
-                                        mode="decimal"
-                                        [minFractionDigits]="0"
-                                        [maxFractionDigits]="4"
-                                        [min]="0"
-                                    ></p-inputNumber>
-                                    <small class="text-surface-500">Set to 0 to disable override.</small>
-                                </div>
-
-                                @if ((form.controls.overrideWalletCap.value ?? 0) > 0) {
-                                    <div class="md:col-span-2">
-                                        <label class="block text-sm font-semibold mb-2">Override Cap Reason</label>
-                                        <input pInputText class="w-full" formControlName="overrideCapReason" />
+                        <!-- Wallet: create only -->
+                        @if (!isEditMode) {
+                            <div class="md:col-span-2 border-t pt-4 mt-2">
+                                <h4 class="font-semibold mb-3">Wallet</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-2">Initial Balance</label>
+                                        <p-inputNumber class="w-full" formControlName="initialBalance" [min]="0"></p-inputNumber>
+                                        @if (isInvalid('initialBalance')) {
+                                            <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
+                                        }
+                                        <small class="text-surface-500">Optional.</small>
                                     </div>
-                                }
 
-                                <div>
-                                    <label class="block text-sm font-semibold mb-2">Override Cap At</label>
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-2">Override Wallet Cap</label>
+                                        <p-inputNumber class="w-full" formControlName="overrideWalletCap" [min]="0"></p-inputNumber>
+                                        @if (isInvalid('overrideWalletCap')) {
+                                            <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
+                                        }
+                                        <small class="text-surface-500">Optional.</small>
+                                    </div>
 
-                                    <p-datepicker
-                                        inputId="filterBillDateFrom"
-                                        formControlName="overrideCapSetAt"
-                                        [showIcon]="true"
-                                        [iconDisplay]="'input'"
-                                        dateFormat="yy-mm-dd"
-                                        appendTo="body"
-                                        class="w-full"
-                                    ></p-datepicker>
+                                    @if ((form.controls.overrideWalletCap.value ?? 0) > 0) {
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-semibold mb-2">Override Cap Reason</label>
+                                            <input pInputText class="w-full" formControlName="overrideCapReason" />
+                                            <small class="text-surface-500">Optional (but recommended when overriding cap).</small>
+                                        </div>
+                                    }
 
-                                </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-2">Payment Method</label>
+                                        <p-select
+                                            class="w-full"
+                                            [options]="paymentMethods"
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            formControlName="paymentMethod"
+                                            [loading]="isPaymentMethodLoading"
+                                            placeholder="Select a payment method"
+                                        ></p-select>
+                                        <small class="text-surface-500">Optional.</small>
+                                    </div>
 
-                                <div>
-                                    <label class="block text-sm font-semibold mb-2">Payment Method</label>
-                                    <p-select
-                                        class="w-full"
-                                        [options]="paymentMethods"
-                                        optionLabel="label"
-                                        optionValue="value"
-                                        formControlName="paymentMethod"
-                                        [loading]="isPaymentMethodLoading"
-                                        placeholder="Select a payment method"
-                                    ></p-select>
-
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-semibold mb-2">Reference Number</label>
-                                    <input
-                                        pInputText
-                                        type="text"
-                                        class="w-full"
-                                        formControlName="topUpReferenceNumber"
-                                    />
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-2">Reference Number</label>
+                                        <input pInputText type="text" class="w-full" formControlName="topUpReferenceNumber" />
+                                        <small class="text-surface-500">Optional.</small>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
+                        }
                     </div>
                 </div>
             </section>
@@ -354,7 +349,7 @@
                     <div class="p-3 border rounded-lg" [formGroupName]="$index">
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                             <div>
-                                <label class="block text-sm font-semibold mb-2">From</label>
+                                <label class="block text-sm font-semibold mb-2">From <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i></label>
                                 <p-select
                                     class="w-full"
                                     [options]="currencies"
@@ -364,10 +359,13 @@
                                     [loading]="isCurrenciesLoading"
                                     [invalid]="isCurrencyRateInvalid(group, 'fromCurrencyCode')"
                                 ></p-select>
+                                @if (isCurrencyRateInvalid(group, 'fromCurrencyCode')) {
+                                    <p-message severity="error" size="small" variant="simple">Required.</p-message>
+                                }
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold mb-2">To</label>
+                                <label class="block text-sm font-semibold mb-2">To <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i></label>
                                 <p-select
                                     class="w-full"
                                     [options]="currencies"
@@ -377,15 +375,21 @@
                                     [loading]="isCurrenciesLoading"
                                     [invalid]="isCurrencyRateInvalid(group, 'toCurrencyCode')"
                                 ></p-select>
+                                @if (isCurrencyRateInvalid(group, 'toCurrencyCode')) {
+                                    <p-message severity="error" size="small" variant="simple">Required.</p-message>
+                                }
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold mb-2">Date</label>
+                                <label class="block text-sm font-semibold mb-2">Date <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i></label>
                                 <p-datePicker class="w-full" formControlName="date" [showTime]="false"></p-datePicker>
+                                @if (isCurrencyRateInvalid(group, 'date')) {
+                                    <p-message severity="error" size="small" variant="simple">Required.</p-message>
+                                }
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold mb-2">Rate</label>
+                                <label class="block text-sm font-semibold mb-2">Rate <i class="pi pi-asterisk text-red-300" style="font-size: 0.8rem"></i></label>
                                 <p-inputNumber
                                     class="w-full"
                                     formControlName="rate"
@@ -394,6 +398,9 @@
                                     [maxFractionDigits]="4"
                                     [min]="0"
                                 ></p-inputNumber>
+                                @if (isCurrencyRateInvalid(group, 'rate')) {
+                                    <p-message severity="error" size="small" variant="simple">Required and must be 0 or greater.</p-message>
+                                }
                             </div>
                         </div>
 
@@ -413,7 +420,7 @@
         </section>
 
         <!-- Footer actions -->
-        <div class="mt-6 flex justify-end gap-2 sticky bottom-0 bg-white/80 backdrop-blur py-3">
+        <div class="mt-6 flex justify-end gap-2 sticky bottom-0 backdrop-blur py-3">
             <button
                 pButton
                 type="button"

@@ -191,33 +191,40 @@ export interface GetDashboardQueryParams {
 }
 
 export interface UpdateGeneratorOwnerRequest {
-    id: number;
+    id: number; // -1 for create
     username: string;
-    password: string;
+    password?: string | null; // required on create only
     firstName: string;
     lastName: string;
     businessName: string;
     phoneNumber: string;
-    smsDisplayName: string;
-    gracePeriodDays: number;
-    currencyRates: CurrencyRate[];
-    fixedPlatformFeeMonthly: number;
+    smsDisplayName?: string | null;
+    gracePeriodDays?: number | null;
+
+    // Currency rates
+    currencyRates?: CurrencyRate[] | null;
+
+    // Pricing
+    fixedPlatformFeeMonthly?: number | null;
     pricePerSubscriberMonthly: number;
     pricePerSms: number;
+
     isYearlyPayment: boolean;
-    yearlyDiscountFixedFee: number;
-    yearlyDiscountPerSubscriber: number;
-    yearlyDiscountPerSms: number;
+    yearlyDiscountFixedFee?: number | null;
+    yearlyDiscountPerSubscriber?: number | null;
+    yearlyDiscountPerSms?: number | null;
+
     freeTrialMonths: number;
     freeTrialEnabled: boolean;
     billingCycleDays: number;
-    billingStartDate: string;
-    initialBalance: number;
-    paymentMethod: string;
-    overrideWalletCap: number;
-    overrideCapReason: string;
-    overrideCapSetAt: string;
-    topUpReferenceNumber: string;
+    billingStartDate?: string | null;
+
+    // Wallet (create-only in UI)
+    initialBalance?: number | null;
+    paymentMethod?: string | null;
+    overrideWalletCap?: number | null;
+    overrideCapReason?: string | null;
+    topUpReferenceNumber?: string | null;
 }
 
 export interface ReactivateGeneratorOwnerRequest {
