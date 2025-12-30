@@ -557,12 +557,7 @@ export class SubscribersComponent implements OnInit {
             next: (response) => {
                 const blob = response.body!;
                 const contentDisposition = response.headers.get('content-disposition') ?? '';
-                let fileName = 'file.pdf';
-
-                const match = /filename="?([^"]+)"?/i.exec(contentDisposition);
-                if (match?.[1]) {
-                    fileName = match[1];
-                }
+                let fileName = this.getFilenameFromContentDisposition(contentDisposition, 'subscribers-qr-codes.pdf');
 
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -578,6 +573,34 @@ export class SubscribersComponent implements OnInit {
                 this.isDownloadingSubscribersQrCodePdf = false;
             }
         });
+    }
+
+    private getFilenameFromContentDisposition(cd: string | null, fallback: string) {
+        if (!cd) return fallback;
+
+        // Split: attachment; filename=...; filename*=...
+        const parts: string[] = cd.split(';').map(p => p.trim());
+
+        const getParam = (name: string): string | null => {
+            const part: string | undefined = parts.find(p => p.toLowerCase().startsWith(name.toLowerCase() + '='));
+            if (!part) return null;
+            let v: string = part.slice(part.indexOf('=') + 1).trim();
+            if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1);
+            return v;
+        };
+
+        // Prefer filename* (RFC 5987)
+        const fnStar = getParam('filename*');
+        if (fnStar) {
+            // UTF-8''<percent-encoded>
+            const m = /^([^']*)'[^']*'(.*)$/.exec(fnStar);
+            const encoded = m ? m[2] : fnStar;
+            try { return decodeURIComponent(encoded); } catch { return encoded; }
+        }
+
+        // Fallback to filename
+        const fn = getParam('filename');
+        return fn || fallback;
     }
 
     // Warning Popup functions
