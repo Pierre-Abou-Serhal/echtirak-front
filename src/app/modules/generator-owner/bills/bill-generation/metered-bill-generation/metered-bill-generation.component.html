@@ -232,9 +232,6 @@
                 <div class="mb-2">
                     Current: {{ kvaReading.kvaCurrent | number:'1.0-4' }}
                 </div>
-                <div class="text-sm text-color-secondary text-red-600 dark:text-red-600">
-                    Difference: {{ (kvaReading.kvaCurrent - kvaReading.kvaPrevious) | number:'1.0-4' }}
-                </div>
             </td>
             <td>
                 <p-tag
