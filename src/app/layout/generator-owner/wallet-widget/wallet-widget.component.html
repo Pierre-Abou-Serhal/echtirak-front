@@ -79,6 +79,108 @@
 
             </div>
 
+            <!-- Details (compact, collapsible) -->
+            <details class="border-t border-surface-200 dark:border-surface-700 pt-2">
+                <summary class="cursor-pointer select-none text-xs text-surface-600 dark:text-surface-300 flex items-center justify-between">
+                    <span>Details</span>
+                    <i class="pi pi-chevron-down text-xs"></i>
+                </summary>
+
+                <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <div class="text-xs text-surface-500 dark:text-surface-400">
+                            Billing cycle
+                        </div>
+                        <div class="font-medium">
+                            {{ wallet.billingCycleDays }} day{{ wallet.billingCycleDays === 1 ? '' : 's' }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-xs text-surface-500 dark:text-surface-400">
+                            Billing start date
+                        </div>
+                        <div class="font-medium">
+                            {{ wallet.billingStartDate | date:'yyyy-MM-dd' }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-sm text-surface-500 dark:text-surface-400">
+                            Free trial
+                        </div>
+                        <div class="font-medium">
+                            @if (wallet.freeTrialEnabled && wallet.freeTrialMonths > 0) {
+                                {{ wallet.freeTrialMonths }} month{{ wallet.freeTrialMonths === 1 ? '' : 's' }}
+                            } @else {
+                                Disabled
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <div class="text-xs text-surface-500 dark:text-surface-400">
+                            Platform fee (monthly)
+                        </div>
+                        <div class="font-medium">
+                            {{ wallet.fixedPlatformFeeMonthly | currency:'USD':'symbol':'1.0-4' }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-xs text-surface-500 dark:text-surface-400">
+                            Per subscriber (monthly)
+                        </div>
+                        <div class="font-medium">
+                            {{ wallet.pricePerSubscriberMonthly | currency:'USD':'symbol':'1.0-4' }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-xs text-surface-500 dark:text-surface-400">
+                            Price per SMS
+                        </div>
+                        <div class="font-medium">
+                            {{ wallet.pricePerSms | currency:'USD':'symbol':'1.0-4' }}
+                        </div>
+                    </div>
+                </div>
+
+                @if (wallet.isYearlyPayment) {
+                    <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <div class="text-xs text-surface-500 dark:text-surface-400">
+                                Yearly discount (fixed)
+                            </div>
+                            <div class="font-medium">
+                                {{ wallet.yearlyDiscountFixedFee | currency:'USD':'symbol':'1.0-4' }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-surface-500 dark:text-surface-400">
+                                Yearly discount (subscriber)
+                            </div>
+                            <div class="font-medium">
+                                {{ wallet.yearlyDiscountPerSubscriber | currency:'USD':'symbol':'1.0-4' }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-surface-500 dark:text-surface-400">
+                                Yearly discount (SMS)
+                            </div>
+                            <div class="font-medium">
+                                {{ wallet.yearlyDiscountPerSms | currency:'USD':'symbol':'1.0-4' }}
+                            </div>
+                        </div>
+                    </div>
+                }
+            </details>
+
+
             <!-- Warning message -->
             @if(wallet.warningMessage){
                 <div

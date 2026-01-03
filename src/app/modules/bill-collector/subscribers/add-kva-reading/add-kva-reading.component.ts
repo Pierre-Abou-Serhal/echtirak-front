@@ -6,15 +6,24 @@ import { Button } from 'primeng/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NotificationService } from '@/core/services/notification.service';
 import { KvaReadingStatus } from '@/core/enums/enum';
-import { finalize } from 'rxjs';
+import { finalize, firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Location } from '@angular/common';
+import { Subscriber } from '@/core/models/model';
+import { GetSubscribersResponse } from '@/core/services/api/response';
+import { Skeleton } from 'primeng/skeleton';
+import { LbPhonePipe } from '@/core/pipes/pipes';
+import { provideNgxMask } from 'ngx-mask';
+import { Panel } from 'primeng/panel';
+import { PrimeTemplate } from 'primeng/api';
 
 @Component({
     selector: 'app-add-kva-reading.component',
-    imports: [InputNumber, FormsModule, Button],
+    imports: [InputNumber, FormsModule, Button, Skeleton, LbPhonePipe, Panel, PrimeTemplate],
     templateUrl: './add-kva-reading.component.html',
-    styleUrl: './add-kva-reading.component.scss'
+    styleUrl: './add-kva-reading.component.scss',
+    standalone: true,
+    providers: [provideNgxMask()]
 })
 export class AddKvaReadingComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
@@ -35,12 +44,42 @@ export class AddKvaReadingComponent implements OnInit {
     submitted = false;
     saving = false;
 
-    ngOnInit(): void {
+    subscriber?: Subscriber;
+    isSubscriberDataLoading: boolean = true;
+    subscriberPanelCollapsed = true;
+
+    async ngOnInit(): Promise<void> {
         const idParam = this.route.snapshot.paramMap.get('id');
         this.subscriberId = Number(idParam);
 
         if (!Number.isFinite(this.subscriberId) || this.subscriberId <= 0) {
             // fallback if route param is wrong
+            this.goBack();
+        }
+
+        // Call API to get subscriber info by id
+        try {
+            const res: GetSubscribersResponse = await firstValueFrom(
+                this.billCollectorService.getSubs({
+                    pageNumber: 1,
+                    pageSize: 1,
+                    subscriberId: this.subscriberId
+                })
+            );
+
+            // Subscriber ID matched QR Code ID
+            const items = res?.page?.items ?? [];
+
+            if (!items || items.length === 0) {
+                this.isSubscriberDataLoading = false;
+                this.goBack();
+            } else {
+                this.subscriber = items[0];
+                this.isSubscriberDataLoading = false;
+            }
+        } catch (error) {
+            console.log(error);
+            this.isSubscriberDataLoading = false;
             this.goBack();
         }
     }
@@ -75,7 +114,7 @@ export class AddKvaReadingComponent implements OnInit {
 
     isKvaReadingValid(): boolean {
         // allow 0 if you want; if not, use > 0
-        return this.kvaReading !== null && this.kvaReading !== undefined;
+        return this.kvaReading !== null && this.kvaReading !== undefined && this.kvaReading >= (this.subscriber?.currentKva ?? 0);
     }
 
     private isFormValid(): boolean {

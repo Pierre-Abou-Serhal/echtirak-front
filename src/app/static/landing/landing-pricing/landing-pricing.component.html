@@ -1,108 +1,240 @@
-
+<!-- LANDING PRICING (QUOTE ONLY / NO PLANS) -->
 <div id="pricing" class="py-6 px-6 lg:px-20 my-2 md:my-6">
     <div class="text-center mb-6">
-        <div class="text-surface-900 dark:text-surface-0 font-normal mb-2 text-4xl">Matchless Pricing</div>
-        <span class="text-muted-color text-2xl">Amet consectetur adipiscing elit...</span>
+        <div class="text-surface-900 dark:text-surface-0 font-normal mb-2 text-4xl">Pricing is tailored for each generator</div>
+        <span class="text-muted-color text-2xl">
+            Tell us your size and needs. We’ll send you a fair quote quickly.
+        </span>
     </div>
 
-    <div class="grid grid-cols-12 gap-4 justify-between mt-20 md:mt-0">
-        <div class="col-span-12 lg:col-span-4 p-0 md:p-4">
-            <div class="p-4 flex flex-col border-surface-200 dark:border-surface-600 pricing-card cursor-pointer border-2 hover:border-primary duration-300 transition-all" style="border-radius: 10px">
-                <div class="text-surface-900 dark:text-surface-0 text-center my-8 text-3xl">Free</div>
-                <img src="https://primefaces.org/cdn/templates/sakai/landing/free.svg" class="w-10/12 mx-auto" alt="free" />
-                <div class="my-8 flex flex-col items-center gap-4">
-                    <div class="flex items-center">
-                        <span class="text-5xl font-bold mr-2 text-surface-900 dark:text-surface-0">$0</span>
-                        <span class="text-surface-600 dark:text-surface-200">per month</span>
+    <div class="grid grid-cols-12 gap-4 mt-16 items-stretch">
+        <!-- LEFT: Quote explanation + factors -->
+        <div class="col-span-12 lg:col-span-7">
+            <div class="p-5 border-2 border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 shadow-1"
+                 style="border-radius: 12px">
+
+                <div class="flex items-start gap-4">
+                    <div class="flex items-center justify-center bg-primary-100 dark:bg-primary-900/30 shrink-0"
+                         style="width: 4.2rem; height: 4.2rem; border-radius: 12px">
+                        <i class="pi pi-fw pi-comments text-4xl! text-primary-700"></i>
                     </div>
-                    <button pButton pRipple label="Get Started" class="p-button-rounded border-0 ml-4 font-light leading-tight bg-blue-500 text-white"></button>
+
+                    <div class="flex-1">
+                        <div class="text-surface-900 dark:text-surface-0 text-3xl font-semibold mb-2">
+                            Get a quote (no commitment)
+                        </div>
+                        <div class="text-muted-color text-2xl leading-normal">
+                            Echtirak pricing varies because every generator is different. We price fairly based on usage and setup.
+                        </div>
+                    </div>
                 </div>
-                <p-divider class="w-full bg-surface-200"></p-divider>
-                <ul class="my-8 list-none p-0 flex text-surface-900 dark:text-surface-0 flex-col px-8">
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">Responsive Layout</span>
-                    </li>
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">Unlimited Push Messages</span>
-                    </li>
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">50 Support Ticket</span>
-                    </li>
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">Free Shipping</span>
-                    </li>
-                </ul>
+
+                <p-divider class="my-5"></p-divider>
+
+                <div class="text-surface-900 dark:text-surface-0 text-2xl font-semibold mb-3">
+                    What affects the quote?
+                    <i
+                        class="pi pi-info-circle text-surface-500 ml-2"
+                        pTooltip="We use these factors so small and large generators pay fairly."
+                        tooltipPosition="top"
+                    ></i>
+                </div>
+
+                <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-12 md:col-span-6">
+                        <div class="p-3 surface-50 dark:surface-800 border border-surface-200 dark:border-surface-700"
+                             style="border-radius: 10px">
+                            <div class="flex items-start gap-3">
+                                <i class="pi pi-users text-primary text-xl mt-1"></i>
+                                <div>
+                                    <div class="text-surface-900 dark:text-surface-0 font-semibold">Subscribers</div>
+                                    <div class="text-muted-color">How many customers you manage each month.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-12 md:col-span-6">
+                        <div class="p-3 surface-50 dark:surface-800 border border-surface-200 dark:border-surface-700"
+                             style="border-radius: 10px">
+                            <div class="flex items-start gap-3">
+                                <i class="pi pi-send text-primary text-xl mt-1"></i>
+                                <div>
+                                    <div class="text-surface-900 dark:text-surface-0 font-semibold">SMS volume</div>
+                                    <div class="text-muted-color">Messages per month + provider cost.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-12 md:col-span-6">
+                        <div class="p-3 surface-50 dark:surface-800 border border-surface-200 dark:border-surface-700"
+                             style="border-radius: 10px">
+                            <div class="flex items-start gap-3">
+                                <i class="pi pi-id-card text-primary text-xl mt-1"></i>
+                                <div>
+                                    <div class="text-surface-900 dark:text-surface-0 font-semibold">Collectors</div>
+                                    <div class="text-muted-color">If you need collector workflow + tracking.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-12 md:col-span-6">
+                        <div class="p-3 surface-50 dark:surface-800 border border-surface-200 dark:border-surface-700"
+                             style="border-radius: 10px">
+                            <div class="flex items-start gap-3">
+                                <i class="pi pi-sitemap text-primary text-xl mt-1"></i>
+                                <div>
+                                    <div class="text-surface-900 dark:text-surface-0 font-semibold">Generators / branches</div>
+                                    <div class="text-muted-color">Multiple generators need separate setup.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 p-4 surface-50 dark:surface-800 border border-surface-200 dark:border-surface-700"
+                     style="border-radius: 12px">
+                    <div class="flex items-start gap-3">
+                        <i class="pi pi-shield text-green-500 text-2xl mt-1"></i>
+                        <div>
+                            <div class="text-surface-900 dark:text-surface-0 font-semibold text-xl">Fair pricing promise</div>
+                            <div class="text-muted-color text-lg">
+                                Small generators won’t pay like large ones. Your quote is based on your real usage.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <div class="col-span-12 lg:col-span-4 p-0 md:p-4 mt-6 md:mt-0">
-            <div class="p-4 flex flex-col border-surface-200 dark:border-surface-600 pricing-card cursor-pointer border-2 hover:border-primary duration-300 transition-all" style="border-radius: 10px">
-                <div class="text-surface-900 dark:text-surface-0 text-center my-8 text-3xl">Startup</div>
-                <img src="https://primefaces.org/cdn/templates/sakai/landing/startup.svg" class="w-10/12 mx-auto" alt="startup" />
-                <div class="my-8 flex flex-col items-center gap-4">
-                    <div class="flex items-center">
-                        <span class="text-5xl font-bold mr-2 text-surface-900 dark:text-surface-0">$1</span>
-                        <span class="text-surface-600 dark:text-surface-200">per month</span>
-                    </div>
-                    <button pButton pRipple label="Get Started" class="p-button-rounded border-0 ml-4 font-light leading-tight bg-blue-500 text-white"></button>
-                </div>
-                <p-divider class="w-full bg-surface-200"></p-divider>
-                <ul class="my-8 list-none p-0 flex text-surface-900 dark:text-surface-0 flex-col px-8">
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">Responsive Layout</span>
-                    </li>
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">Unlimited Push Messages</span>
-                    </li>
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">50 Support Ticket</span>
-                    </li>
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">Free Shipping</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        <!-- RIGHT: Call-to-action card (no leaving) -->
+        <div class="col-span-12 lg:col-span-5">
+            <div class="p-5 border-2 border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 shadow-1 h-full"
+                 style="border-radius: 12px">
 
-        <div class="col-span-12 lg:col-span-4 p-0 md:p-4 mt-6 md:mt-0">
-            <div class="p-4 flex flex-col border-surface-200 dark:border-surface-600 pricing-card cursor-pointer border-2 hover:border-primary duration-300 transition-all" style="border-radius: 10px">
-                <div class="text-surface-900 dark:text-surface-0 text-center my-8 text-3xl">Enterprise</div>
-                <img src="https://primefaces.org/cdn/templates/sakai/landing/enterprise.svg" class="w-10/12 mx-auto" alt="enterprise" />
-                <div class="my-8 flex flex-col items-center gap-4">
-                    <div class="flex items-center">
-                        <span class="text-5xl font-bold mr-2 text-surface-900 dark:text-surface-0">$5</span>
-                        <span class="text-surface-600 dark:text-surface-200">per month</span>
-                    </div>
-                    <button pButton pRipple label="Try Free" class="p-button-rounded border-0 ml-4 font-light leading-tight bg-blue-500 text-white"></button>
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-2xl font-semibold text-surface-900 dark:text-surface-0">Request a quote</div>
+                    <i class="pi pi-envelope text-primary text-2xl"></i>
                 </div>
-                <p-divider class="w-full bg-surface-200"></p-divider>
-                <ul class="my-8 list-none p-0 flex text-surface-900 dark:text-surface-0 flex-col px-8">
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">Responsive Layout</span>
+
+                <div class="text-muted-color text-lg mb-5">
+                    Contact us and we’ll send you a quote based on your generator setup.
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <!-- Option 1: Open a dialog (still no API) -->
+                    <button
+                        pButton
+                        pRipple
+                        type="button"
+                        label="Contact us for a quote"
+                        icon="pi pi-comments"
+                        class="p-button-rounded w-full"
+                        (click)="quoteDialogVisible = true"
+                    ></button>
+
+                    <!-- Option 2: Try the demo -->
+                    <a
+                        pButton
+                        pRipple
+                        routerLink="/auth/sign-in"
+                        label="Get Started"
+                        icon="pi pi-play"
+                        class="p-button-rounded p-button-outlined w-full"
+                    ></a>
+                </div>
+
+                <p-divider class="my-5"></p-divider>
+
+                <div class="text-surface-900 dark:text-surface-0 font-semibold text-xl mb-2">What you’ll get</div>
+                <ul class="list-none p-0 m-0 flex flex-col gap-2 text-lg text-surface-700 dark:text-surface-100">
+                    <li class="flex items-center gap-2">
+                        <i class="pi pi-check text-cyan-500"></i>
+                        A fair quote based on your needs
                     </li>
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">Unlimited Push Messages</span>
+                    <li class="flex items-center gap-2">
+                        <i class="pi pi-check text-cyan-500"></i>
+                        Help choosing the right setup
                     </li>
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">50 Support Ticket</span>
-                    </li>
-                    <li class="py-2">
-                        <i class="pi pi-fw pi-check text-xl text-cyan-500 mr-2"></i>
-                        <span class="text-xl leading-normal">Free Shipping</span>
+                    <li class="flex items-center gap-2">
+                        <i class="pi pi-check text-cyan-500"></i>
+                        Fast onboarding instructions
                     </li>
                 </ul>
+
+                <div class="mt-6 text-sm text-muted-color">
+                    Tip: if you already know your subscriber count and SMS needs, your quote will be faster.
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- OPTIONAL: Static contact dialog (no API). You can copy info manually. -->
+    <p-dialog
+        [(visible)]="quoteDialogVisible"
+        [modal]="true"
+        [draggable]="false"
+        [resizable]="false"
+        [dismissableMask]="true"
+        [style]="{width:'min(720px, 96vw)'}"
+        header="Request a quote"
+    >
+        <div class="text-muted-color text-lg mb-4">
+            Fill this info and send it to us (WhatsApp / phone). No account needed.
+        </div>
+
+        <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12 md:col-span-6">
+                <label class="block mb-2 text-surface-700 dark:text-surface-100">Name</label>
+                <input pInputText class="w-full" placeholder="Your name" />
+            </div>
+
+            <div class="col-span-12 md:col-span-6">
+                <label class="block mb-2 text-surface-700 dark:text-surface-100">Phone (WhatsApp)</label>
+                <input pInputText class="w-full" placeholder="+961 ..." />
+            </div>
+
+            <div class="col-span-12 md:col-span6 md:col-span-6">
+                <label class="block mb-2 text-surface-700 dark:text-surface-100">Subscribers</label>
+                <p-inputNumber class="w-full" inputStyleClass="w-full" placeholder="e.g. 250" [min]="0"></p-inputNumber>
+            </div>
+
+            <div class="col-span-12 md:col-span-6">
+                <label class="block mb-2 text-surface-700 dark:text-surface-100">Generators / branches</label>
+                <p-inputNumber class="w-full" inputStyleClass="w-full" placeholder="e.g. 1" [min]="0"></p-inputNumber>
+            </div>
+
+            <div class="col-span-12 md:col-span-6">
+                <label class="block mb-2 text-surface-700 dark:text-surface-100">Collectors</label>
+                <p-inputNumber class="w-full" inputStyleClass="w-full" placeholder="e.g. 2" [min]="0"></p-inputNumber>
+            </div>
+
+            <div class="col-span-12 md:col-span-6">
+                <label class="block mb-2 text-surface-700 dark:text-surface-100">SMS / month</label>
+                <p-inputNumber class="w-full" inputStyleClass="w-full" placeholder="e.g. 800" [min]="0"></p-inputNumber>
+            </div>
+
+            <div class="col-span-12">
+                <label class="block mb-2 text-surface-700 dark:text-surface-100">Notes (optional)</label>
+                <textarea pInputTextarea class="w-full" rows="3" placeholder="Area, tariff type, special needs..."></textarea>
+            </div>
+        </div>
+
+        <div class="mt-4 p-3 surface-50 dark:surface-800 border border-surface-200 dark:border-surface-700" style="border-radius: 10px">
+            <div class="text-surface-900 dark:text-surface-0 font-semibold mb-1">How to send</div>
+            <div class="text-muted-color">
+                You can submit the details or send them to us on WhatsApp or call us directly.
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <div class="flex flex-wrap gap-2 justify-end">
+                <button pButton pRipple label="Submit" class="me-2" icon="pi pi-send" (click)="alert('Comming Soon')"></button>
+                <button pButton pRipple label="Close" class="p-button-text" icon="pi pi-times" (click)="quoteDialogVisible=false"></button>
+            </div>
+        </ng-template>
+    </p-dialog>
 </div>

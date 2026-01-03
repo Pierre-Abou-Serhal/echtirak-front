@@ -16,10 +16,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KvaReadingStatus } from '@/core/enums/enum';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Skeleton } from 'primeng/skeleton';
+import { LbPhonePipe } from '@/core/pipes/pipes';
 
 @Component({
     selector: 'app-kva-readings.component',
-    imports: [Button, IconField, InputIcon, DataView, FormsModule, InputText, Tag, Dialog, InputNumber, DatePipe, Skeleton, DecimalPipe],
+    imports: [Button, IconField, InputIcon, DataView, FormsModule, InputText, Tag, Dialog, InputNumber, DatePipe, Skeleton, DecimalPipe, LbPhonePipe],
     templateUrl: './kva-readings.component.html',
     styleUrl: './kva-readings.component.scss'
 })

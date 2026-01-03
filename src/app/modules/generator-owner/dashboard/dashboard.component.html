@@ -112,15 +112,15 @@
     <div class="col-span-12 md:col-span-6">
         <p-card header="Consumption Overview">
             <div class="grid grid-cols-2 gap-4">
-                <div class="p-4 border rounded">
+                <div class="p-4 rounded">
                     <div class="text-lg font-semibold">{{dashboard.consumption.totalKva}}</div>
                     <div class="text-sm text-gray-500">Total KWH</div>
                 </div>
-                <div class="p-4 border rounded">
+                <div class="p-4 rounded">
                     <div class="text-lg font-semibold">{{dashboard.consumption.totalKvaThisMonth}}</div>
                     <div class="text-sm text-gray-500">Total KWH (This Month)</div>
                 </div>
-                <div class="p-4 border rounded col-span-2">
+                <div class="p-4 col-span-2 border-t">
                     <div class="text-lg font-semibold">{{dashboard.consumption.averageKvaPerSubscriber |
                         number:'1.0-2'}}
                     </div>
@@ -133,32 +133,33 @@
     <div class="col-span-12 md:col-span-6">
         <p-card header="Wallet Statistics">
             <div class="grid grid-cols-2 gap-4">
-                <div class="p-3 border rounded">
+                <div class="p-3">
                     <div class="text-sm text-gray-500">Top Ups (This Month)</div>
                     <div class="text-xl font-bold">{{dashboard.walletStatistics.topUpsThisMonth | currency:'USD':'symbol':'1.0-4'}}</div>
                 </div>
-                <div class="p-3 border rounded">
+                <div class="p-3">
                     <div class="text-sm text-gray-500">Spent (This Month)</div>
                     <div class="text-xl font-bold">{{dashboard.walletStatistics.spentThisMonth | currency:'USD':'symbol':'1.0-4'}}</div>
                 </div>
-                <div class="p-3 border rounded">
+
+                <div class="p-3 border-t">
                     <div class="text-sm text-gray-500">SMS Charges</div>
                     <div class="text-xl font-bold">{{dashboard.walletStatistics.smsChargesThisMonth | currency:'USD':'symbol':'1.0-4'}}</div>
                 </div>
-                <div class="p-3 border rounded">
+                <div class="p-3 border-t">
                     <div class="text-sm text-gray-500">Billing Charges</div>
                     <div class="text-xl font-bold">{{dashboard.walletStatistics.billingChargesThisMonth | currency:'USD':'symbol':'1.0-4'}}
                     </div>
                 </div>
-                <div class="p-3 border rounded">
+                <div class="p-3 border-t">
                     <div class="text-sm text-gray-500">Refunds</div>
                     <div class="text-xl font-bold">{{dashboard.walletStatistics.refundsThisMonth | currency:'USD':'symbol':'1.0-4'}}</div>
                 </div>
-                <div class="p-3 border rounded">
+                <div class="p-3 border-t">
                     <div class="text-sm text-gray-500">Transactions</div>
                     <div class="text-xl font-bold">{{dashboard.walletStatistics.transactionsThisMonth}}</div>
                 </div>
-                <div class="p-3 border rounded col-span-2">
+                <div class="p-3 col-span-2 border-t">
                     <div class="text-sm text-gray-500">Last Transaction</div>
                     <div class="text-lg font-bold">{{dashboard.walletStatistics.lastTransactionDate | date:'medium'}}
                     </div>
@@ -171,17 +172,17 @@
     <div class="col-span-12">
         <p-card header="All Time Statistics">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="p-4 border rounded text-center">
+                <div class="p-4 text-center">
                     <div class="text-2xl font-bold text-blue-600">{{dashboard.walletStatistics.totalTopUpsAllTime |
                         currency}}</div>
                     <div class="text-sm text-gray-600">Total Top Ups</div>
                 </div>
-                <div class="p-4 border rounded text-center">
+                <div class="p-4 text-center">
                     <div class="text-2xl font-bold text-red-600">{{dashboard.walletStatistics.totalSpentAllTime |
                         currency}}</div>
                     <div class="text-sm text-gray-600">Total Spent</div>
                 </div>
-                <div class="p-4 border rounded text-center">
+                <div class="p-4 text-center">
                     <div class="text-2xl font-bold text-purple-600">
                         {{dashboard.walletStatistics.totalTransactionsAllTime}}</div>
                     <div class="text-sm text-gray-600">Total Transactions</div>

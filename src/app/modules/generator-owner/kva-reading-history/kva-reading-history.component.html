@@ -27,7 +27,7 @@
 
             <!-- Created At From -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterCreatedAtFrom">Created At From</label>
+                <label class="block text-sm font-semibold mb-2" for="filterCreatedAtFrom">From</label>
                 <p-datepicker
                     inputId="filterCreatedAtFrom"
                     [(ngModel)]="filter.createdAtFrom"
@@ -36,12 +36,13 @@
                     dateFormat="yy-mm-dd"
                     appendTo="body"
                     class="w-full"
+                    placeholder="Crated Date"
                 ></p-datepicker>
             </div>
 
             <!-- Created At To -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterCreatedAtTo">Created At To</label>
+                <label class="block text-sm font-semibold mb-2" for="filterCreatedAtTo">To</label>
                 <p-datepicker
                     inputId="filterCreatedAtTo"
                     [(ngModel)]="filter.createdAtTo"
@@ -50,6 +51,7 @@
                     dateFormat="yy-mm-dd"
                     appendTo="body"
                     class="w-full"
+                    placeholder="Crated Date"
                 ></p-datepicker>
             </div>
 

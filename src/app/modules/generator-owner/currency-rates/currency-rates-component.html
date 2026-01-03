@@ -241,6 +241,7 @@
                     class="w-full md:w-120 mb-4"
                     placeholder="Rate"
                     [invalid]="isInvalid('rate')"
+                    [min]="0"
                 ></p-inputnumber>
 
                 @if (isInvalid('rate')) {

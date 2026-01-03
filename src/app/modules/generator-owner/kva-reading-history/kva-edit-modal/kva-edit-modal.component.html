@@ -51,6 +51,7 @@
                         [maxFractionDigits]="4"
                         class="w-full"
                         [disabled]="true"
+                        [min]="0"
                     ></p-inputnumber>
                 </div>
 
@@ -64,6 +65,7 @@
                         [maxFractionDigits]="4"
                         class="w-full"
                         [disabled]="true"
+                        [min]="0"
                     ></p-inputnumber>
                 </div>
 
@@ -76,6 +78,7 @@
                         [minFractionDigits]="0"
                         [maxFractionDigits]="4"
                         class="w-full"
+                        [min]="0"
                     ></p-inputnumber>
 
                     @if (submitted && isKvaReadingInvalid()) {

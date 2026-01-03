@@ -13,7 +13,7 @@ import { KvaReadingStatus, LookupDomain } from '@/core/enums/enum';
 import { Tag } from 'primeng/tag';
 import { GenerateBillsForMeteredSubscribersRequest, UpdateKVAReadingRequest } from '@/core/services/api/request';
 import { NotificationService } from '@/core/services/notification.service';
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { SelectOptionStrValue } from '@/core/dtos/dto';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -25,10 +25,20 @@ import { provideNgxMask } from 'ngx-mask';
 import {
     KvaEditModalComponent
 } from '@/modules/generator-owner/kva-reading-history/kva-edit-modal/kva-edit-modal.component';
+import { DatePicker } from 'primeng/datepicker';
+import { getBillYearMonth } from '@/core/utils/utils';
+import { InputNumber } from 'primeng/inputnumber';
+
+export interface KvaReadingLocalFilter {
+    keyword?: string;
+    subscriberId?: number;
+    createdAtFrom?: Date;
+    createdAtTo?: Date;
+}
 
 @Component({
     selector: 'app-metered-bill-generation',
-    imports: [FormsModule, Button, IconField, InputIcon, InputText, TableModule, Tag, DecimalPipe, Dialog, Skeleton, LbPhonePipe, KvaEditModalComponent],
+    imports: [FormsModule, Button, IconField, InputIcon, InputText, TableModule, Tag, DecimalPipe, Dialog, Skeleton, LbPhonePipe, KvaEditModalComponent, DatePicker, DatePipe, InputNumber],
     templateUrl: './metered-bill-generation.component.html',
     styleUrl: './metered-bill-generation.component.scss',
     providers: [provideNgxMask()]
@@ -48,7 +58,10 @@ export class MeteredBillGenerationComponent implements OnInit {
     generatorOwnerService: GeneratorOwnerService = inject(GeneratorOwnerService);
     notificationService: NotificationService = inject(NotificationService);
 
-    kvaReadings: KvaReading[] = [];
+    kvaReadingsAll: KvaReading[] = [];
+    kvaReadings: KvaReading[] = []; // keep your existing binding, but it becomes filtered result
+
+    filter: KvaReadingLocalFilter = {};
     selectedKvaReadings: KvaReading[] = [];
     isKvaReadingLoading = false;
     rowsPerPageOptions = [10, 20, 50, 100];
@@ -78,6 +91,8 @@ export class MeteredBillGenerationComponent implements OnInit {
     // per-row loading flags
     editBtnLoading: Record<number, boolean> = {};
 
+    billPeriod: Date | null = null;
+
     ngOnInit() {
         this.generatorOwnerService.getLookup({ domain: LookupDomain.KVA_READING_STATUS }).subscribe({
             next: (response: GetLookupResponse) => {
@@ -103,11 +118,9 @@ export class MeteredBillGenerationComponent implements OnInit {
             })
             .subscribe({
                 next: (response: GetKVAReadingsPerGeneratorResponse) => {
-                    this.kvaReadings = response.readings;
+                    this.kvaReadingsAll = response.readings ?? [];
+                    this.applyFiltersLocal(); // sets this.kvaReadings
                     this.isKvaReadingLoading = false;
-
-                    console.log(this.generatorId);
-                    console.log(this.kvaReadings);
                 },
                 error: (err) => {
                     console.log(err);
@@ -121,10 +134,6 @@ export class MeteredBillGenerationComponent implements OnInit {
     pageChange(event: any) {
         this.first = event.first ?? this.first;
         this.rows = event.rows ?? this.rows;
-    }
-
-    onGlobalFilter(table: Table, event: Event) {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
     clear(table: Table) {
@@ -231,10 +240,24 @@ export class MeteredBillGenerationComponent implements OnInit {
 
     generateBills() {
         if (this.selectedKvaReadings.length > 0) {
+            const period = getBillYearMonth(this.billPeriod);
+
+            if (!period) {
+                this.notificationService.warn('Warning', 'Please select Bill Period (year/month)');
+                return;
+            }
+
+            if (this.selectedKvaReadings.length === 0) {
+                this.notificationService.warn('Warning', 'Please select KWH readings to generate their bills');
+                return;
+            }
+
             this.isBillsGenerating = true;
 
             let request: GenerateBillsForMeteredSubscribersRequest = {
-                kvaReadingIds: this.selectedKvaReadings.map((i) => i.id)
+                kvaReadingIds: this.selectedKvaReadings.map((i) => i.id),
+                billMonth: period.billMonth,
+                billYear: period.billYear
             };
 
             console.log(request);
@@ -355,5 +378,60 @@ export class MeteredBillGenerationComponent implements OnInit {
 
     setEditLoading(id: number, value: boolean) {
         this.editBtnLoading[id] = value;
+    }
+
+    applyFiltersLocal(): void {
+        const f = this.filter;
+
+        const kw = (f.keyword ?? '').trim().toLowerCase();
+        const subscriberId = f.subscriberId;
+
+        // Normalize date boundaries (inclusive)
+        const from = f.createdAtFrom ? this.startOfDay(f.createdAtFrom) : null;
+        const to = f.createdAtTo ? this.endOfDay(f.createdAtTo) : null;
+
+        this.kvaReadings = this.kvaReadingsAll.filter((r) => {
+            // subscriberId
+            if (subscriberId != null && subscriberId !== 0) {
+                if (Number(r.subscriberId) !== Number(subscriberId)) return false;
+            }
+
+            // createdAt range
+            if (from || to) {
+                const created = r.createdAt ? new Date(r.createdAt as any) : null;
+                if (!created) return false;
+
+                if (from && created < from) return false;
+                if (to && created > to) return false;
+            }
+
+            // keyword (match across similar fields like your globalFilterFields)
+            if (kw) {
+                const hay = [r.subscriberFirstName, r.subscriberLastName, r.subscriberPhoneNumber, r.electricMeterNumber, r.kvaReading, r.kvaPrevious, r.kvaCurrent, r.status].map((v) => (v ?? '').toString().toLowerCase()).join(' | ');
+
+                if (!hay.includes(kw)) return false;
+            }
+
+            return true;
+        });
+
+        // Reset table UX
+        this.first = 0;
+
+        // Selection should not keep items that disappeared
+        this.selectedKvaReadings = [];
+    }
+
+    resetFiltersLocal(): void {
+        this.filter = {};
+        this.applyFiltersLocal();
+    }
+
+    // helpers
+    private startOfDay(d: Date): Date {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+    }
+    private endOfDay(d: Date): Date {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
     }
 }

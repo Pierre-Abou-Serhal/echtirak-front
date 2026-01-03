@@ -53,10 +53,14 @@ export interface GetSubscribersQrCodePdfRequest {
 export interface GenerateBillsForSelectedSubscribersRequest {
     generatorId: number;
     subscriberIds: number[];
+    billYear: string;
+    billMonth: string;
 }
 
 export interface AcceptBillsRequest {
     bills: Bill[];
+    billYear: string;
+    billMonth: string;
 }
 
 export interface GetBillsQueryParams {
@@ -129,6 +133,8 @@ export interface UpdateBillRequest {
     subscriberFirstName: string;
     subscriberLastName: string;
     billDate: string;
+    billYear: string;
+    billMonth: string;
     previousKva: number;
     currentKva: number;
     kvaFee: number;
@@ -158,10 +164,14 @@ export interface UpdateKVAReadingRequest {
 
 export interface GenerateBillsForMeteredSubscribersRequest {
     kvaReadingIds: number[];
+    billYear: string;
+    billMonth: string;
 }
 
 export interface GenerateBillsForAllFixedSubscribersRequest {
     generatorId: number;
+    billYear: string;
+    billMonth: string;
 }
 
 export interface GetAnnouncementsQueryParams {

@@ -59,6 +59,7 @@
                         [maxFractionDigits]="4"
                         class="w-full"
                         [disabled]="true"
+                        [min]="0"
                     ></p-inputnumber>
                 </div>
 
@@ -73,11 +74,12 @@
                         [maxFractionDigits]="4"
                         class="w-full"
                         [disabled]="true"
+                        [min]="0"
                     ></p-inputnumber>
                 </div>
 
                 <!-- KWH Fee (disabled) -->
-                <div class="md:col-span-2">
+                <div>
                     <label for="billKvaFee" class="block text-sm font-semibold mb-2">KWH Fee</label>
                     <p-inputnumber
                         inputId="billKvaFee"
@@ -87,6 +89,7 @@
                         [maxFractionDigits]="4"
                         class="w-full"
                         [disabled]="true"
+                        [min]="0"
                     ></p-inputnumber>
                 </div>
 
@@ -101,6 +104,7 @@
                         [maxFractionDigits]="4"
                         class="w-full"
                         [disabled]="true"
+                        [min]="0"
                     ></p-inputnumber>
                 </div>
 
@@ -115,7 +119,27 @@
                         [maxFractionDigits]="4"
                         class="w-full"
                         [disabled]="true"
+                        [min]="0"
                     ></p-inputnumber>
+                </div>
+
+                <!-- Bill Period (month/year) -->
+                <div>
+                    <label for="billPeriod" class="block text-sm font-semibold mb-2">Bill Month & Year</label>
+                    <p-datepicker
+                        inputId="billPeriod"
+                        [(ngModel)]="billPeriod"
+                        view="month"
+                        dateFormat="yy/mm"
+                        placeholder="Bill Month & Year"
+                        [readonlyInput]="true"
+                        class="w-full"
+                        [disabled]="isBillPeriodDisabled"
+                    ></p-datepicker>
+
+                    @if (submitted && !billPeriod) {
+                        <small class="text-red-500">Bill period is required.</small>
+                    }
                 </div>
 
                 <!-- Current KWH (editable) + validation -->
@@ -128,6 +152,7 @@
                         [minFractionDigits]="0"
                         [maxFractionDigits]="4"
                         class="w-full"
+                        [min]="0"
                     ></p-inputnumber>
 
                     @if (submitted && isCurrentKvaInvalid()) {

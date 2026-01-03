@@ -193,8 +193,15 @@
 
                 <th class="no-wrap-text" pSortableColumn="billDate">
                     <div class="flex justify-between items-center gap-2">
-                        Bill Date
+                        Created Date
                         <p-sortIcon field="billDate" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="billMonth">
+                    <div class="flex justify-between items-center gap-2">
+                        Bill Year/Month
+                        <p-sortIcon field="billMonth" />
                     </div>
                 </th>
 
@@ -271,6 +278,9 @@
                     {{ bill.billDate | date:'yyyy-MM-dd' }}
                 </td>
                 <td>
+                    {{ bill.billYear + '-' + bill.billMonth }}
+                </td>
+                <td>
                     {{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}
                 </td>
                 <td>
@@ -283,7 +293,7 @@
         </ng-template>
         <ng-template #expandedrow let-bill>
             <tr>
-                <td colspan="7" class="p-0">
+                <td colspan="8" class="p-0">
                     <div class="p-2">
                         <div class="bill-cards">
 
@@ -355,12 +365,12 @@
         </ng-template>
         <ng-template #emptymessage>
             <tr>
-                <td colspan="7">No bills found.</td>
+                <td colspan="8">No bills found.</td>
             </tr>
         </ng-template>
         <ng-template #loadingbody>
             <tr>
-                <td colspan="7">Loading bills data. Please wait.</td>
+                <td colspan="8">Loading bills data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>

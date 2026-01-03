@@ -1,0 +1,6 @@
+details[open] summary i {
+    transform: rotate(180deg);
+}
+summary i {
+    transition: transform .15s ease;
+}

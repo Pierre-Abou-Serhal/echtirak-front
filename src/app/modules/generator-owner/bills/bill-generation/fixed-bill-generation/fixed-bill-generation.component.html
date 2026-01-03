@@ -1,1 +1,28 @@
-<p-button icon="pi pi-file-plus" class="me-2" label="Generate" severity="primary" (click)="generateBills()" [loading]="isBillsGenerating"/>
+<div class="flex flex-wrap items-center gap-2 justify-start mb-2">
+    <div class="flex flex-col">
+        <label class="block text-sm font-semibold mb-2">
+            Bill Month & Year
+        </label>
+        <p-datepicker
+            [(ngModel)]="billPeriod"
+            view="month"
+            dateFormat="yy/mm"
+            placeholder="Bill Month & Year"
+            class="me-2"
+        ></p-datepicker>
+    </div>
+
+    <div class="flex flex-col">
+        <label class="block text-sm font-semibold mb-2">
+            &nbsp;
+        </label>
+        <p-button
+            icon="pi pi-file-plus"
+            label="Generate"
+            severity="primary"
+            (click)="generateBills()"
+            [loading]="isBillsGenerating"
+            [disabled]="!billPeriod"
+        />
+    </div>
+</div>

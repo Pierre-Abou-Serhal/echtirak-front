@@ -34,3 +34,12 @@ export function addLebanonPrefix(phone: string | null | undefined): string {
 
     return `+961${s}`;
 }
+
+export function getBillYearMonth(billPeriod: Date | null): { billYear: string; billMonth: string } | null {
+    if (!billPeriod) return null;
+
+    const year = String(billPeriod.getFullYear());
+    const month = String(billPeriod.getMonth() + 1).padStart(2, '0'); // 01-12
+
+    return { billYear: year, billMonth: month };
+}

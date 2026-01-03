@@ -172,6 +172,7 @@
                     class="w-full md:w-120 mb-4"
                     formControlName="subscriptionAmps"
                     [invalid]="isInvalid('subscriptionAmps')"
+                    [min]="0"
                 ></p-inputnumber>
 
                 @if (isInvalid('subscriptionAmps')) {
@@ -187,6 +188,7 @@
                     class="w-full md:w-120 mb-4"
                     formControlName="amountFixed"
                     [invalid]="isInvalid('amountFixed')"
+                    [min]="0"
                 ></p-inputnumber>
 
                 @if (isInvalid('amountFixed')) {
@@ -202,6 +204,7 @@
                     class="w-full md:w-120 mb-4"
                     formControlName="amountPerKva"
                     [invalid]="isInvalid('amountPerKva')"
+                    [min]="0"
                 ></p-inputnumber>
 
                 @if (isInvalid('amountPerKva')) {

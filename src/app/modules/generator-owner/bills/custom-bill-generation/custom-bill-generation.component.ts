@@ -18,10 +18,12 @@ import { Select } from 'primeng/select';
 import { BillsPreviewComponent } from '@/modules/generator-owner/bills/bills-preview/bills-preview.component';
 import { LbPhonePipe } from '@/core/pipes/pipes';
 import { NgClass } from '@angular/common';
+import { DatePicker } from 'primeng/datepicker';
+import { getBillYearMonth } from '@/core/utils/utils';
 
 @Component({
     selector: 'app-custom-bill-generation-component',
-    imports: [Button, TableModule, ButtonDirective, IconField, InputIcon, InputText, FormsModule, Tag, Select, BillsPreviewComponent, LbPhonePipe, NgClass],
+    imports: [Button, TableModule, ButtonDirective, IconField, InputIcon, InputText, FormsModule, Tag, Select, BillsPreviewComponent, LbPhonePipe, NgClass, DatePicker],
     templateUrl: './custom-bill-generation.component.html',
     styleUrl: './custom-bill-generation.component.scss',
     standalone: true
@@ -63,6 +65,8 @@ export class CustomBillGenerationComponent implements OnInit {
 
     // Expandable Rows
     expandedRows: Record<string, boolean> = {};
+
+    billPeriod: Date | null = null;
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -270,20 +274,27 @@ export class CustomBillGenerationComponent implements OnInit {
 
     // Generate bills functions
     generateBills() {
-        this.isGeneratingBills = true;
+        const period = getBillYearMonth(this.billPeriod);
+
+        if (!period) {
+            this.notificationService.warn('Warning', 'Please select Bill Period (year/month)');
+            return;
+        }
 
         if (this.selectedSubscribers.length === 0) {
             this.notificationService.warn('Warning', 'Please select subscribers to generate their bills');
-            this.isGeneratingBills = false;
+            return;
         }
 
-        console.log(this.selectedSubscribers);
+        this.isGeneratingBills = true;
         this.billsPreview = [];
 
         this.generatorOwnerService
             .generateBillsForSelectedSubscribers({
                 generatorId: this.selectedGeneratorId,
-                subscriberIds: this.selectedSubscribers.map((sub) => sub.id)
+                subscriberIds: this.selectedSubscribers.map((sub) => sub.id),
+                billMonth: period.billMonth,
+                billYear: period.billYear,
             })
             .subscribe({
                 next: (response: GenerateBillsForSelectedSubscribersResponse) => {

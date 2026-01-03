@@ -373,6 +373,7 @@
                         [maxFractionDigits]="4"
                         class="w-full"
                         [disabled]="getSubscriptionBillingModel(selectedSubscriber.subscriptionBillingModelId) === BillingModel.FIXED"
+                        [min]="0"
                     ></p-inputnumber>
                 </div>
 
@@ -476,6 +477,7 @@
                         [minFractionDigits]="0"
                         [maxFractionDigits]="4"
                         class="w-full"
+                        [min]="0"
                     ></p-inputnumber>
                     @if (submitted && !selectedSubscriber.previousKva) {
                         <small class="text-red-500">Previous KWH is required.</small>
@@ -499,6 +501,7 @@
                         [minFractionDigits]="0"
                         [maxFractionDigits]="4"
                         class="w-full"
+                        [min]="0"
                     ></p-inputnumber>
                     @if (submitted && !selectedSubscriber.currentKva) {
                         <small class="text-red-500">Current KWH is required.</small>

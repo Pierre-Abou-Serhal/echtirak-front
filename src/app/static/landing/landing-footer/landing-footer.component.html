@@ -1,45 +1,84 @@
-<div class="py-12 px-12 mx-0 mt-20 lg:mx-20">
-    <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-12 md:col-span-2">
-            <a (click)="router.navigate(['/'], { fragment: 'home' })" class="flex flex-wrap items-center justify-center md:justify-start md:mb-0 mb-6 cursor-pointer">
-                <img ngSrc="/logo/logo.svg" alt="Echtirak Logo" height="50" width="50" class="w-16 me-2 shrink-0 mx-auto" priority />
-                <h4 class="font-medium text-3xl text-surface-900 dark:text-surface-0">{{environment.appName}}</h4>
-            </a>
+<!-- LANDING FOOTER (clean + minimal, Sakai-friendly) -->
+<footer class="mt-20">
+    <!-- Top block -->
+    <div class="px-6 lg:px-20 py-12 bg-surface-0 dark:bg-surface-900 border-t border-surface-200 dark:border-surface-700">
+        <div class="grid grid-cols-12 gap-8 items-start">
+
+            <!-- Brand -->
+            <div class="col-span-12 lg:col-span-5">
+                <a
+                    (click)="router.navigate(['/'], { fragment: 'home' })"
+                    class="flex items-center justify-center lg:justify-start cursor-pointer"
+                >
+                    <img ngSrc="/logo/logo.svg" alt="Echtirak Logo" height="50" width="50" class="w-14 me-3 shrink-0" priority />
+                    <div>
+                        <div class="font-semibold text-3xl text-surface-900 dark:text-surface-0 leading-tight">
+                            {{environment.appName}}
+                        </div>
+                        <div class="text-muted-color text-lg mt-1">
+                            Powering subscriptions for generator owners in Lebanon.
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Quick CTA -->
+                <div class="mt-6 flex flex-wrap gap-2 justify-center lg:justify-start">
+                    <a pButton pRipple routerLink="/auth/sign-in" label="Get Started" icon="pi pi-play" class="p-button-rounded"></a>
+                </div>
+
+            </div>
+
+            <!-- Links (only what you want) -->
+            <div class="col-span-12 lg:col-span-7">
+                <div class="grid grid-cols-12 gap-6 text-center lg:text-left">
+
+                    <!-- About -->
+                    <div class="col-span-12 md:col-span-6">
+                        <div class="text-surface-900 dark:text-surface-0 font-semibold text-2xl mb-4">About</div>
+
+                        <a
+                            class="block text-xl mb-3 text-surface-700 dark:text-surface-100 hover:text-primary transition-colors cursor-pointer"
+                            (click)="router.navigate(['/'], { fragment: 'home' })"
+                        >
+                            About Us
+                        </a>
+
+                    </div>
+
+                    <!-- Legal -->
+                    <div class="col-span-12 md:col-span-6">
+                        <div class="text-surface-900 dark:text-surface-0 font-semibold text-2xl mb-4">Legal</div>
+
+                        <a class="block text-xl mb-3 text-surface-700 dark:text-surface-100 hover:text-primary transition-colors cursor-pointer">
+                            Brand Policy
+                        </a>
+                        <a class="block text-xl mb-3 text-surface-700 dark:text-surface-100 hover:text-primary transition-colors cursor-pointer">
+                            Privacy Policy
+                        </a>
+                        <a class="block text-xl text-surface-700 dark:text-surface-100 hover:text-primary transition-colors cursor-pointer">
+                            Terms of Service
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
+    </div>
 
-        <div class="col-span-12 md:col-span-10">
-            <div class="grid grid-cols-12 gap-8 text-center md:text-left">
-                <div class="col-span-12 md:col-span-3">
-                    <h4 class="font-medium text-2xl leading-normal mb-6 text-surface-900 dark:text-surface-0">Company</h4>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">About Us</a>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">News</a>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">Investor Relations</a>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">Careers</a>
-                    <a class="leading-normal text-xl block cursor-pointer text-surface-700 dark:text-surface-100">Media Kit</a>
-                </div>
+    <!-- Bottom bar -->
+    <div class="px-6 lg:px-20 py-6 bg-surface-50 dark:bg-surface-800 border-t border-surface-200 dark:border-surface-700">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-3 text-muted-color">
+            <div class="text-center md:text-left">
+                © {{ fullyear }} {{environment.appName}}. All rights reserved.
+            </div>
 
-                <div class="col-span-12 md:col-span-3">
-                    <h4 class="font-medium text-2xl leading-normal mb-6 text-surface-900 dark:text-surface-0">Resources</h4>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">Get Started</a>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">Learn</a>
-                    <a class="leading-normal text-xl block cursor-pointer text-surface-700 dark:text-surface-100">Case Studies</a>
-                </div>
-
-                <div class="col-span-12 md:col-span-3">
-                    <h4 class="font-medium text-2xl leading-normal mb-6 text-surface-900 dark:text-surface-0">Community</h4>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">Discord</a>
-                    <a class="leading-normal text-xl flex items-center cursor-pointer mb-2 text-surface-700 dark:text-surface-100">Events<img src="https://primefaces.org/cdn/templates/sakai/landing/new-badge.svg" alt="badge" class="ml-2" /></a>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">FAQ</a>
-                    <a class="leading-normal text-xl block cursor-pointer text-surface-700 dark:text-surface-100">Blog</a>
-                </div>
-
-                <div class="col-span-12 md:col-span-3">
-                    <h4 class="font-medium text-2xl leading-normal mb-6 text-surface-900 dark:text-surface-0">Legal</h4>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">Brand Policy</a>
-                    <a class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100">Privacy Policy</a>
-                    <a class="leading-normal text-xl block cursor-pointer text-surface-700 dark:text-surface-100">Terms of Service</a>
-                </div>
+            <!-- Optional social icons (remove if you don’t want) -->
+            <div class="flex items-center gap-2">
+                <button pButton pRipple type="button" icon="pi pi-facebook" class="p-button-rounded p-button-text"></button>
+                <button pButton pRipple type="button" icon="pi pi-instagram" class="p-button-rounded p-button-text"></button>
+                <button pButton pRipple type="button" icon="pi pi-linkedin" class="p-button-rounded p-button-text"></button>
             </div>
         </div>
     </div>
-</div>
+</footer>

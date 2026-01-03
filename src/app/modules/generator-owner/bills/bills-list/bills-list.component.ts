@@ -371,6 +371,8 @@ export class BillsListComponent implements OnInit {
             billId: bill.id,
             subscriberLastName: bill.subscriberLastName,
             billDate: bill.billDate,
+            billYear: bill.billYear,
+            billMonth: bill.billMonth,
             amount: bill.amount,
             statusCode: bill.statusCode,
             currencyCode: bill.currencyCode,

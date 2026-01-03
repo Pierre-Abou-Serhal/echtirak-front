@@ -93,6 +93,8 @@ export interface Bill {
     generatorId: number;
     generatorCode: string;
     billDate: string;
+    billYear: string;
+    billMonth: string;
     amount: number;
     currencyCode: string;
     statusCode: string;
@@ -106,6 +108,7 @@ export interface Bill {
     notes: string;
     generatedFrom: number;
     hasDuplicateBill: boolean;
+    duplicateMessage: string;
     hasRecentPayment: boolean;
 }
 
@@ -165,6 +168,17 @@ export interface WalletBalance {
     daysUntilNextBilling: number;
     nextBillingDate?: string;
     warningMessage?: string;
+    fixedPlatformFeeMonthly: number;
+    pricePerSubscriberMonthly: number;
+    pricePerSms: number;
+    isYearlyPayment: boolean;
+    yearlyDiscountFixedFee: number;
+    yearlyDiscountPerSubscriber: number;
+    yearlyDiscountPerSms: number;
+    freeTrialMonths: number;
+    freeTrialEnabled: boolean;
+    billingCycleDays: number;
+    billingStartDate: string;
 }
 
 export interface WalletTransaction {

@@ -4,10 +4,14 @@ import { GenerateBillsForAllFixedSubscribersRequest } from '@/core/services/api/
 import { GenerateBillsForAllFixedSubscribersResponse } from '@/core/services/api/response';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { Button } from 'primeng/button';
+import { getBillYearMonth } from '@/core/utils/utils';
+import { NotificationService } from '@/core/services/notification.service';
+import { FormsModule } from '@angular/forms';
+import { DatePicker } from 'primeng/datepicker';
 
 @Component({
     selector: 'app-fixed-bill-generation',
-    imports: [Button],
+    imports: [Button, FormsModule, DatePicker],
     templateUrl: './fixed-bill-generation.component.html',
     styleUrl: './fixed-bill-generation.component.scss'
 })
@@ -23,13 +27,26 @@ export class FixedBillGenerationComponent {
     generatedBills = output<Bill[]>();
 
     private readonly generatorOwnerService: GeneratorOwnerService = inject(GeneratorOwnerService);
+    private readonly notificationService = inject(NotificationService);
+
     isBillsGenerating: boolean = false;
 
+    billPeriod: Date | null = null;
+
     generateBills() {
+        const period = getBillYearMonth(this.billPeriod);
+
+        if (!period) {
+            this.notificationService.warn('Warning', 'Please select Bill Period (year/month)');
+            return;
+        }
+
         this.isBillsGenerating = true;
 
         let request: GenerateBillsForAllFixedSubscribersRequest = {
-            generatorId: this.generatorId
+            generatorId: this.generatorId,
+            billMonth: period.billMonth,
+            billYear: period.billYear
         };
 
         console.log(request);
