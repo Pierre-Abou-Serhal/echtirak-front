@@ -218,7 +218,13 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     <div>
                                         <label class="block text-sm font-semibold mb-2">Yearly Discount (Fixed Fee)</label>
-                                        <p-inputNumber class="w-full" formControlName="yearlyDiscountFixedFee" [min]="0"></p-inputNumber>
+                                        <p-inputNumber
+                                            class="w-full"
+                                            formControlName="yearlyDiscountFixedFee"
+                                            mode="decimal"
+                                            [minFractionDigits]="0"
+                                            [maxFractionDigits]="4"
+                                        ></p-inputNumber>
                                         @if (isInvalid('yearlyDiscountFixedFee')) {
                                             <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
                                         }
@@ -226,7 +232,13 @@
 
                                     <div>
                                         <label class="block text-sm font-semibold mb-2">Yearly Discount (Per Subscriber)</label>
-                                        <p-inputNumber class="w-full" formControlName="yearlyDiscountPerSubscriber" [min]="0"></p-inputNumber>
+                                        <p-inputNumber
+                                            class="w-full"
+                                            formControlName="yearlyDiscountPerSubscriber"
+                                            mode="decimal"
+                                            [minFractionDigits]="0"
+                                            [maxFractionDigits]="4"
+                                        ></p-inputNumber>
                                         @if (isInvalid('yearlyDiscountPerSubscriber')) {
                                             <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
                                         }
@@ -234,7 +246,13 @@
 
                                     <div class="md:col-span-2">
                                         <label class="block text-sm font-semibold mb-2">Yearly Discount (Per SMS)</label>
-                                        <p-inputNumber class="w-full" formControlName="yearlyDiscountPerSms" [min]="0"></p-inputNumber>
+                                        <p-inputNumber
+                                            class="w-full"
+                                            formControlName="yearlyDiscountPerSms"
+                                            mode="decimal"
+                                            [minFractionDigits]="0"
+                                            [maxFractionDigits]="4"
+                                        ></p-inputNumber>
                                         @if (isInvalid('yearlyDiscountPerSms')) {
                                             <p-message severity="error" size="small" variant="simple">Must be 0 or greater.</p-message>
                                         }

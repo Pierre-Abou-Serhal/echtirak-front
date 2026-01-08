@@ -83,7 +83,7 @@ export const yearlyDiscountRequiredValidator: ValidatorFn = (control: AbstractCo
     const perSub = Number(control.get('yearlyDiscountPerSubscriber')?.value ?? 0);
     const perSms = Number(control.get('yearlyDiscountPerSms')?.value ?? 0);
 
-    const hasAnyDiscount = fixed > 0 || perSub > 0 || perSms > 0;
+    const hasAnyDiscount = fixed || perSub || perSms;
     return hasAnyDiscount ? null : { yearlyDiscountRequired: true };
 };
 
@@ -135,9 +135,9 @@ export class GeneratorOwnerManagementComponent implements OnInit {
             pricePerSms: this.fb.control<number | null>(null, [Validators.min(0)]),
 
             isYearlyPayment: this.fb.nonNullable.control(false),
-            yearlyDiscountFixedFee: this.fb.control<number | null>(null, [Validators.min(0)]),
-            yearlyDiscountPerSubscriber: this.fb.control<number | null>(null, [Validators.min(0)]),
-            yearlyDiscountPerSms: this.fb.control<number | null>(null, [Validators.min(0)]),
+            yearlyDiscountFixedFee: this.fb.control<number | null>(null),
+            yearlyDiscountPerSubscriber: this.fb.control<number | null>(null),
+            yearlyDiscountPerSms: this.fb.control<number | null>(null),
 
             freeTrialMonths: this.fb.nonNullable.control(0, [Validators.min(0)]),
             freeTrialEnabled: this.fb.nonNullable.control(false),
