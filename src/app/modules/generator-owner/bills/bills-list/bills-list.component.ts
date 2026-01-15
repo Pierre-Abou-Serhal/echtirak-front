@@ -20,6 +20,11 @@ import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
 import { UpdateBillRequest } from '@/core/services/api/request';
 import { NotificationService } from '@/core/services/notification.service';
 import { BillEditModalComponent } from '@/modules/generator-owner/bills/bill-edit-modal/bill-edit-modal.component';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { InputGroup } from 'primeng/inputgroup';
+import { InputGroupAddon } from 'primeng/inputgroupaddon';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 export interface BillSearchFilter {
     generatorId?: number;
@@ -27,19 +32,22 @@ export interface BillSearchFilter {
     statusCode?: string;
     billDateFrom?: Date;
     billDateTo?: Date;
+    subscriberPhoneNumber?: string;
+    keyword?: string;
 }
 
 @Component({
     selector: 'app-bills-list-component',
-    imports: [Button, Tag, TableModule, FormsModule, IconField, InputIcon, InputText, DatePicker, Select, DatePipe, DecimalPipe, ButtonDirective, NgClass, BillEditModalComponent],
+    imports: [Button, Tag, TableModule, FormsModule, IconField, InputIcon, InputText, DatePicker, Select, DatePipe, DecimalPipe, ButtonDirective, NgClass, BillEditModalComponent, ConfirmDialogModule, InputGroup, InputGroupAddon, NgxMaskDirective],
     templateUrl: './bills-list.component.html',
     styleUrl: './bills-list.component.scss',
-    standalone: true
+    standalone: true,
+    providers: [ConfirmationService, provideNgxMask()]
 })
 export class BillsListComponent implements OnInit {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly notificationService = inject(NotificationService);
-
+    private readonly confirmationService: ConfirmationService = inject(ConfirmationService);
     private readonly destroyRef = inject(DestroyRef);
 
     constructor(@Inject(LOCALE_ID) private locale: string) {
@@ -164,7 +172,9 @@ export class BillsListComponent implements OnInit {
                 billDateTo: billDateTo ? formatDate(billDateTo, 'yyyy-MM-dd', this.locale) : undefined,
                 statusCode: this.billSearchFilter.statusCode,
                 generatorId: this.billSearchFilter.generatorId,
-                subscriberName: this.billSearchFilter.subscriberName
+                subscriberName: this.billSearchFilter.subscriberName,
+                subscriberPhoneNumber: this.billSearchFilter.subscriberPhoneNumber,
+                keyword: this.billSearchFilter.keyword
             })
             .pipe(
                 tap((res: GetBillsResponse) => {
@@ -333,7 +343,9 @@ export class BillsListComponent implements OnInit {
             billDateTo: undefined,
             subscriberName: undefined,
             generatorId: undefined,
-            statusCode: undefined
+            statusCode: undefined,
+            keyword: undefined,
+            subscriberPhoneNumber: undefined
         };
 
         this.applyFilters();
@@ -413,13 +425,31 @@ export class BillsListComponent implements OnInit {
     }
 
     payBill(bill: Bill) {
-        bill.statusCode = BillStatus.PAID;
-        this.updateBill(bill);
+        this.confirmationService.confirm({
+            message: 'Are you sure you want pay this bill?',
+            header: 'Confirm',
+            icon: 'pi pi-exclamation-triangle',
+            acceptButtonStyleClass: 'p-button-success',
+            rejectButtonStyleClass: 'p-button-secondary p-button-outlined',
+            accept: () => {
+                bill.statusCode = BillStatus.PAID;
+                this.updateBill(bill);
+            }
+        });
     }
 
     cancelBill(bill: Bill) {
-        bill.statusCode = BillStatus.CANCELLED;
-        this.updateBill(bill);
+        this.confirmationService.confirm({
+            message: 'Are you sure you want cancel this bill?',
+            header: 'Confirm',
+            icon: 'pi pi-exclamation-triangle',
+            acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-secondary p-button-outlined',
+            accept: () => {
+                bill.statusCode = BillStatus.CANCELLED;
+                this.updateBill(bill);
+            }
+        });
     }
 
     findIndexById(id: number): number {

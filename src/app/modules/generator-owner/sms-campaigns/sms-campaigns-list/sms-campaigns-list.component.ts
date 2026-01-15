@@ -75,7 +75,6 @@ export class SmsCampaignsListComponent {
 
     public criteriaOptions: SelectOptionStrValue[] = [];
     public languageOptions: SelectOptionStrValue[] = [
-        { label: 'Auto', value: 'AUTO' },
         { label: 'English', value: 'EN' },
         { label: 'Arabic', value: 'AR' }
     ];
@@ -117,7 +116,7 @@ export class SmsCampaignsListComponent {
             templateId: [null, Validators.required],
             selectionCriteriaType: [null, Validators.required],
             customSubscriberIds: [null],
-            language: ['AUTO', Validators.required]
+            language: ['', Validators.required]
         });
 
         const templateCtrl = this.createForm.get('templateId');
@@ -281,7 +280,7 @@ export class SmsCampaignsListComponent {
 
     openCreateDialog() {
         this.showCreateDialog = true;
-        this.createForm.reset({ language: 'AUTO' });
+        this.createForm.reset();
     }
 
     onCriteriaChange() {

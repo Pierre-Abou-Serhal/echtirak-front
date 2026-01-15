@@ -70,7 +70,9 @@ export interface GetBillsQueryParams {
     subscriberName?: string;
     statusCode?: string;
     billDateFrom?: string;
-    billDateTo?: string
+    billDateTo?: string;
+    subscriberPhoneNumber?: string;
+    keyword?: string;
 }
 
 export interface UpsertSubscriptionBillingModelRequest extends SubscriptionBillingModel {}

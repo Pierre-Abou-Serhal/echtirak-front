@@ -1,4 +1,4 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { Table, TableModule } from 'primeng/table';
 import { Bill } from '@/core/models/model';
 import { FormsModule } from '@angular/forms';
@@ -51,6 +51,8 @@ export class BillsPreviewComponent {
     get billsPreview(): Bill[] {
         return this._allBills;
     }
+
+    @Output() billAcceptedSuccess = new EventEmitter<void>();
 
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly notificationService = inject(NotificationService);
@@ -227,6 +229,7 @@ export class BillsPreviewComponent {
                     this.selectedBills = [];
                     this.expandedRows = {};
                     this.isAcceptBillsLoading = false;
+                    this.billAcceptedSuccess.emit();
                 },
                 error: (err) => {
                     console.log(err);

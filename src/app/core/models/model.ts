@@ -87,6 +87,7 @@ export interface Lookup {
 
 export interface Bill {
     id: number;
+    kvaReadingId?: number;
     subscriberId: number;
     subscriberFirstName: string;
     subscriberLastName: string;

@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit, output } from '@angular/core';
+import { Component, inject, Input, OnDestroy, OnInit, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Bill, KvaReading, Lookup } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
@@ -17,7 +17,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { SelectOptionStrValue } from '@/core/dtos/dto';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { finalize } from 'rxjs';
+import { finalize, Subject, Subscription } from 'rxjs';
 import { Dialog } from 'primeng/dialog';
 import { Skeleton } from 'primeng/skeleton';
 import { LbPhonePipe } from '@/core/pipes/pipes';
@@ -43,7 +43,7 @@ export interface KvaReadingLocalFilter {
     styleUrl: './metered-bill-generation.component.scss',
     providers: [provideNgxMask()]
 })
-export class MeteredBillGenerationComponent implements OnInit {
+export class MeteredBillGenerationComponent implements OnInit, OnDestroy {
     generatorId: number = 0;
 
     // Input setter. used to change value from parent
@@ -51,6 +51,9 @@ export class MeteredBillGenerationComponent implements OnInit {
         this.generatorId = value;
         this.loadKvaReadings();
     }
+
+    @Input() acceptBills$!: Subject<void>;
+    private sub?: Subscription;
 
     // Output generated bills from kva readings
     generatedBills = output<Bill[]>();
@@ -96,16 +99,24 @@ export class MeteredBillGenerationComponent implements OnInit {
     ngOnInit() {
         this.generatorOwnerService.getLookup({ domain: LookupDomain.KVA_READING_STATUS }).subscribe({
             next: (response: GetLookupResponse) => {
-                this.kvaReadingStatuses = response.items.map((lookup: Lookup) => ({
-                    value: lookup.code,
-                    label: lookup.code
-                }));
+                this.kvaReadingStatuses = response.items
+                    .filter((lookup: Lookup) => lookup.code !== KvaReadingStatus.BILLED)
+                    .map((lookup: Lookup) => ({
+                        value: lookup.code,
+                        label: lookup.code
+                    }));
             },
             error: (err) => {
                 console.log(err);
                 this.kvaReadingStatuses = [];
             }
         });
+
+        this.sub = this.acceptBills$?.subscribe(() => this.onBillsAccepted());
+    }
+
+    ngOnDestroy() {
+        this.sub?.unsubscribe();
     }
 
     loadKvaReadings() {
@@ -433,5 +444,15 @@ export class MeteredBillGenerationComponent implements OnInit {
     }
     private endOfDay(d: Date): Date {
         return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+    }
+
+    private onBillsAccepted() {
+        if (!this.selectedKvaReadings?.length) return;
+
+        const selectedIds = new Set(this.selectedKvaReadings.map((x) => x.id));
+
+        this.kvaReadingsAll = this.kvaReadingsAll.filter((x) => !selectedIds.has(x.id));
+
+        this.applyFiltersLocal(); // updates kvaReadings from kvaReadingsAll
     }
 }

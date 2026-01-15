@@ -25,6 +25,25 @@
                 </p-iconfield>
             </div>
 
+            <!-- Subscriber Phone -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterSubscriberPhone">
+                    Subscriber Phone
+                </label>
+
+                <p-inputgroup>
+                    <p-inputgroup-addon>+961</p-inputgroup-addon>
+                    <input
+                        pInputText
+                        placeholder="Phone Number"
+                        [(ngModel)]="billSearchFilter.subscriberPhoneNumber"
+                        mask="00 000 000"
+                        [dropSpecialCharacters]="true"
+                        (keyup.enter)="applyFilters()"
+                    />
+                </p-inputgroup>
+            </div>
+
             <!-- Bill Date From -->
             <div class="flex flex-col">
                 <label class="block text-sm font-semibold mb-2" for="filterBillDateFrom">
@@ -91,6 +110,26 @@
                     [(ngModel)]="billSearchFilter.statusCode"
                     [loading]="isBillStatusesLoading"
                 ></p-select>
+            </div>
+
+            <!-- Keyword -->
+            <div class="flex flex-col">
+                <label class="block text-sm font-semibold mb-2" for="filterKeyword">
+                    Keyword
+                </label>
+
+                <p-iconfield iconPosition="left" class="w-full">
+                    <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+                    <input
+                        id="filterKeyword"
+                        pInputText
+                        type="text"
+                        class="w-full"
+                        [(ngModel)]="billSearchFilter.keyword"
+                        (keyup.enter)="applyFilters()"
+                        placeholder="Search anything..."
+                    />
+                </p-iconfield>
             </div>
 
             <!-- Actions -->
@@ -383,3 +422,5 @@
     (save)="onBillEditSave($event)"
     (cancel)="onBillEditCancel()"
 />
+
+<p-confirmdialog [style]="{ width: '450px' }"></p-confirmdialog>

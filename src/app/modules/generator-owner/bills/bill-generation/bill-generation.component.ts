@@ -13,6 +13,7 @@ import {
 import {
     FixedBillGenerationComponent
 } from '@/modules/generator-owner/bills/bill-generation/fixed-bill-generation/fixed-bill-generation.component';
+import { Subject } from 'rxjs';
 
 @Component({
     selector: 'app-bill-generation-component',
@@ -30,6 +31,7 @@ export class BillGenerationComponent implements OnInit {
     isGeneratorsLoading: boolean = true;
 
     activeTab: string = '0';
+    acceptBills$ = new Subject<void>();
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -52,6 +54,10 @@ export class BillGenerationComponent implements OnInit {
 
     // Listens to the output to any child component outputting a bill list
     generateBills(bills: Bill[]) {
-       this.billsPreview = bills;
+        this.billsPreview = bills;
+    }
+
+    billAcceptedSuccess() {
+        this.acceptBills$.next();
     }
 }

@@ -24,7 +24,11 @@
         </p-tablist>
         <p-tabpanels>
             <p-tabpanel value="0">
-                <app-metered-bill-generation [generatorId]="selectedGeneratorId" (generatedBills)="generateBills($event)"></app-metered-bill-generation>
+                <app-metered-bill-generation
+                    [generatorId]="selectedGeneratorId"
+                    (generatedBills)="generateBills($event)"
+                    [acceptBills$]="acceptBills$">
+                </app-metered-bill-generation>
             </p-tabpanel>
             <p-tabpanel value="1">
                 <app-fixed-bill-generation [generatorId]="selectedGeneratorId" (generatedBills)="generateBills($event)"></app-fixed-bill-generation>
@@ -33,4 +37,7 @@
     </p-tabs>
 </div>
 
-<app-bills-preview-component [billsPreview]="billsPreview"></app-bills-preview-component>
+<app-bills-preview-component
+    [billsPreview]="billsPreview"
+    (billAcceptedSuccess)="billAcceptedSuccess()"
+></app-bills-preview-component>
