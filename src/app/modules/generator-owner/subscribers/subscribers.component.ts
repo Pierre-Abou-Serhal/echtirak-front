@@ -29,12 +29,33 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { addLebanonPrefix, stripLebanonPrefix } from '@/core/utils/utils';
 import { LbPhonePipe } from '@/core/pipes/pipes';
-import { NgClass } from '@angular/common';
+import { DecimalPipe, NgClass } from '@angular/common';
 
 @Component({
     selector: 'app-subscribers',
     standalone: true,
-    imports: [TableModule, InputIcon, IconField, FormsModule, ButtonDirective, InputText, Button, Tag, Dialog, Select, InputNumber, Textarea, Skeleton, InputMaskModule, InputGroupModule, InputGroupAddonModule, NgxMaskDirective, LbPhonePipe, NgClass],
+    imports: [
+        TableModule,
+        InputIcon,
+        IconField,
+        FormsModule,
+        ButtonDirective,
+        InputText,
+        Button,
+        Tag,
+        Dialog,
+        Select,
+        InputNumber,
+        Textarea,
+        Skeleton,
+        InputMaskModule,
+        InputGroupModule,
+        InputGroupAddonModule,
+        NgxMaskDirective,
+        LbPhonePipe,
+        NgClass,
+        DecimalPipe
+    ],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
     providers: [provideNgxMask()]
@@ -410,6 +431,7 @@ export class SubscribersComponent implements OnInit {
                 }
             });
         } else {
+            console.log('sub not valid');
             this.isSubscriberSaving = false;
         }
     }
@@ -417,6 +439,13 @@ export class SubscribersComponent implements OnInit {
     updateSubscriber() {
         let isCreatingSub = this.selectedSubscriber.id === -1;
         this.selectedSubscriber.phoneNumber = addLebanonPrefix(this.selectedSubscriber.phoneNumber);
+
+        // If subscription model is FIXED, then default currentKva + previousKva to 0
+        if (this.getSubscriptionBillingModel(this.selectedSubscriber.subscriptionBillingModelId) === BillingModel.FIXED) {
+            this.selectedSubscriber.currentKva = 0;
+            this.selectedSubscriber.previousKva = 0;
+        }
+
         this.generatorOwnerService
             .upsertSubscriber({
                 ...this.selectedSubscriber
@@ -431,7 +460,9 @@ export class SubscribersComponent implements OnInit {
                         this.notificationService.success('Successful', 'Subscriber Updated');
                     } else {
                         // Add
-                        this.subscribers.push(this.selectedSubscriber);
+                        this.subscribers.unshift(this.selectedSubscriber);
+                        this.subscribers = [...this.subscribers];
+                        this.first = 0; // optional but recommended
                         this.notificationService.success('Successful', 'Subscriber Created');
                     }
 
@@ -455,11 +486,14 @@ export class SubscribersComponent implements OnInit {
             this.selectedSubscriber.firstName.length > 0 &&
             this.selectedSubscriber.lastName.length > 0 &&
             this.selectedSubscriber.address.length > 0 &&
-            this.selectedSubscriber.previousKva > 0 &&
-            this.selectedSubscriber.currentKva > 0 &&
             this.selectedSubscriber.electricMeterNumber.length > 0 &&
             this.selectedSubscriber.statusCode.length > 0 &&
-            this.selectedSubscriber.currentKva >= this.selectedSubscriber.previousKva
+            // If Billing Model is Metered, validate currentKva + previousKva
+            (this.getSubscriptionBillingModel(this.selectedSubscriber.subscriptionBillingModelId) === BillingModel.FIXED ||
+                (this.getSubscriptionBillingModel(this.selectedSubscriber.subscriptionBillingModelId) === BillingModel.METERED &&
+                    this.selectedSubscriber.previousKva >= 0 &&
+                    this.selectedSubscriber.currentKva >= 0 &&
+                    this.selectedSubscriber.currentKva >= this.selectedSubscriber.previousKva))
         );
     }
 
@@ -579,10 +613,10 @@ export class SubscribersComponent implements OnInit {
         if (!cd) return fallback;
 
         // Split: attachment; filename=...; filename*=...
-        const parts: string[] = cd.split(';').map(p => p.trim());
+        const parts: string[] = cd.split(';').map((p) => p.trim());
 
         const getParam = (name: string): string | null => {
-            const part: string | undefined = parts.find(p => p.toLowerCase().startsWith(name.toLowerCase() + '='));
+            const part: string | undefined = parts.find((p) => p.toLowerCase().startsWith(name.toLowerCase() + '='));
             if (!part) return null;
             let v: string = part.slice(part.indexOf('=') + 1).trim();
             if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1);
@@ -595,7 +629,11 @@ export class SubscribersComponent implements OnInit {
             // UTF-8''<percent-encoded>
             const m = /^([^']*)'[^']*'(.*)$/.exec(fnStar);
             const encoded = m ? m[2] : fnStar;
-            try { return decodeURIComponent(encoded); } catch { return encoded; }
+            try {
+                return decodeURIComponent(encoded);
+            } catch {
+                return encoded;
+            }
         }
 
         // Fallback to filename

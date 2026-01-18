@@ -353,7 +353,7 @@
                                     <i class="pi pi-history"></i>
                                     <span class="detail-label">Previous KWH</span>
                                 </div>
-                                <div class="detail-value">{{ bill.previousKva ?? '—' }}</div>
+                                <div class="detail-value">{{ bill.previousKva | number:'1.0-4' }}</div>
                             </div>
 
                             <div class="detail-card detail-card--third">
@@ -361,7 +361,7 @@
                                     <i class="pi pi-arrow-up"></i>
                                     <span class="detail-label">Current KWH</span>
                                 </div>
-                                <div class="detail-value">{{ bill.currentKva ?? '—' }}</div>
+                                <div class="detail-value">{{ bill.currentKva ?? '—'  | number:'1.0-4' }}</div>
                             </div>
 
                             <div class="detail-card detail-card--third">
@@ -369,7 +369,7 @@
                                     <i class="pi pi-bolt"></i>
                                     <span class="detail-label">Subscription AMPS</span>
                                 </div>
-                                <div class="detail-value">{{ bill.subscriptionAmps ?? '—' }}</div>
+                                <div class="detail-value">{{ bill.subscriptionAmps | number:'1.0-4' }}</div>
                             </div>
 
                             <!-- Row 2: Fees -->
@@ -378,7 +378,7 @@
                                     <i class="pi pi-tag"></i>
                                     <span class="detail-label">KWH Fee</span>
                                 </div>
-                                <div class="detail-value">{{ bill.kvaFee ?? '—' }}</div>
+                                <div class="detail-value">{{ bill.kvaFee ?? '—'  | number:'1.0-4' }}</div>
                             </div>
 
                             <div class="detail-card detail-card--third">
@@ -386,7 +386,7 @@
                                     <i class="pi pi-percentage"></i>
                                     <span class="detail-label">Subscription Fee Var</span>
                                 </div>
-                                <div class="detail-value">{{ bill.subscriptionFeeVar ?? '—' }}</div>
+                                <div class="detail-value">{{ bill.subscriptionFeeVar ?? '—'  | number:'1.0-4' }}</div>
                             </div>
 
                             <div class="detail-card detail-card--third">
@@ -394,7 +394,7 @@
                                     <i class="pi pi-wallet"></i>
                                     <span class="detail-label">Subscription Fee Fixed</span>
                                 </div>
-                                <div class="detail-value">{{ bill.subscriptionFeeFixed ?? '—' }}</div>
+                                <div class="detail-value">{{ bill.subscriptionFeeFixed ?? '—'  | number:'1.0-4' }}</div>
                             </div>
 
                         </div>
@@ -419,6 +419,7 @@
 <app-bill-edit-modal
     [(visible)]="editVisible"
     [bill]="billToEdit"
+    [isBillPeriodDisabled]="true"
     (save)="onBillEditSave($event)"
     (cancel)="onBillEditCancel()"
 />

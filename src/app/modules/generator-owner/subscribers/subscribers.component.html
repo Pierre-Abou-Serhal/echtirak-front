@@ -153,6 +153,7 @@
                             severity="secondary"
                             rounded
                             (click)="previewSingleQrCode(subscriber)"
+                            [disabled]="this.getSubscriptionBillingModel(subscriber.subscriptionBillingModelId) === BillingModel.METERED"
                         />
 
                         <p-button
@@ -216,7 +217,7 @@
                                     <span class="detail-label">Previous KWH</span>
                                 </div>
                                 <div class="detail-value">
-                                    {{ subscriber.previousKva ?? '—' }}
+                                    {{ subscriber.previousKva ?? '—' | number:'1.0-4' }}
                                 </div>
                             </div>
 
@@ -227,7 +228,7 @@
                                     <span class="detail-label">Current KWH</span>
                                 </div>
                                 <div class="detail-value">
-                                    {{ subscriber.currentKva ?? '—' }}
+                                    {{ subscriber.currentKva ?? '—' | number:'1.0-4' }}
                                 </div>
                             </div>
 
@@ -238,7 +239,7 @@
                                     <span class="detail-label">Billing</span>
                                 </div>
                                 <div class="detail-value">
-                                    {{ subscriber.billingModel }} {{ subscriber.subscriptionAmps }} AMPs
+                                    {{ subscriber.billingModel }} {{ subscriber.subscriptionAmps | number:'1.0-4' }} AMPs
                                 </div>
                             </div>
 
@@ -250,7 +251,7 @@
                                         <span class="detail-label">Override</span>
                                     </div>
                                     <div class="detail-value">
-                                        {{ subscriber.overrideAmount }}
+                                        {{ subscriber.overrideAmount | number:'1.0-4' }}
                                     </div>
                                 </div>
                             }
@@ -465,54 +466,56 @@
                     }
                 </div>
 
-                <!-- Previous / Current KVA: side by side -->
-                <div>
-                    <label for="dialogPreviousKva" class="block text-sm font-semibold mb-2">
-                        Previous KWH
-                    </label>
-                    <p-inputnumber
-                        inputId="dialogPreviousKva"
-                        [(ngModel)]="selectedSubscriber.previousKva"
-                        mode="decimal"
-                        [minFractionDigits]="0"
-                        [maxFractionDigits]="4"
-                        class="w-full"
-                        [min]="0"
-                    ></p-inputnumber>
-                    @if (submitted && !selectedSubscriber.previousKva) {
-                        <small class="text-red-500">Previous KWH is required.</small>
-                    }
-
-                    @if (submitted && selectedSubscriber.previousKva && selectedSubscriber.currentKva) {
-                        @if(selectedSubscriber.currentKva < selectedSubscriber.previousKva){
-                            <small class="text-red-500">Previous KWH must be smaller or equal to Current KWH.</small>
+                @if(getSubscriptionBillingModel(selectedSubscriber.subscriptionBillingModelId) === BillingModel.METERED){
+                    <!-- Previous / Current KVA: side by side -->
+                    <div>
+                        <label for="dialogPreviousKva" class="block text-sm font-semibold mb-2">
+                            Previous KWH
+                        </label>
+                        <p-inputnumber
+                            inputId="dialogPreviousKva"
+                            [(ngModel)]="selectedSubscriber.previousKva"
+                            mode="decimal"
+                            [minFractionDigits]="0"
+                            [maxFractionDigits]="4"
+                            class="w-full"
+                            [min]="0"
+                        ></p-inputnumber>
+                        @if (submitted && !selectedSubscriber.previousKva) {
+                            <small class="text-red-500">Previous KWH is required.</small>
                         }
-                    }
-                </div>
 
-                <div>
-                    <label for="dialogCurrentKva" class="block text-sm font-semibold mb-2">
-                        Current KWH
-                    </label>
-                    <p-inputnumber
-                        inputId="dialogCurrentKva"
-                        [(ngModel)]="selectedSubscriber.currentKva"
-                        mode="decimal"
-                        [minFractionDigits]="0"
-                        [maxFractionDigits]="4"
-                        class="w-full"
-                        [min]="0"
-                    ></p-inputnumber>
-                    @if (submitted && !selectedSubscriber.currentKva) {
-                        <small class="text-red-500">Current KWH is required.</small>
-                    }
-
-                    @if (submitted && selectedSubscriber.previousKva && selectedSubscriber.currentKva) {
-                        @if(selectedSubscriber.currentKva < selectedSubscriber.previousKva){
-                            <small class="text-red-500">Current KWH must be greater or equal to Previous KWH.</small>
+                        @if (submitted && selectedSubscriber.previousKva && selectedSubscriber.currentKva) {
+                            @if(selectedSubscriber.currentKva < selectedSubscriber.previousKva){
+                                <small class="text-red-500">Previous KWH must be smaller or equal to Current KWH.</small>
+                            }
                         }
-                    }
-                </div>
+                    </div>
+
+                    <div>
+                        <label for="dialogCurrentKva" class="block text-sm font-semibold mb-2">
+                            Current KWH
+                        </label>
+                        <p-inputnumber
+                            inputId="dialogCurrentKva"
+                            [(ngModel)]="selectedSubscriber.currentKva"
+                            mode="decimal"
+                            [minFractionDigits]="0"
+                            [maxFractionDigits]="4"
+                            class="w-full"
+                            [min]="0"
+                        ></p-inputnumber>
+                        @if (submitted && !selectedSubscriber.currentKva) {
+                            <small class="text-red-500">Current KWH is required.</small>
+                        }
+
+                        @if (submitted && selectedSubscriber.previousKva && selectedSubscriber.currentKva) {
+                            @if(selectedSubscriber.currentKva < selectedSubscriber.previousKva){
+                                <small class="text-red-500">Current KWH must be greater or equal to Previous KWH.</small>
+                            }
+                        }
+                    </div>
+                }
 
             </div>
         </ng-template>

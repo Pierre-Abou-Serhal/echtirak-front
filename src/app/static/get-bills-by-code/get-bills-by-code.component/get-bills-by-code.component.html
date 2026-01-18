@@ -72,23 +72,25 @@
 
                     <!-- Technical info -->
                     <div class="bill-grid">
-                        <div class="bill-grid-item">
-                            <span class="label">Previous</span>
-                            <span class="value">{{ bill.previousKva | number:'1.0-4' }}</span>
-                            <span class="label-small">KWH</span>
-                        </div>
+                        @if(bill.previousKva > 0 || bill.currentKva > 0){
+                            <div class="bill-grid-item">
+                                <span class="label">Previous</span>
+                                <span class="value">{{ bill.previousKva | number:'1.0-4' }}</span>
+                                <span class="label-small">KWH</span>
+                            </div>
 
-                        <div class="bill-grid-item">
-                            <span class="label">Current</span>
-                            <span class="value">{{ bill.currentKva | number:'1.0-4' }}</span>
-                            <span class="label-small">KWH</span>
-                        </div>
+                            <div class="bill-grid-item">
+                                <span class="label">Current</span>
+                                <span class="value">{{ bill.currentKva | number:'1.0-4' }}</span>
+                                <span class="label-small">KWH</span>
+                            </div>
 
-                        <div class="bill-grid-item">
-                            <span class="label">Difference</span>
-                            <span class="value"> {{ (bill.currentKva - bill.previousKva) | number:'1.0-4' }} </span>
-                            <span class="label-small">KWH</span>
-                        </div>
+                            <div class="bill-grid-item">
+                                <span class="label">Difference</span>
+                                <span class="value"> {{ (bill.currentKva - bill.previousKva) | number:'1.0-4' }} </span>
+                                <span class="label-small">KWH</span>
+                            </div>
+                        }
 
                         <div class="bill-grid-item">
                             <span class="label">Subscription</span>

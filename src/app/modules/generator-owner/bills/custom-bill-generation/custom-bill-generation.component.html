@@ -215,7 +215,7 @@
                                     <span class="detail-label">Previous KWH</span>
                                 </div>
                                 <div class="detail-value">
-                                    {{ subscriber.previousKva ?? '—' }}
+                                    {{ subscriber.previousKva ?? '—' | number:'1.0-4' }}
                                 </div>
                             </div>
 
@@ -226,7 +226,7 @@
                                     <span class="detail-label">Current KWH</span>
                                 </div>
                                 <div class="detail-value">
-                                    {{ subscriber.currentKva ?? '—' }}
+                                    {{ subscriber.currentKva ?? '—' | number:'1.0-4' }}
                                 </div>
                             </div>
 
@@ -237,7 +237,7 @@
                                     <span class="detail-label">Billing</span>
                                 </div>
                                 <div class="detail-value">
-                                    {{ subscriber.billingModel }} {{ subscriber.subscriptionAmps }} AMPs
+                                    {{ subscriber.billingModel }} {{ subscriber.subscriptionAmps | number:'1.0-4' }} AMPs
                                 </div>
                             </div>
 
@@ -249,7 +249,7 @@
                                         <span class="detail-label">Override</span>
                                     </div>
                                     <div class="detail-value">
-                                        {{ subscriber.overrideAmount }}
+                                        {{ subscriber.overrideAmount | number:'1.0-4' }}
                                     </div>
                                 </div>
                             }
