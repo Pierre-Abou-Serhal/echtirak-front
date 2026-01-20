@@ -50,6 +50,10 @@ export interface GetSubscribersQrCodePdfRequest {
     generatorId: number;
 }
 
+export interface GetSubscribersQrCodeZipRequest {
+    generatorId: number;
+}
+
 export interface GenerateBillsForSelectedSubscribersRequest {
     generatorId: number;
     subscriberIds: number[];

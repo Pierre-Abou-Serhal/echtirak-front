@@ -29,7 +29,7 @@
         (onRowCollapse)="onRowCollapse($event)"
     >
         <ng-template #caption>
-            <!-- Top row: New / Export / Download QR PDF -->
+            <!-- Top row: New / Export / Download QR ZIP -->
             <div class="flex justify-between items-center flex-column sm:flex-row gap-3 pb-4">
                 <div class="flex flex-wrap items-center gap-2 ml-auto">
                     <p-button
@@ -47,23 +47,12 @@
                     />
 
                     <div class="flex flex-wrap items-center gap-2">
-                        <p-select
-                            [options]="generators"
-                            [(ngModel)]="selectedGeneratorForQrPdf"
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="Select generator"
-                            class="w-full md:w-56"
-                            [loading]="generatorsLoading"
-                        />
-
                         <p-button
                             label="Download QR Codes"
                             icon="pi pi-download"
                             severity="secondary"
-                            [disabled]="!selectedGeneratorForQrPdf"
-                            (click)="downloadSubscribersQrCodePdf()"
-                            [loading]="isDownloadingSubscribersQrCodePdf"
+                            (click)="openGeneratorsModal()"
+                            [loading]="isDownloadingSubscribersQrCodeZip"
                         />
                     </div>
                 </div>
@@ -590,5 +579,57 @@
     <ng-template pTemplate="footer">
         <p-button label="No" icon="pi pi-times" (click)="closeWarning()" text severity="secondary" />
         <p-button label="Yes" icon="pi pi-check" (click)="updateSubscriber()" severity="primary" outlined autofocus />
+    </ng-template>
+</p-dialog>
+
+<!-- Subscriber Not Affordable Popup -->
+<p-dialog
+    [(visible)]="displayGeneratorsForQrCodesDownload"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+>
+    <!-- Custom HEADER with icon + title -->
+    <ng-template pTemplate="header">
+        <div class="flex items-center gap-2">
+            <span class="font-bold">
+                Select a generator to download QR Codes
+            </span>
+        </div>
+    </ng-template>
+
+    <!-- Body -->
+<!--    <p-select-->
+<!--        [options]="generators"-->
+<!--        [(ngModel)]="selectedGeneratorForQrZip"-->
+<!--        optionLabel="label"-->
+<!--        optionValue="value"-->
+<!--        placeholder="Select generator"-->
+<!--        class="w-full md:w-56 mb-3"-->
+<!--        [loading]="generatorsLoading"-->
+<!--        [overlayOptions]="getOverlayOptions()"-->
+<!--    />-->
+
+    @if(!generatorsLoading){
+        <p-listbox
+            [options]="generators"
+            [(ngModel)]="selectedGeneratorForQrZip"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+            [invalid]="!selectedGeneratorForQrZip"
+        />
+    }
+    @else {
+        @for (i of [1,2,3,4]; track i) {
+            <p-card class="mb-1">
+                <p-skeleton height="1rem"></p-skeleton>
+            </p-card>
+        }
+    }
+
+    <!-- Footer -->
+    <ng-template pTemplate="footer">
+        <p-button label="Download" icon="pi pi-download" (click)="downloadSubscribersQrCodeZip()" [loading]="isDownloadingSubscribersQrCodeZip" severity="primary" outlined autofocus [disabled]="!selectedGeneratorForQrZip"/>
     </ng-template>
 </p-dialog>

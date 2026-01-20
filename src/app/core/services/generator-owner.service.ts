@@ -25,7 +25,8 @@ import {
     GenerateBillsForAllFixedSubscribersRequest,
     GetAnnouncementsQueryParams,
     MarkAnnouncementAsReadRequest,
-    GetKVAReadingsQueryParams
+    GetKVAReadingsQueryParams,
+    GetSubscribersQrCodeZipRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -113,6 +114,10 @@ export class GeneratorOwnerService {
     public getSubscriberQrCode(subscriberId: number): Observable<Blob> {
         const path = `/GeneratorOwner/Subscriber/${subscriberId}/QrCode`;
         return this.apiService.getBlob(path);
+    }
+
+    public getSubscribersQrCodeZip(request: GetSubscribersQrCodeZipRequest) {
+        return this.apiService.postBlob('/GeneratorOwner/Subscribers/QrCodeZip', request);
     }
 
     public getSubscribersQrCodePdf(request: GetSubscribersQrCodePdfRequest) {

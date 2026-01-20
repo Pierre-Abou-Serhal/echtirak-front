@@ -30,6 +30,8 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { addLebanonPrefix, stripLebanonPrefix } from '@/core/utils/utils';
 import { LbPhonePipe } from '@/core/pipes/pipes';
 import { DecimalPipe, NgClass } from '@angular/common';
+import { Listbox } from 'primeng/listbox';
+import { Card } from 'primeng/card';
 
 @Component({
     selector: 'app-subscribers',
@@ -54,7 +56,9 @@ import { DecimalPipe, NgClass } from '@angular/common';
         NgxMaskDirective,
         LbPhonePipe,
         NgClass,
-        DecimalPipe
+        DecimalPipe,
+        Listbox,
+        Card
     ],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
@@ -111,9 +115,9 @@ export class SubscribersComponent implements OnInit {
     singleQrCodeBlob?: Blob;
     loadingSingleQr = false;
 
-    // Multiple Qr-Code PDF
-    isDownloadingSubscribersQrCodePdf: boolean = false;
-    selectedGeneratorForQrPdf?: number | undefined;
+    // Multiple Qr-Code ZIP
+    isDownloadingSubscribersQrCodeZip: boolean = false;
+    selectedGeneratorForQrZip?: number | undefined;
     generatorsLoading: boolean = true;
 
     // Subscriber Warning vars
@@ -122,6 +126,8 @@ export class SubscribersComponent implements OnInit {
 
     // Expandable Rows
     expandedRows: Record<string, boolean> = {};
+
+    displayGeneratorsForQrCodesDownload: boolean = false;
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -579,19 +585,19 @@ export class SubscribersComponent implements OnInit {
         URL.revokeObjectURL(url);
     }
 
-    downloadSubscribersQrCodePdf() {
-        this.isDownloadingSubscribersQrCodePdf = true;
+    downloadSubscribersQrCodeZip() {
+        this.isDownloadingSubscribersQrCodeZip = true;
 
-        if (!this.selectedGeneratorForQrPdf) {
-            this.isDownloadingSubscribersQrCodePdf = false;
+        if (!this.selectedGeneratorForQrZip) {
+            this.isDownloadingSubscribersQrCodeZip = false;
             return;
         }
 
-        this.generatorOwnerService.getSubscribersQrCodePdf({ generatorId: this.selectedGeneratorForQrPdf }).subscribe({
+        this.generatorOwnerService.getSubscribersQrCodeZip({ generatorId: this.selectedGeneratorForQrZip }).subscribe({
             next: (response) => {
                 const blob = response.body!;
                 const contentDisposition = response.headers.get('content-disposition') ?? '';
-                let fileName = this.getFilenameFromContentDisposition(contentDisposition, 'subscribers-qr-codes.pdf');
+                let fileName = this.getFilenameFromContentDisposition(contentDisposition, 'subscribers-qr-codes.7z');
 
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -600,11 +606,12 @@ export class SubscribersComponent implements OnInit {
                 a.click();
                 URL.revokeObjectURL(url);
 
-                this.isDownloadingSubscribersQrCodePdf = false;
+                this.isDownloadingSubscribersQrCodeZip = false;
+                this.displayGeneratorsForQrCodesDownload = false;
             },
             error: (err) => {
-                console.error('PDF download failed', err);
-                this.isDownloadingSubscribersQrCodePdf = false;
+                console.error('ZIP download failed', err);
+                this.isDownloadingSubscribersQrCodeZip = false;
             }
         });
     }
@@ -665,6 +672,21 @@ export class SubscribersComponent implements OnInit {
     collapseAll() {
         this.expandedRows = {};
     }
+
+    openGeneratorsModal() {
+        this.displayGeneratorsForQrCodesDownload = true;
+    }
+
+    // getOverlayOptions(): OverlayOptions {
+    //     return {
+    //         listener: (event: Event, options?: OverlayListenerOptions) => {
+    //             if (options?.type === 'scroll') {
+    //                 return false;
+    //             }
+    //             return options?.valid;
+    //         }
+    //     };
+    // }
 
     protected readonly BillingModel = BillingModel;
 }
