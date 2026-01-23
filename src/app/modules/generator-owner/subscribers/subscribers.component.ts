@@ -536,7 +536,7 @@ export class SubscribersComponent implements OnInit {
 
     onChangeSubscriptionBillingModel(subscriptionBillingModelId: number) {
         this.subscriptionBillingFee = this.getSubscriptionBillingFee(subscriptionBillingModelId);
-        if (this.getSubscriptionBillingModel(subscriptionBillingModelId) === BillingModel.FIXED) {
+        if (this.getSubscriptionBillingModel(subscriptionBillingModelId) === BillingModel.METERED) {
             this.selectedSubscriber.overrideAmount = undefined;
         }
     }

@@ -122,7 +122,7 @@
                 <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
                     <div>
                         <div class="text-xs text-surface-500 dark:text-surface-400">
-                            Platform fee (monthly)
+                            Platform fee (billing cycle)
                         </div>
                         <div class="font-medium">
                             {{ wallet.fixedPlatformFeeMonthly | currency:'USD':'symbol':'1.0-4' }}
@@ -131,7 +131,7 @@
 
                     <div>
                         <div class="text-xs text-surface-500 dark:text-surface-400">
-                            Per subscriber (monthly)
+                            Per subscriber (billing cycle)
                         </div>
                         <div class="font-medium">
                             {{ wallet.pricePerSubscriberMonthly | currency:'USD':'symbol':'1.0-4' }}

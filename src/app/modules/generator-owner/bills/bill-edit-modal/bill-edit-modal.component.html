@@ -13,7 +13,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 <!-- Subscriber (disabled) -->
-                <div class="md:col-span-2">
+                <div>
                     <label for="billSubscriber" class="block text-sm font-semibold mb-2">Subscriber</label>
                     <input
                         pInputText
@@ -78,27 +78,12 @@
                     ></p-inputnumber>
                 </div>
 
-                <!-- KWH Fee (disabled) -->
+                <!-- Total KWH Fee (disabled) -->
                 <div>
-                    <label for="billKvaFee" class="block text-sm font-semibold mb-2">KWH Fee</label>
+                    <label for="billKvaFee" class="block text-sm font-semibold mb-2">Total KWH Fee</label>
                     <p-inputnumber
                         inputId="billKvaFee"
                         [ngModel]="editableBill.kvaFee"
-                        mode="decimal"
-                        [minFractionDigits]="0"
-                        [maxFractionDigits]="4"
-                        class="w-full"
-                        [disabled]="true"
-                        [min]="0"
-                    ></p-inputnumber>
-                </div>
-
-                <!-- Subscription Fee Var (disabled) -->
-                <div>
-                    <label for="billSubFeeVar" class="block text-sm font-semibold mb-2">Subscription Fee Var</label>
-                    <p-inputnumber
-                        inputId="billSubFeeVar"
-                        [ngModel]="editableBill.subscriptionFeeVar"
                         mode="decimal"
                         [minFractionDigits]="0"
                         [maxFractionDigits]="4"

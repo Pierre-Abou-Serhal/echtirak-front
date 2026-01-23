@@ -142,7 +142,7 @@
                             severity="secondary"
                             rounded
                             (click)="previewSingleQrCode(subscriber)"
-                            [disabled]="this.getSubscriptionBillingModel(subscriber.subscriptionBillingModelId) === BillingModel.METERED"
+                            [disabled]="this.getSubscriptionBillingModel(subscriber.subscriptionBillingModelId) === BillingModel.FIXED"
                         />
 
                         <p-button
@@ -597,18 +597,6 @@
             </span>
         </div>
     </ng-template>
-
-    <!-- Body -->
-<!--    <p-select-->
-<!--        [options]="generators"-->
-<!--        [(ngModel)]="selectedGeneratorForQrZip"-->
-<!--        optionLabel="label"-->
-<!--        optionValue="value"-->
-<!--        placeholder="Select generator"-->
-<!--        class="w-full md:w-56 mb-3"-->
-<!--        [loading]="generatorsLoading"-->
-<!--        [overlayOptions]="getOverlayOptions()"-->
-<!--    />-->
 
     @if(!generatorsLoading){
         <p-listbox

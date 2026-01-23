@@ -9,21 +9,31 @@
                     </div>
                 </div>
 
-                <p-button icon="pi pi-refresh" severity="secondary" text (click)="reload()"></p-button>
+                <p-button icon="pi pi-refresh" severity="secondary" rounded (click)="reload()"></p-button>
             </div>
         </div>
 
-        <p-iconfield iconPosition="left" class="mb-3">
-            <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-            <input
-                pInputText
-                class="w-full"
-                placeholder="Search name / phone / meter / generator..."
-                [ngModel]="keyword"
-                (ngModelChange)="onSearch($event)"
-            />
-        </p-iconfield>
+        <div class="flex gap-2 items-center mb-3">
+            <p-iconfield iconPosition="left" class="flex-1">
+                <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+                <input
+                    pInputText
+                    type="text"
+                    class="w-full"
+                    placeholder="Search name / phone / meter / generator..."
+                    [ngModel]="keyword"
+                    (ngModelChange)="onSearch($event)"
+                />
+            </p-iconfield>
 
+            <p-button
+                icon="pi pi-times"
+                severity="secondary"
+                rounded
+                (onClick)="onSearch('')"
+                aria-label="Clear search"
+            ></p-button>
+        </div>
         <p-dataview
             [value]="filteredReadings"
             emptyMessage="No readings found."
@@ -100,7 +110,7 @@
 <!-- Update dialog (bottom sheet style) -->
 <p-dialog
     [(visible)]="updateOpen"
-    header="Update KVA Reading"
+    header="Update KWH Reading"
     [modal]="true"
     [draggable]="false"
     [resizable]="false"
@@ -169,7 +179,7 @@
                     placeholder="Enter reading"
                     [min]="0"
                 ></p-inputnumber>
-                @if (submitted && !editKvaReadingValid()) {
+                @if (!editKvaReadingValid()) {
                     <small class="text-red-500">KVA reading is required.</small>
                 }
             </div>
@@ -194,7 +204,7 @@
                               [disabled]="!imageFile" (click)="clearImage()"></p-button>
                 </div>
 
-                @if (submitted && !isImageValid()) {
+                @if (!loadingImagePreview && !isImageValid()) {
                     <small class="text-red-500">Image is required.</small>
                 }
 

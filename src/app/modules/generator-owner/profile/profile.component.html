@@ -260,7 +260,12 @@
                     class="w-full"
                     formControlName="smsDisplayName"
                     [invalid]="isInvalid('smsDisplayName')"
+                    maxlength="11"
                 />
+                <div class="text-xs text-surface-500 dark:text-surface-400 mt-1">
+                    {{ profileForm.get('smsDisplayName')?.value?.length || 0 }}/11
+                </div>
+
                 @if (isInvalid('smsDisplayName')) {
                     <p-message
                         severity="error"

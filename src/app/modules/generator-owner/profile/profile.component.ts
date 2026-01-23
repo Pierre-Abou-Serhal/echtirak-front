@@ -41,7 +41,7 @@ export class ProfileComponent implements OnInit {
             businessName: [null, [Validators.required]],
             phoneNumber: [null, [Validators.required]],
             gracePeriodDays: [null, [Validators.required]],
-            smsDisplayName: [null, [Validators.required]],
+            smsDisplayName: [null, [Validators.required, Validators.maxLength(11)]],
             username: [null, [Validators.required]]
         });
     }

@@ -15,7 +15,6 @@ import { GenerateBillsForMeteredSubscribersRequest, UpdateKVAReadingRequest } fr
 import { NotificationService } from '@/core/services/notification.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { SelectOptionStrValue } from '@/core/dtos/dto';
-import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { finalize, Subject, Subscription } from 'rxjs';
 import { Dialog } from 'primeng/dialog';
@@ -130,7 +129,12 @@ export class MeteredBillGenerationComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (response: GetKVAReadingsPerGeneratorResponse) => {
                     this.kvaReadingsAll = response.readings ?? [];
+                    let tempSelectedKvaReadings: KvaReading[] = this.selectedKvaReadings;
+
                     this.applyFiltersLocal(); // sets this.kvaReadings
+
+                    this.selectedKvaReadings = this.getSelectedKvaReadingsAfterLoad(tempSelectedKvaReadings, this.kvaReadings);
+
                     this.isKvaReadingLoading = false;
                 },
                 error: (err) => {
@@ -139,6 +143,11 @@ export class MeteredBillGenerationComponent implements OnInit, OnDestroy {
                     this.isKvaReadingLoading = false;
                 }
             });
+    }
+
+    getSelectedKvaReadingsAfterLoad(tmpSelected: KvaReading[], loaded: KvaReading[]): KvaReading[] {
+        const ids = new Set(tmpSelected.map((kvaReading) => kvaReading.id));
+        return loaded.filter((kvaReading) => ids.has(kvaReading.id));
     }
 
     // Data table functions
@@ -307,17 +316,6 @@ export class MeteredBillGenerationComponent implements OnInit, OnDestroy {
         }
 
         return index;
-    }
-
-    getOverlayOptions(): OverlayOptions {
-        return {
-            listener: (event: Event, options?: OverlayListenerOptions) => {
-                if (options?.type === 'scroll') {
-                    return false;
-                }
-                return options?.valid;
-            }
-        };
     }
 
     // See KVA reading image

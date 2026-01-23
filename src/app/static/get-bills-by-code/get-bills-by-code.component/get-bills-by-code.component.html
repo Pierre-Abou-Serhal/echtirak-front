@@ -58,7 +58,7 @@
 
                         <span class="label">Date</span>
                         <span class="value">
-                            {{ bill.billDate | date: 'yyyy-MM' }}
+                            {{ bill.billYear }}-{{ bill.billMonth }}
                         </span>
                     </div>
 
@@ -100,15 +100,9 @@
                     </div>
 
                     <!-- Fees (only if > 0) -->
-                    @if (bill.subscriptionFeeVar > 0 || bill.subscriptionFeeFixed > 0 || bill.kvaFee > 0) {
+                    @if (bill.subscriptionFeeFixed > 0 || bill.kvaFee > 0) {
                         <div class="divider"></div>
                         <div class="fees">
-                            @if (bill.subscriptionFeeVar > 0) {
-                                <div class="fee-row">
-                                    <span class="label">Variable fee</span>
-                                    <span class="value">{{ bill.subscriptionFeeVar | number:'1.0-4' }} {{ bill.currencyCode }}</span>
-                                </div>
-                            }
                             @if (bill.subscriptionFeeFixed > 0) {
                                 <div class="fee-row">
                                     <span class="label">Fixed subscription fee</span>
@@ -117,7 +111,7 @@
                             }
                             @if (bill.kvaFee > 0) {
                                 <div class="fee-row">
-                                    <span class="label">KWH fee</span>
+                                    <span class="label">Total KWH fee</span>
                                     <span class="value">{{ bill.kvaFee | number:'1.0-4' }} {{ bill.currencyCode }}</span>
                                 </div>
                             }

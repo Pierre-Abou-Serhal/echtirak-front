@@ -10,7 +10,7 @@
                     pInputText
                     class="w-full"
                     [(ngModel)]="filter.keyword"
-                    (keyup.enter)="applyFiltersLocal()"
+                    (keyup.enter)="loadKvaReadings()"
                     placeholder="Search"
                 />
             </p-iconfield>
@@ -47,7 +47,7 @@
             <label class="block text-sm font-semibold mb-2">Subscriber ID</label>
             <p-inputnumber
                 [(ngModel)]="filter.subscriberId"
-                (keyup.enter)="applyFiltersLocal()"
+                (keyup.enter)="loadKvaReadings()"
                 placeholder="e.g. 123"
                 class="w-full"
                 [min]="0"
@@ -56,7 +56,7 @@
 
         <!-- Actions -->
         <div class="flex items-end gap-2">
-            <p-button label="Apply" icon="pi pi-filter" (click)="applyFiltersLocal()"></p-button>
+            <p-button label="Apply" icon="pi pi-filter" (click)="loadKvaReadings()" [loading]="isKvaReadingLoading"></p-button>
             <p-button label="Reset" icon="pi pi-times" severity="secondary" text (click)="resetFiltersLocal()"></p-button>
         </div>
 
@@ -67,7 +67,7 @@
     #dt
     [value]="kvaReadings"
     dataKey="id"
-    [globalFilterFields]="['subscriberFirstName', 'subscriberLastName', 'subscriberPhoneNumber', 'electricMeterNumber', 'kvaReading', 'kvaPrevious', 'kvaCurrent', 'status']"
+    [globalFilterFields]="['subscriberFirstName', 'subscriberLastName', 'subscriberPhoneNumber', 'electricMeterNumber', 'kvaReading', 'kvaPrevious', 'kvaCurrent', 'status', 'generatorCode']"
     responsiveLayout="scroll"
     [loading]="isKvaReadingLoading"
     rowHover
@@ -138,6 +138,13 @@
                 <div class="flex justify-between items-center gap-2">
                     Subscriber
                     <p-sortIcon field="subscriberFirstName" />
+                </div>
+            </th>
+
+            <th pSortableColumn="generatorCode">
+                <div class="flex justify-between items-center gap-2">
+                    Generator
+                    <p-sortIcon field="generatorCode" />
                 </div>
             </th>
 
@@ -218,6 +225,9 @@
                 <div class="text-sm text-color-secondary">
                     {{ kvaReading.subscriberPhoneNumber | lbPhone }}
                 </div>
+            </td>
+            <td>
+                {{ kvaReading.generatorCode }}
             </td>
             <td>
                 {{ kvaReading.electricMeterNumber }}

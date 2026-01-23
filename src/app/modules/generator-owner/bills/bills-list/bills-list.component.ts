@@ -370,10 +370,6 @@ export class BillsListComponent implements OnInit {
         // optional hook
     }
 
-    onRowEditSave(bill: Bill) {
-        this.updateBill(bill);
-    }
-
     updateBill(bill: Bill) {
         console.log('bill to update', bill);
 
@@ -412,7 +408,7 @@ export class BillsListComponent implements OnInit {
 
                 // Will insert a new fresh bill at the top of the array if updated from PENDING to PENDING
                 if (response.response.newBill.id !== response.response.oldBill.id) {
-                    this.bills.push(response.response.newBill);
+                    this.bills.unshift(response.response.newBill);
                 }
 
                 this.setEditLoading(bill.id, false);
