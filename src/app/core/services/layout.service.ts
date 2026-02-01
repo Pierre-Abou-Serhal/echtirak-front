@@ -1,5 +1,7 @@
-import { Injectable, effect, signal, computed } from '@angular/core';
+import { Injectable, effect, signal, computed, inject } from '@angular/core';
 import { Subject } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
 
 export interface layoutConfig {
     preset?: string;
@@ -31,7 +33,7 @@ export class LayoutService {
         primary: 'emerald',
         surface: null,
         darkTheme: false,
-        menuMode: 'static'
+        menuMode: 'overlay'
     };
 
     _state: LayoutState = {
@@ -41,6 +43,9 @@ export class LayoutService {
         staticMenuMobileActive: false,
         menuHoverActive: false
     };
+
+    private readonly platformId = inject(PLATFORM_ID);
+    private readonly DARK_THEME_KEY = 'sakai.darkTheme';
 
     layoutConfig = signal<layoutConfig>(this._config);
 
@@ -79,6 +84,9 @@ export class LayoutService {
     private initialized = false;
 
     constructor() {
+        // 1) Restore saved dark theme (before effects run)
+        this.restoreDarkThemeFromStorage();
+
         effect(() => {
             const config = this.layoutConfig();
             if (config) {
@@ -94,6 +102,10 @@ export class LayoutService {
                 return;
             }
 
+            // 2) Persist user choice
+            this.persistDarkThemeToStorage(config.darkTheme);
+
+            // 3) Apply dark mode with transition logic
             this.handleDarkModeTransition(config);
         });
     }
@@ -174,5 +186,29 @@ export class LayoutService {
 
     reset() {
         this.resetSource.next(true);
+    }
+
+    private restoreDarkThemeFromStorage() {
+        if (!isPlatformBrowser(this.platformId)) return;
+
+        const raw = localStorage.getItem(this.DARK_THEME_KEY);
+        if (raw == null) {
+            // No saved value → apply current default
+            this.toggleDarkMode(this.layoutConfig());
+            return;
+        }
+
+        const savedDark = raw === 'true';
+
+        // Update config
+        this.layoutConfig.update((state) => ({ ...state, darkTheme: savedDark }));
+
+        // Apply immediately to avoid wrong class before first render
+        this.toggleDarkMode({ ...this.layoutConfig(), darkTheme: savedDark });
+    }
+
+    private persistDarkThemeToStorage(isDark?: boolean) {
+        if (!isPlatformBrowser(this.platformId)) return;
+        localStorage.setItem(this.DARK_THEME_KEY, String(isDark));
     }
 }

@@ -104,19 +104,16 @@
                             {{ wallet.billingStartDate | date:'yyyy-MM-dd' }}
                         </div>
                     </div>
-
-                    <div>
-                        <div class="text-sm text-surface-500 dark:text-surface-400">
-                            Free trial
+                    @if (wallet.freeTrialEnabled && wallet.freeTrialMonths > 0) {
+                        <div>
+                            <div class="text-sm text-surface-500 dark:text-surface-400">
+                                Free trial
+                            </div>
+                            <div class="font-medium">
+                                    {{ wallet.freeTrialMonths }} month{{ wallet.freeTrialMonths === 1 ? '' : 's' }}
+                            </div>
                         </div>
-                        <div class="font-medium">
-                            @if (wallet.freeTrialEnabled && wallet.freeTrialMonths > 0) {
-                                {{ wallet.freeTrialMonths }} month{{ wallet.freeTrialMonths === 1 ? '' : 's' }}
-                            } @else {
-                                Disabled
-                            }
-                        </div>
-                    </div>
+                    }
                 </div>
 
                 <div class="mt-3 grid grid-cols-2 gap-3 text-sm">

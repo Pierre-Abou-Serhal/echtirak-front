@@ -24,7 +24,7 @@ export class SmsTemplatesComponent implements OnInit {
     loading: boolean = true;
 
     ngOnInit() {
-        this.generatorOwnerService.getSmsTemplate().subscribe({
+        this.generatorOwnerService.getSmsTemplate({}).subscribe({
             next: (response: GetSmsTemplatesResponse) => {
                 this.smsTemplates = response.templates.map(t => ({
                     ...t,

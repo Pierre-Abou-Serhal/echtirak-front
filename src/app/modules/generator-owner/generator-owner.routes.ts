@@ -19,6 +19,9 @@ import { AnnouncementsComponent } from '@/modules/generator-owner/announcements/
 import {
     KvaReadingHistoryComponent
 } from '@/modules/generator-owner/kva-reading-history/kva-reading-history.component';
+import {
+    SmsCampaignCreateComponent
+} from '@/modules/generator-owner/sms-campaigns/sms-campaign-create/sms-campaign-create.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -31,6 +34,7 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             { path: 'dashboard', component: DashboardComponent },
             { path: 'sms-campaigns', component: SmsCampaignsListComponent },
             { path: 'sms-campaigns/:id', component: SmsCampaignDetailsComponent },
+            { path: 'sms-campaigns-create', component: SmsCampaignCreateComponent },
             { path: 'subscribers', component: SubscribersComponent },
             { path: 'generators', component: GeneratorsComponent },
             { path: 'profile', component: ProfileComponent },

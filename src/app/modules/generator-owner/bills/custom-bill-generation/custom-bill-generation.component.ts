@@ -302,7 +302,6 @@ export class CustomBillGenerationComponent implements OnInit {
                         ...bill,
                         id: index + 1
                     }));
-                    console.log(this.billsPreview);
                     this.isGeneratingBills = false;
                 },
                 error: (err) => {

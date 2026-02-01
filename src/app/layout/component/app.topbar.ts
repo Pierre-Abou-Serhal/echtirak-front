@@ -81,11 +81,20 @@ export class AppTopbar implements OnChanges {
 
     private buildProfileMenuModel(): void {
         const items = this.profileMenu ?? [];
-        const result: MenuItem[] = [...items];
+        const result: MenuItem[] = [];
 
-        if (items.length) {
-            result.push({ separator: true });
-        }
+        // Add "signed in as" header
+        result.push({
+            label: `${this.authService.getUsername?.() ?? '—'}`, // adapt to your AuthService
+            //icon: 'pi pi-sign-in',
+            disabled: true
+        });
+
+        result.push({ separator: true });
+
+        result.push(...items);
+
+        if (items.length) result.push({ separator: true });
 
         result.push({
             label: 'Logout',

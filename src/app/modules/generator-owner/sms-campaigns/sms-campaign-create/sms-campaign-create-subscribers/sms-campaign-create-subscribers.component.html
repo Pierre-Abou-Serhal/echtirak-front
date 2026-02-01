@@ -1,0 +1,390 @@
+<div class="mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        <!-- Campaign Name -->
+        <div class="flex flex-col">
+            <label class="block text-sm font-semibold mb-2" for="smsCampaignName">
+                Campaign Name
+            </label>
+            <p-iconfield iconPosition="left" class="w-full">
+                <p-inputicon><i class="pi pi-envelope"></i></p-inputicon>
+                <input
+                    id="smsCampaignName"
+                    pInputText
+                    type="text"
+                    class="w-full"
+                    [(ngModel)]="smsCampaignCreateSubscriber.campaignName"
+                    placeholder="Campaign name"
+                />
+            </p-iconfield>
+        </div>
+
+        <!-- SMS Template -->
+        <div class="flex flex-col">
+            <label class="block text-sm font-semibold mb-2" for="smsTemplate">
+                SMS Template
+            </label>
+
+            <div class="flex items-center gap-2">
+                <p-select
+                    inputId="smsTemplate"
+                    class="w-full"
+                    [options]="smsTemplatesDropDown"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Template"
+                    [(ngModel)]="smsCampaignCreateSubscriber.templateId"
+                    [loading]="isSmsTemplateLoading"
+                    (onChange)="onTemplateChange()"
+                ></p-select>
+
+                <p-button
+                    type="button"
+                    icon="pi pi-eye"
+                    label="Preview"
+                    severity="secondary"
+                    variant="outlined"
+                    (onClick)="openTemplatePreview()"
+                    [disabled]="!smsCampaignCreateSubscriber.templateId"
+                ></p-button>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-end justify-end">
+            <p-button
+                label="Create"
+                icon="pi pi-plus"
+                (onClick)="forecastSmsCampaign()"
+                [loading]="isCreatingSmsCampaign"
+                [disabled]="!isSmsCampaignValid()"
+            ></p-button>
+        </div>
+
+    </div>
+</div>
+
+<div class="mb-4">
+    <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
+    <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
+    <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
+</div>
+
+<p-table
+    #dt
+    [value]="subscribers"
+    dataKey="id"
+    [rows]="rows"
+    [first]="first"
+    [totalRecords]="totalRecords"
+    [loading]="isSubscribersLoading"
+    paginator
+    stripedRows
+    showGridlines
+    rowHover
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [(selection)]="selectedSubscribers"
+    (onPage)="pageChange($event)"
+    [expandedRowKeys]="expandedRows"
+    (onRowExpand)="onRowExpand($event)"
+    (onRowCollapse)="onRowCollapse($event)"
+    (onRowSelect)="onRowSelect($event)"
+    (onRowUnselect)="onRowUnselect($event)"
+    (onHeaderCheckboxToggle)="onHeaderToggle($event)"
+>
+    <ng-template #caption>
+        <div class="flex justify-between items-center flex-column sm:flex-row gap-3">
+            <div>
+                <button
+                    pButton
+                    label="Clear"
+                    class="p-button-outlined mb-2 me-2"
+                    icon="pi pi-filter-slash"
+                    (click)="clear(dt)"
+                ></button>
+
+                <p-button label="Expand All" icon="pi pi-plus" (onClick)="expandAll()" variant="outlined" class="me-2" />
+                <p-button label="Collapse All" icon="pi pi-minus" (onClick)="collapseAll()" variant="outlined" class="me-2" />
+
+                <span class="text-sm text-color-secondary">
+                  Selected: {{ selectedSubscriberIds.size }}
+                </span>
+            </div>
+
+            <div class="flex items-center gap-2 ml-auto">
+                <p-select
+                    class="w-56"
+                    [options]="generators"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Select generator"
+                    [(ngModel)]="selectedGeneratorId"
+                    [loading]="isGeneratorsLoading"
+                    (onChange)="onGeneratorChange()"
+                    showClear="true"
+                ></p-select>
+
+                <!-- server-side search -->
+                <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+                    <input
+                        pInputText
+                        type="text"
+                        [ngModel]="keyword"
+                        (ngModelChange)="onKeywordChange($event)"
+                        placeholder="Search keyword"
+                    />
+                </p-iconfield>
+            </div>
+
+        </div>
+    </ng-template>
+
+    <ng-template #header>
+        <tr>
+            <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+            <th style="width: 5rem"></th>
+
+            <th pSortableColumn="id" style="min-width: 10rem">
+                <div class="flex justify-between items-center gap-2"># ID <p-sortIcon field="id" /></div>
+            </th>
+
+            <th pSortableColumn="phoneNumber" style="min-width: 14rem">
+                <div class="flex justify-between items-center gap-2">Phone <p-sortIcon field="phoneNumber" /></div>
+            </th>
+
+            <th pSortableColumn="firstName" style="min-width: 14rem">
+                <div class="flex justify-between items-center gap-2">Full Name <p-sortIcon field="firstName" /></div>
+            </th>
+
+            <th pSortableColumn="generatorCode" style="min-width: 12rem">
+                <div class="flex justify-between items-center gap-2">Generator <p-sortIcon field="generatorCode" /></div>
+            </th>
+
+            <th pSortableColumn="statusCode" style="min-width: 10rem">
+                <div class="flex justify-between items-center gap-2">Status <p-sortIcon field="statusCode" /></div>
+            </th>
+        </tr>
+    </ng-template>
+
+    <ng-template #body let-subscriber let-expanded="expanded">
+        <tr [pSelectableRow]="subscriber" [pRowToggler]="subscriber" class="cursor-pointer">
+            <td (click)="$event.stopPropagation()"><p-tableCheckbox [value]="subscriber" /></td>
+
+            <td (click)="$event.stopPropagation()">
+                <div class="flex items-center gap-2">
+                    <i class="pi text-500" [ngClass]="expanded ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+                </div>
+            </td>
+
+            <td>{{ subscriber.id }}</td>
+            <td>{{ subscriber.phoneNumber | lbPhone }}</td>
+            <td>{{ subscriber.firstName }} {{ subscriber.lastName }}</td>
+            <td>{{ subscriber.generatorCode }}</td>
+            <td>
+                <p-tag [value]="subscriber.statusCode"></p-tag>
+            </td>
+        </tr>
+    </ng-template>
+
+    <ng-template #expandedrow let-subscriber>
+        <tr>
+            <td colspan="7" class="p-0">
+                <div class="p-2">
+                    <div class="subscriber-cards">
+
+                        <!-- Address -->
+                        <div class="detail-card detail-card--wide">
+                            <div class="detail-head">
+                                <i class="pi pi-map-marker"></i>
+                                <span class="detail-label">Address</span>
+                            </div>
+                            <div class="detail-value">
+                                {{ subscriber.address || '—' }}
+                            </div>
+                        </div>
+
+                        <!-- Meter Number -->
+                        <div class="detail-card">
+                            <div class="detail-head">
+                                <i class="pi pi-bolt"></i>
+                                <span class="detail-label">Meter No.</span>
+                            </div>
+                            <div class="detail-value">
+                                {{ subscriber.electricMeterNumber || '—' }}
+                            </div>
+                        </div>
+
+                        <!-- Previous -->
+                        <div class="detail-card">
+                            <div class="detail-head">
+                                <i class="pi pi-history"></i>
+                                <span class="detail-label">Previous KWH</span>
+                            </div>
+                            <div class="detail-value">
+                                {{ subscriber.previousKva ?? '—' | number:'1.0-4' }}
+                            </div>
+                        </div>
+
+                        <!-- Current -->
+                        <div class="detail-card">
+                            <div class="detail-head">
+                                <i class="pi pi-arrow-up"></i>
+                                <span class="detail-label">Current KWH</span>
+                            </div>
+                            <div class="detail-value">
+                                {{ subscriber.currentKva ?? '—' | number:'1.0-4' }}
+                            </div>
+                        </div>
+
+                        <!-- Billing -->
+                        <div class="detail-card">
+                            <div class="detail-head">
+                                <i class="pi pi-credit-card"></i>
+                                <span class="detail-label">Billing</span>
+                            </div>
+                            <div class="detail-value">
+                                {{ subscriber.billingModel }} {{ subscriber.subscriptionAmps | number:'1.0-4' }} AMPs
+                            </div>
+                        </div>
+
+                        <!-- Override (only show if exists / non-zero) -->
+                        @if(subscriber.overrideAmount != null && subscriber.overrideAmount !== 0){
+                            <div class="detail-card">
+                                <div class="detail-head">
+                                    <i class="pi pi-wallet"></i>
+                                    <span class="detail-label">Override</span>
+                                </div>
+                                <div class="detail-value">
+                                    {{ subscriber.overrideAmount | number:'1.0-4' }}
+                                </div>
+                            </div>
+                        }
+
+                        <!-- SMS Enabled -->
+                        <div class="detail-card">
+                            <div class="detail-head">
+                                <i class="pi pi-envelope"></i>
+                                <span class="detail-label">SMS</span>
+                            </div>
+                            <div class="detail-value">
+                                <p-tag
+                                    [value]="subscriber.smsEnabled ? `Enabled - ${subscriber.preferredLanguage}` : 'Disabled'"
+                                    [severity]="subscriber.smsEnabled ? 'info' : 'warn'"
+                                />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+        <tr><td colspan="7">No subscribers found.</td></tr>
+    </ng-template>
+
+    <ng-template #loadingbody>
+        <tr><td colspan="7">Loading subscribers data. Please wait.</td></tr>
+    </ng-template>
+</p-table>
+
+<!-- Template Preview -->
+<p-dialog
+    header="SMS Template Preview"
+    [(visible)]="showTemplatePreviewDialog"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '640px', maxWidth: '95vw' }"
+>
+    @if (previewTemplate) {
+        <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex-1" [class.text-right]="previewLang === 'ar'" [attr.dir]="previewLang === 'ar' ? 'rtl' : 'ltr'">
+                <h3 class="text-lg font-semibold">
+                    {{ previewLang === 'en' ? previewTemplate.name : (previewTemplate.nameAr ?? 'العنوان غير متوفر') }}
+                </h3>
+            </div>
+
+            <button
+                type="button"
+                class="shrink-0 text-xs px-2 py-1 rounded-lg border border-surface-300 dark:border-surface-600
+               hover:bg-surface-100 dark:hover:bg-surface-800 transition"
+                (click)="previewLang = previewLang === 'en' ? 'ar' : 'en'">
+                {{ previewLang === 'en' ? 'EN' : 'AR' }}
+            </button>
+        </div>
+
+        <div
+            class="p-4 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900"
+            [class.text-right]="previewLang === 'ar'"
+            [attr.dir]="previewLang === 'ar' ? 'rtl' : 'ltr'"
+        >
+            <p class="whitespace-pre-line text-surface-700 dark:text-surface-200 leading-relaxed m-0">
+                {{
+                    previewLang === 'en'
+                        ? previewTemplate.body
+                        : (previewTemplate.bodyAr ?? 'هذا المحتوى غير متوفر باللغة العربية حالياً')
+                }}
+            </p>
+        </div>
+    } @else {
+        <p class="m-0 text-surface-500">No template selected.</p>
+    }
+
+    <ng-template pTemplate="footer">
+        <p-button label="Close" icon="pi pi-times" text (click)="showTemplatePreviewDialog = false"></p-button>
+    </ng-template>
+</p-dialog>
+
+<!-- Confirmation -->
+<p-dialog
+    header="Confirmation"
+    [(visible)]="displayConfirmation"
+    [style]="{ width: '350px' }"
+    [modal]="true"
+    (onHide)="closeConfirmation()"
+>
+    <ng-template pTemplate="header">
+        <div class="flex items-center gap-2">
+            <i class="pi pi-info-circle text-green-500 text-xl"></i>
+            <span class="font-bold">Are you sure you want to proceed?</span>
+        </div>
+    </ng-template>
+
+    <p class="m-0 text-color-secondary">{{ forecastWallet?.message }}</p>
+
+    <ng-template pTemplate="footer">
+        <p-button label="No" icon="pi pi-times" (click)="closeConfirmation()" text severity="secondary" />
+        <p-button label="Yes" icon="pi pi-check" (click)="createSmsCampaign()" severity="primary" outlined autofocus />
+    </ng-template>
+</p-dialog>
+
+<!-- Warning -->
+<p-dialog
+    [(visible)]="displayWarning"
+    [modal]="true"
+    [style]="{ width: '420px', maxWidth: '95vw' }"
+    [breakpoints]="{ '960px': '75vw', '640px': '95vw' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="closeWarning()"
+>
+    <ng-template pTemplate="header">
+        <div class="flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle text-yellow-500 text-xl"></i>
+            <span class="font-bold">Your SMS campaign exceeds your wallet limit</span>
+        </div>
+    </ng-template>
+
+    <p class="m-0 text-color-secondary">{{ forecastWallet?.warningMessage }}</p>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end w-full">
+            <p-button label="Got it" icon="pi pi-times" (click)="closeWarning()" text severity="secondary" autofocus />
+        </div>
+    </ng-template>
+</p-dialog>

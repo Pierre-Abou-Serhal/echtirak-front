@@ -26,7 +26,9 @@ import {
     GetAnnouncementsQueryParams,
     MarkAnnouncementAsReadRequest,
     GetKVAReadingsQueryParams,
-    GetSubscribersQrCodeZipRequest
+    GetSubscribersQrCodeZipRequest,
+    GetGoSmsTemplatesQueryParams,
+    GetBillsForSmsQueryParams
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -60,7 +62,8 @@ import {
     GenerateBillsForAllFixedSubscribersResponse,
     GetAnnouncementsResponse,
     GetAnnouncementsUnreadCountResponse,
-    GetKVAReadingsResponse
+    GetKVAReadingsResponse,
+    GetBillsForSmsResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -101,8 +104,10 @@ export class GeneratorOwnerService {
         return this.apiService.post<UpsertBillCollectorResponse>('/GeneratorOwner/BillCollector', request);
     }
 
-    public getSmsTemplate(): Observable<GetSmsTemplatesResponse> {
-        return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SMSTemplates');
+    public getSmsTemplate(queryParams: GetGoSmsTemplatesQueryParams): Observable<GetSmsTemplatesResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SMSTemplates', { params: params });
     }
 
     public getLookup(queryParams: GetLookupQueryParams): Observable<GetLookupResponse> {
@@ -150,10 +155,6 @@ export class GeneratorOwnerService {
 
     public getDashboard(): Observable<GetGeneratorOwnerDashboardResponse> {
         return this.apiService.get<GetGeneratorOwnerDashboardResponse>('/GeneratorOwner/Dashboard');
-    }
-
-    public getSmsTemplates(): Observable<GetSmsTemplatesResponse> {
-        return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SmsTemplates');
     }
 
     public getSmsCampaigns(queryParams: GetSmsCampaignsQueryParams): Observable<GetSmsCampaignsResponse> {
@@ -247,6 +248,14 @@ export class GeneratorOwnerService {
         let params = this.apiService.buildParams(queryParams);
 
         return this.apiService.get<GetKVAReadingsResponse>(`/GeneratorOwner/KVAReadings`, {
+            params: params
+        });
+    }
+
+    public getBillsForSms(queryParams: GetBillsForSmsQueryParams): Observable<GetBillsForSmsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetBillsForSmsResponse>(`/GeneratorOwner/BillsForSms`, {
             params: params
         });
     }

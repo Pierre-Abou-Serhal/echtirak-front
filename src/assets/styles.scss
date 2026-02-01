@@ -104,10 +104,6 @@
     background: var(--surface-0);
 }
 
-.detail-card--wide {
-    flex: 0 0 100%;
-}
-
 /* 3 cards per row on desktop, stack on mobile */
 .detail-card--third {
     flex: 0 0 100%;
@@ -150,8 +146,8 @@
 }
 
 .detail-card {
-    flex: 1 1 12rem;
-    min-width: 12rem;
+    flex: 1 1 10rem;
+    min-width: 10rem;
     padding: .5rem .6rem;
     border: 1px solid var(--surface-border);
     border-radius: .75rem;

@@ -8,7 +8,7 @@ import { InputText } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { GetBillsResponse, GetGeneratorsResponse, GetLookupResponse, UpdateBillResponse } from '@/core/services/api/response';
 import { Bill, Generator, Lookup } from '@/core/models/model';
-import { BillStatus, LookupDomain } from '@/core/enums/enum';
+import { BillAction, BillIssuedSmsStatus, BillStatus, LookupDomain } from '@/core/enums/enum';
 import { debounceTime, finalize, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import * as Papa from 'papaparse';
@@ -20,11 +20,13 @@ import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
 import { UpdateBillRequest } from '@/core/services/api/request';
 import { NotificationService } from '@/core/services/notification.service';
 import { BillEditModalComponent } from '@/modules/generator-owner/bills/bill-edit-modal/bill-edit-modal.component';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MenuItem } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputGroup } from 'primeng/inputgroup';
 import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
+import { Tooltip } from 'primeng/tooltip';
 
 export interface BillSearchFilter {
     generatorId?: number;
@@ -38,7 +40,28 @@ export interface BillSearchFilter {
 
 @Component({
     selector: 'app-bills-list-component',
-    imports: [Button, Tag, TableModule, FormsModule, IconField, InputIcon, InputText, DatePicker, Select, DatePipe, DecimalPipe, ButtonDirective, NgClass, BillEditModalComponent, ConfirmDialogModule, InputGroup, InputGroupAddon, NgxMaskDirective],
+    imports: [
+        Button,
+        Tag,
+        TableModule,
+        FormsModule,
+        IconField,
+        InputIcon,
+        InputText,
+        DatePicker,
+        Select,
+        DatePipe,
+        DecimalPipe,
+        ButtonDirective,
+        NgClass,
+        BillEditModalComponent,
+        ConfirmDialogModule,
+        InputGroup,
+        InputGroupAddon,
+        NgxMaskDirective,
+        ContextMenuModule,
+        Tooltip
+    ],
     templateUrl: './bills-list.component.html',
     styleUrl: './bills-list.component.scss',
     standalone: true,
@@ -94,6 +117,12 @@ export class BillsListComponent implements OnInit {
     // Update Bill Modal
     editVisible = false;
     billToEdit: Bill | null = null;
+
+    // Context Menu Bill Action Buttons
+    items: MenuItem[] | undefined;
+    selectedBill: Bill | null = null;
+
+    private actionLoading: Record<string, boolean> = {}; // key = `${billId}:${action}`
 
     ngOnInit(): void {
         // Fetch subscriber statuses drop down items
@@ -154,6 +183,12 @@ export class BillsListComponent implements OnInit {
 
         // Initial load (empty search)
         this.search$.next(this.billSearchFilter);
+
+        this.items = [
+            { label: 'Edit', icon: 'pi pi-fw pi-pencil', command: () => this.openBillEditModal(this.selectedBill) },
+            { label: 'Pay', icon: 'pi pi-fw pi-dollar', command: () => this.payBill(this.selectedBill!) },
+            { label: 'Cancel', icon: 'pi pi-fw pi-times-circle', command: () => this.cancelBill(this.selectedBill!) }
+        ];
     }
 
     // =========================
@@ -357,23 +392,38 @@ export class BillsListComponent implements OnInit {
         this.clonedBills[bill.id] = { ...bill };
     }
 
-    openBillEditModal(bill: any) {
+    openBillEditModal(bill: Bill | null | undefined) {
+        if (!bill) return;
+
+        // if you want "loading" while opening modal (optional)
+        this.setActionLoading(bill.id, BillAction.EDIT, true);
+
+        // open modal (sync)
         this.billToEdit = bill;
         this.editVisible = true;
+
+        // stop loading immediately (since open is not async)
+        this.setActionLoading(bill.id, BillAction.EDIT, false);
     }
 
     onBillEditSave(updatedBill: any) {
-        this.updateBill(updatedBill);
+        this.updateBill(updatedBill, BillAction.EDIT).subscribe({
+            next: () => this.notificationService.success('Successful', 'Bill updated successfully'),
+            error: (err) => {
+                console.log(err);
+            }
+        });
+
+        this.updateBill(updatedBill, BillAction.EDIT);
     }
 
     onBillEditCancel() {
         // optional hook
     }
 
-    updateBill(bill: Bill) {
-        console.log('bill to update', bill);
+    updateBill(bill: Bill, action: BillAction) {
 
-        this.setEditLoading(bill.id, true);
+        this.setActionLoading(bill.id, action, true);
 
         let request: UpdateBillRequest = {
             billId: bill.id,
@@ -396,31 +446,21 @@ export class BillsListComponent implements OnInit {
             status: bill.statusCode
         };
 
-        this.generatorOwnerService.updateBill(request).subscribe({
-            next: (response: UpdateBillResponse) => {
-                this.notificationService.success('Successful', 'Bill updated successfully');
-
-                console.log(this.findIndexById(request.billId));
-                console.log(response.response.oldBill);
-
-                // The updated bill will become the old one
+        return this.generatorOwnerService.updateBill(request).pipe(
+            finalize(() => this.setActionLoading(bill.id, action, false)),
+            tap((response: UpdateBillResponse) => {
+                // same update logic you already have
                 this.bills[this.findIndexById(request.billId)] = response.response.oldBill;
-
-                // Will insert a new fresh bill at the top of the array if updated from PENDING to PENDING
                 if (response.response.newBill.id !== response.response.oldBill.id) {
                     this.bills.unshift(response.response.newBill);
                 }
-
-                this.setEditLoading(bill.id, false);
-            },
-            error: (err) => {
-                console.log(err);
-                this.setEditLoading(bill.id, false);
-            }
-        });
+            })
+        );
     }
 
-    payBill(bill: Bill) {
+    payBill(bill: Bill | null | undefined) {
+        if (!bill) return;
+
         this.confirmationService.confirm({
             message: 'Are you sure you want pay this bill?',
             header: 'Confirm',
@@ -428,13 +468,21 @@ export class BillsListComponent implements OnInit {
             acceptButtonStyleClass: 'p-button-success',
             rejectButtonStyleClass: 'p-button-secondary p-button-outlined',
             accept: () => {
-                bill.statusCode = BillStatus.PAID;
-                this.updateBill(bill);
+                const updated: Bill = { ...bill, statusCode: BillStatus.PAID };
+
+                this.updateBill(updated, BillAction.PAY).subscribe({
+                    next: () => this.notificationService.success('Successful', 'Bill paid successfully'),
+                    error: (err) => {
+                        console.log(err);
+                    }
+                });
             }
         });
     }
 
-    cancelBill(bill: Bill) {
+    cancelBill(bill: Bill | null | undefined) {
+        if (!bill) return;
+
         this.confirmationService.confirm({
             message: 'Are you sure you want cancel this bill?',
             header: 'Confirm',
@@ -442,8 +490,15 @@ export class BillsListComponent implements OnInit {
             acceptButtonStyleClass: 'p-button-danger',
             rejectButtonStyleClass: 'p-button-secondary p-button-outlined',
             accept: () => {
-                bill.statusCode = BillStatus.CANCELLED;
-                this.updateBill(bill);
+                const updated: Bill = { ...bill, statusCode: BillStatus.CANCELLED };
+
+                this.updateBill(updated, BillAction.CANCEL).subscribe({
+                    next: () => this.notificationService.success('Successful', 'Bill cancelled successfully'),
+                    error: (err) => {
+                        console.log(err);
+                        // optional: show error toast
+                    }
+                });
             }
         });
     }
@@ -479,9 +534,71 @@ export class BillsListComponent implements OnInit {
         this.expandedRows = {};
     }
 
-    setEditLoading(id: number, value: boolean) {
-        this.editBtnLoading[id] = value;
+    openRowMenu(event: MouseEvent, bill: Bill, cm: ContextMenu) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.selectedBill = bill;
+        this.items = this.buildMenuItems(bill);
+        cm.show(event);
+    }
+
+    private isPending(b: Bill | null | undefined) {
+        return !!b && b.statusCode === BillStatus.PENDING;
+    }
+
+    private buildMenuItems(bill: Bill): MenuItem[] {
+        const id = bill.id;
+
+        return [
+            {
+                label: 'Edit',
+                icon: 'pi pi-pencil',
+                disabled: !this.isPending(bill) || this.isActionLoading(id, BillAction.EDIT),
+                data: { severity: 'info', loading: this.isActionLoading(id, BillAction.EDIT) },
+                command: () => this.openBillEditModal(bill)
+            },
+            {
+                label: 'Pay',
+                icon: 'pi pi-dollar',
+                disabled: !this.isPending(bill) || this.isActionLoading(id, BillAction.PAY),
+                data: { severity: 'primary', loading: this.isActionLoading(id, BillAction.PAY) },
+                command: () => this.payBill(bill)
+            },
+            {
+                label: 'Cancel',
+                icon: 'pi pi-times-circle',
+                disabled: !this.isPending(bill) || this.isActionLoading(id, BillAction.CANCEL),
+                data: { severity: 'danger', loading: this.isActionLoading(id, BillAction.CANCEL) },
+                command: () => this.cancelBill(bill)
+            }
+        ];
+    }
+
+    private key(id: number, action: BillAction) {
+        return `${id}:${action}`;
+    }
+
+    isActionLoading(id: number, action: BillAction) {
+        return !!this.actionLoading[this.key(id, action)];
+    }
+
+    setActionLoading(id: number, action: BillAction, value: boolean) {
+        this.actionLoading[this.key(id, action)] = value;
+
+        // refresh menu UI while it's open (new reference)
+        if (this.selectedBill?.id === id) {
+            this.items = this.buildMenuItems(this.selectedBill);
+        }
+    }
+
+    onMenuItemClick(item: MenuItem, ev: Event) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        item.command?.({ originalEvent: ev, item });
     }
 
     protected readonly BillStatus = BillStatus;
+    protected readonly BillIssuedSmsStatus = BillIssuedSmsStatus;
 }

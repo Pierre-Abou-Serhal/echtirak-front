@@ -90,8 +90,6 @@ export class SubscribersComponent implements OnInit {
                     const page = res?.page;
                     const items = page?.items ?? [];
 
-                    console.log(items);
-
                     this.subs = items;
                     this.hasMore = !!page?.hasNext; // or compute using totalCount if your API uses that
                 },

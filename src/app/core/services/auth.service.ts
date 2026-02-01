@@ -59,13 +59,13 @@ export class AuthService {
     public setSession(user: User, tokenPair: TokenPair): void {
         const session: AuthSession = {
             userId: user.id,
+            username: user.username,
             role: user.userRoleCode,
             accessToken: tokenPair.accessToken,
             refreshToken: tokenPair.refreshToken
         };
 
         this.sessionState.set(session);
-        console.log(session);
     }
 
     public async redirectUserByRole() {
@@ -89,6 +89,10 @@ export class AuthService {
 
     public getRole(): UserRole | undefined {
         return this.session()?.role;
+    }
+
+    public getUsername(): string | undefined {
+        return this.session()?.username;
     }
 
     public async logout(): Promise<void> {

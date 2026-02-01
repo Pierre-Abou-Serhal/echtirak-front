@@ -119,6 +119,13 @@
                 <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
                 <th style="width: 5rem"></th>
 
+                <th pSortableColumn="id" style="min-width: 14rem">
+                    <div class="flex justify-between items-center gap-2">
+                        # ID
+                        <p-sortIcon field="id" />
+                    </div>
+                </th>
+
                 <th pSortableColumn="phoneNumber" style="min-width: 14rem">
                     <div class="flex justify-between items-center gap-2">
                         Phone Number
@@ -168,6 +175,7 @@
                     </div>
                 </td>
 
+                <td>{{ subscriber.id }}</td>
                 <td>{{ subscriber.phoneNumber | lbPhone }}</td>
                 <td>{{ subscriber.firstName + ' ' + subscriber.lastName }}</td>
                 <td>{{ subscriber.generatorCode }}</td>
@@ -182,7 +190,7 @@
 
         <ng-template #expandedrow let-subscriber>
             <tr>
-                <td colspan="6" class="p-0">
+                <td colspan="7" class="p-0">
                     <div class="p-2">
                         <div class="subscriber-cards">
 
@@ -254,6 +262,20 @@
                                 </div>
                             }
 
+                            <!-- SMS Enabled -->
+                            <div class="detail-card">
+                                <div class="detail-head">
+                                    <i class="pi pi-envelope"></i>
+                                    <span class="detail-label">SMS</span>
+                                </div>
+                                <div class="detail-value">
+                                    <p-tag
+                                        [value]="subscriber.smsEnabled ? `Enabled - ${subscriber.preferredLanguage}` : 'Disabled'"
+                                        [severity]="subscriber.smsEnabled ? 'info' : 'warn'"
+                                    />
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </td>
@@ -262,13 +284,13 @@
 
         <ng-template #emptymessage>
             <tr>
-                <td colspan="6">No customers found.</td>
+                <td colspan="7">No customers found.</td>
             </tr>
         </ng-template>
 
         <ng-template #loadingbody>
             <tr>
-                <td colspan="6">Loading customers data. Please wait.</td>
+                <td colspan="7">Loading customers data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>

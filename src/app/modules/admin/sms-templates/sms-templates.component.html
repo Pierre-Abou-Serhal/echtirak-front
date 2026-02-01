@@ -31,6 +31,26 @@
                     }
                 </div>
 
+                <!-- Role Code -->
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2" for="roleCode">
+                        SMS Template Role
+                    </label>
+
+                    <p-select
+                        inputId="roleCode"
+                        class="w-full"
+                        [options]="smsTemplatesRoleCodes"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="SMS Role"
+                        [showClear]="true"
+                        formControlName="roleCode"
+                        [overlayOptions]="getOverlayOptions()"
+                        [loading]="isSmsTemplateRoleCodesLoading"
+                    ></p-select>
+                </div>
+
                 <!-- Keyword -->
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2" for="keyword">Keyword</label>
@@ -132,6 +152,7 @@
                 <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
                 <th style="width: 5rem"></th>
                 <th class="no-wrap-text">Name</th>
+                <th class="no-wrap-text">Role</th>
                 <th class="no-wrap-text">Preview EN</th>
                 <th class="no-wrap-text">Preview AR</th>
                 <th class="no-wrap-text">Language</th>
@@ -176,6 +197,10 @@
                 </td>
 
                 <td>
+                    {{ row.roleCode }}
+                </td>
+
+                <td>
                     <div class="line-clamp-2 text-sm opacity-80">{{ row.body }}</div>
                 </td>
 
@@ -204,13 +229,13 @@
 
         <ng-template #emptymessage>
             <tr>
-                <td colspan="9">No SMS templates found.</td>
+                <td colspan="10">No SMS templates found.</td>
             </tr>
         </ng-template>
 
         <ng-template #loadingbody>
             <tr>
-                <td colspan="9">Loading templates. Please wait.</td>
+                <td colspan="10">Loading templates. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>
@@ -253,6 +278,18 @@
                         @if (isInvalid('language')) {
                             <p-message severity="error" size="small" variant="simple">Language is required.</p-message>
                         }
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">SMS Template Role</label>
+                        <p-select
+                            class="w-full"
+                            [options]="smsTemplatesRoleCodes"
+                            optionLabel="label"
+                            optionValue="value"
+                            formControlName="roleCode"
+                            [overlayOptions]="getOverlayOptions()"
+                        ></p-select>
                     </div>
 
                     <div class="flex items-center gap-3 mt-6">

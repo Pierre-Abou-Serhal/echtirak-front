@@ -32,6 +32,8 @@ import { LbPhonePipe } from '@/core/pipes/pipes';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { Listbox } from 'primeng/listbox';
 import { Card } from 'primeng/card';
+import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 
 @Component({
     selector: 'app-subscribers',
@@ -58,7 +60,8 @@ import { Card } from 'primeng/card';
         NgClass,
         DecimalPipe,
         Listbox,
-        Card
+        Card,
+        ToggleSwitch
     ],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
@@ -128,6 +131,12 @@ export class SubscribersComponent implements OnInit {
     expandedRows: Record<string, boolean> = {};
 
     displayGeneratorsForQrCodesDownload: boolean = false;
+
+    // SMS languages
+    readonly languageOptions: SelectOptionStrValue[] = [
+        { label: 'English', value: 'EN' },
+        { label: 'Arabic', value: 'AR' }
+    ];
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -381,6 +390,9 @@ export class SubscribersComponent implements OnInit {
         this.selectedSubscriber = new Subscriber();
         this.selectedSubscriber.statusCode = SubscriberStatus.ACTIVE;
 
+        this.selectedSubscriber.smsEnabled = false;
+        this.selectedSubscriber.preferredLanguage = null;
+
         this.submitted = false;
         this.isSubscriberDialogOpen = true;
         this.filteredSubscriptionBillingModels = [];
@@ -389,6 +401,11 @@ export class SubscribersComponent implements OnInit {
 
     editSubscriber(subscriber: Subscriber) {
         this.selectedSubscriber = { ...subscriber, phoneNumber: stripLebanonPrefix(subscriber.phoneNumber) };
+
+        if (!this.selectedSubscriber.smsEnabled) {
+            this.selectedSubscriber.preferredLanguage = null;
+        }
+
         this.isSubscriberDialogOpen = true;
         this.filterSubscriptionBillingModels(this.selectedSubscriber.generatorId);
         this.subscriptionBillingFee = this.getSubscriptionBillingFee(this.selectedSubscriber.subscriptionBillingModelId);
@@ -437,7 +454,6 @@ export class SubscribersComponent implements OnInit {
                 }
             });
         } else {
-            console.log('sub not valid');
             this.isSubscriberSaving = false;
         }
     }
@@ -450,6 +466,10 @@ export class SubscribersComponent implements OnInit {
         if (this.getSubscriptionBillingModel(this.selectedSubscriber.subscriptionBillingModelId) === BillingModel.FIXED) {
             this.selectedSubscriber.currentKva = 0;
             this.selectedSubscriber.previousKva = 0;
+        }
+
+        if (!this.selectedSubscriber.smsEnabled) {
+            this.selectedSubscriber.preferredLanguage = null;
         }
 
         this.generatorOwnerService
@@ -494,11 +514,14 @@ export class SubscribersComponent implements OnInit {
             this.selectedSubscriber.address.length > 0 &&
             this.selectedSubscriber.electricMeterNumber.length > 0 &&
             this.selectedSubscriber.statusCode.length > 0 &&
+            (!this.selectedSubscriber.smsEnabled || !!this.selectedSubscriber.preferredLanguage) &&
             // If Billing Model is Metered, validate currentKva + previousKva
             (this.getSubscriptionBillingModel(this.selectedSubscriber.subscriptionBillingModelId) === BillingModel.FIXED ||
                 (this.getSubscriptionBillingModel(this.selectedSubscriber.subscriptionBillingModelId) === BillingModel.METERED &&
                     this.selectedSubscriber.previousKva >= 0 &&
+                    this.selectedSubscriber.previousKva !== null &&
                     this.selectedSubscriber.currentKva >= 0 &&
+                    this.selectedSubscriber.currentKva !== null &&
                     this.selectedSubscriber.currentKva >= this.selectedSubscriber.previousKva))
         );
     }
@@ -677,16 +700,22 @@ export class SubscribersComponent implements OnInit {
         this.displayGeneratorsForQrCodesDownload = true;
     }
 
-    // getOverlayOptions(): OverlayOptions {
-    //     return {
-    //         listener: (event: Event, options?: OverlayListenerOptions) => {
-    //             if (options?.type === 'scroll') {
-    //                 return false;
-    //             }
-    //             return options?.valid;
-    //         }
-    //     };
-    // }
+    onSmsEnabledChange(enabled: boolean) {
+        if (!enabled) {
+            this.selectedSubscriber.preferredLanguage = null; // or just null if your model allows it
+        }
+    }
+
+    getOverlayOptions(): OverlayOptions {
+        return {
+            listener: (event: Event, options?: OverlayListenerOptions) => {
+                if (options?.type === 'scroll') {
+                    return false;
+                }
+                return options?.valid;
+            }
+        };
+    }
 
     protected readonly BillingModel = BillingModel;
 }

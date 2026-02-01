@@ -358,7 +358,6 @@ export class KvaReadingHistoryComponent implements OnInit {
     }
 
     updateKvaReading(kvaReading: KvaReading) {
-        console.log('kva reading to update', kvaReading);
 
         if (kvaReading.kvaReading <= kvaReading.kvaCurrent) {
             this.notificationService.error('Error', 'KWH reading must be greater than ' + kvaReading.kvaCurrent);

@@ -73,7 +73,6 @@ export class AnnouncementsComponent implements OnInit {
     }
 
     private loadPage(pageNumber: number, pageSize: number) {
-        console.log(pageNumber, pageSize);
         this.loading = true;
 
         const params: GetAnnouncementsQueryParams = {

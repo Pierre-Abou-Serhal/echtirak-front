@@ -8,6 +8,7 @@ export interface TokenPair {
 
 export interface AuthSession {
     userId: number;
+    username: string;
     role: UserRole;
     accessToken: string;
     refreshToken: string;

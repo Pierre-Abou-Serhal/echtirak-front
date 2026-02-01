@@ -143,7 +143,6 @@ export class AppLayout {
         this.unreadSub = this.userContext.generatorOwnerAnnouncementUnreadCount$.subscribe((count) => {
             this.lastUnread = count ?? 0;
             this.patchAnnouncementsBadge(this.lastUnread);
-            console.log(this.lastUnread);
         });
     }
 

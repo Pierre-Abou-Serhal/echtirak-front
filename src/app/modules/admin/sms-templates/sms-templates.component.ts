@@ -10,9 +10,9 @@ import { NotificationService } from '@/core/services/notification.service';
 // DTOs / Models (adjust paths)
 import { GetSmsTemplatesQueryParams, UpsertSmsTemplateRequest } from '@/core/services/api/request';
 
-import { GetGeneratorOwnersResponse, GetSmsTemplatesResponse, UpsertSmsTemplateResponse } from '@/core/services/api/response';
+import { GetGeneratorOwnersResponse, GetLookupResponse, GetSmsTemplatesResponse, UpsertSmsTemplateResponse } from '@/core/services/api/response';
 
-import { SmsTemplate } from '@/core/models/model';
+import { Lookup, SmsTemplate } from '@/core/models/model';
 
 // PrimeNG
 import { Table, TableModule } from 'primeng/table';
@@ -26,6 +26,8 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Tag } from 'primeng/tag';
 import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
 import * as Papa from 'papaparse';
+import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
+import { LookupDomain } from '@/core/enums/enum';
 
 @Component({
     selector: 'app-sms-templates.component',
@@ -36,6 +38,7 @@ import * as Papa from 'papaparse';
 })
 export class SmsTemplatesComponent implements OnInit {
     private readonly adminService = inject(AdminService);
+    private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly notificationService = inject(NotificationService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly fb = inject(FormBuilder);
@@ -50,6 +53,7 @@ export class SmsTemplatesComponent implements OnInit {
     // Filters (API requires generatorOwnerUserId)
     filterForm = this.fb.group({
         generatorOwnerUserId: [null as number | null, Validators.required],
+        roleCode: [null as string | null], // optional client filter
         isActive: [null as boolean | null], // optional client filter
         language: [null as string | null], // optional client filter
         keyword: [''] // optional client filter (name/body search)
@@ -69,6 +73,7 @@ export class SmsTemplatesComponent implements OnInit {
         nameAr: [null],
         body: [null, [Validators.required, Validators.maxLength(4000)]],
         bodyAr: [null],
+        roleCode: [null],
         language: ['EN', Validators.required],
         isActive: [true, Validators.required]
     });
@@ -83,10 +88,28 @@ export class SmsTemplatesComponent implements OnInit {
         { label: 'Inactive', value: false }
     ];
 
+    smsTemplatesRoleCodes: SelectOptionStrValue[] = [];
+    isSmsTemplateRoleCodesLoading: boolean = true;
+
     generatorOwners: SelectOptionNumValue[] = [];
     isGeneratorOwnersLoading = true;
 
     ngOnInit() {
+        this.generatorOwnerService.getLookup({ domain: LookupDomain.SMS_TEMPLATE_ROLE }).subscribe({
+            next: (response: GetLookupResponse) => {
+                this.smsTemplatesRoleCodes = response.items.map((lookup: Lookup) => ({
+                    value: lookup.code,
+                    label: lookup.code
+                }));
+                this.isSmsTemplateRoleCodesLoading = false;
+            },
+            error: (err) => {
+                console.log(err);
+                this.smsTemplatesRoleCodes = [];
+                this.isSmsTemplateRoleCodesLoading = false;
+            }
+        });
+
         this.adminService.getGeneratorOwners().subscribe({
             next: (res: GetGeneratorOwnersResponse) => {
                 this.generatorOwners = res.owners.map((go) => {
@@ -110,10 +133,17 @@ export class SmsTemplatesComponent implements OnInit {
         if (!this.filterForm.valid) return;
 
         const generatorOwnerUserId = this.filterForm.get('generatorOwnerUserId')?.value as number;
+        const smsTemplateRoleCode = this.filterForm.get('roleCode')?.value as string;
 
         this.loading = true;
         try {
-            const qp: GetSmsTemplatesQueryParams = { generatorOwnerUserId };
+            const qp: GetSmsTemplatesQueryParams = {
+                generatorOwnerUserId: generatorOwnerUserId
+            };
+
+            if (smsTemplateRoleCode) {
+                qp.roleCode = smsTemplateRoleCode;
+            }
 
             const res: GetSmsTemplatesResponse = await firstValueFrom(this.adminService.getSmsTemplates(qp).pipe(finalize(() => (this.loading = false))));
 
@@ -172,6 +202,7 @@ export class SmsTemplatesComponent implements OnInit {
             nameAr: null,
             body: null,
             bodyAr: null,
+            roleCode: null,
             language: 'EN',
             isActive: true
         });
@@ -187,6 +218,7 @@ export class SmsTemplatesComponent implements OnInit {
             nameAr: t.nameAr ?? null,
             body: t.body,
             bodyAr: t.bodyAr ?? null,
+            roleCode: t.roleCode ?? null,
             language: t.language ?? 'EN',
             isActive: t.isActive ?? true
         });
@@ -230,6 +262,7 @@ export class SmsTemplatesComponent implements OnInit {
             nameAr: this.templateForm.get('nameAr')?.value,
             body: this.templateForm.get('body')?.value,
             bodyAr: this.templateForm.get('bodyAr')?.value,
+            roleCode: this.templateForm.get('roleCode')?.value,
             language: this.templateForm.get('language')?.value,
             isActive: this.templateForm.get('isActive')?.value
         };

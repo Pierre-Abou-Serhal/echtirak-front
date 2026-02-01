@@ -164,8 +164,6 @@ export class GeneratorOwnersComponent implements OnInit {
     onWalletChanged() {
         // safest + consistent: reload list from server
         // this.loadGeneratorOwners();
-
-        console.log('Go Wallet Have Changed');
     }
 
     findIndexById(id: number): number {

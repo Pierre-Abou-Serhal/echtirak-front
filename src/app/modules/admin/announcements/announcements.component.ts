@@ -178,8 +178,6 @@ export class AnnouncementsComponent implements OnInit {
 
                 const { items = [], pageNumber: apiPageNumber, pageSize, totalCount, hasNext } = res.page;
 
-                console.log(items);
-
                 this.announcements = [...this.announcements, ...items];
 
                 this.currentApiPage = apiPageNumber;

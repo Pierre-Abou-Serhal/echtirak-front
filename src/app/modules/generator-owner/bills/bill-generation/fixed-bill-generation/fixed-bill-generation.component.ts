@@ -49,8 +49,6 @@ export class FixedBillGenerationComponent {
             billYear: period.billYear
         };
 
-        console.log(request);
-
         this.generatorOwnerService.generateBillsForAllFixedSubscribers(request).subscribe({
             next: (response: GenerateBillsForAllFixedSubscribersResponse) => {
                 this.generatedBills.emit(

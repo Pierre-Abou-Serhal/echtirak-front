@@ -153,6 +153,24 @@
         </div>
     </div>
 
+    <p-contextmenu #cm [model]="items" (onHide)="selectedBill = null">
+        <ng-template pTemplate="item" let-item>
+            <div class="w-full px-2 py-1 cursor-pointer">
+                <p-button
+                    class="w-full"
+                    styleClass="p-button-sm me-3"
+                    rounded
+                    [icon]="item.icon"
+                    [severity]="item.data?.severity"
+                    [disabled]="!!item.disabled"
+                    [loading]="!!item.data?.loading"
+                    (onClick)="onMenuItemClick(item, $event)"
+                ></p-button>
+                <span class="text-sm font-semibold">{{item.label}}</span>
+            </div>
+        </ng-template>
+    </p-contextmenu>
+
     <div class="mb-4">
         <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
         <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
@@ -244,6 +262,13 @@
                     </div>
                 </th>
 
+                <th class="no-wrap-text" pSortableColumn="dueDate">
+                    <div class="flex justify-between items-center gap-2">
+                        Due Date
+                        <p-sortIcon field="dueDate" />
+                    </div>
+                </th>
+
                 <th class="no-wrap-text" pSortableColumn="amount">
                     <div class="flex justify-between items-center gap-2">
                         Amount
@@ -259,7 +284,7 @@
                 </th>
             </tr>
         </ng-template>
-        <ng-template #body let-bill let-expanded="expanded">
+        <ng-template #body let-bill let-expanded="expanded" >
             <tr [pSelectableRow]="bill"
                 [pRowToggler]="bill"
                 class="cursor-pointer">
@@ -268,44 +293,27 @@
                 </td>
                 <!-- ACTIONS (edit / save / cancel) -->
                 <td (click)="$event.stopPropagation()">
-                    <div class="flex items-center justify-center gap-2">
+                    <div class="flex justify-center items-center">
+                        @if(bill.billIssuedSmsStatus === BillIssuedSmsStatus.SENT){
+                            <p-tag
+                                icon="pi pi-envelope"
+                                severity="success"
+                                pTooltip="Subscriber received the bill via SMS."
+                                tooltipPosition="top"
+                                class="me-3"
+                            />
+                        }
                         <p-button
                             icon="pi pi-pencil"
-                            styleClass="p-button-sm"
-                            (click)="openBillEditModal(bill)"
+                            styleClass="p-button-sm me-3"
+                            rounded
+                            (onClick)="openRowMenu($event, bill, cm)"
                             severity="info"
-                            rounded
-                            [disabled]="bill.statusCode !== BillStatus.PENDING"
-                            [loading]="editBtnLoading[bill.id]"
-                        />
+                        ></p-button>
 
-                        <!-- Paid Bill -->
-                        <p-button
-                            icon="pi pi-dollar"
-                            styleClass="p-button-sm"
-                            (click)="payBill(bill)"
-                            severity="primary"
-                            rounded
-                            [disabled]="bill.statusCode !== BillStatus.PENDING"
-                            [loading]="editBtnLoading[bill.id]"
-                        />
-
-                        <!-- Cancel Bill -->
-                        <p-button
-                            icon="pi pi-times-circle"
-                            styleClass="p-button-sm"
-                            (click)="cancelBill(bill)"
-                            severity="danger"
-                            rounded
-                            [disabled]="bill.statusCode !== BillStatus.PENDING"
-                            [loading]="editBtnLoading[bill.id]"
-                        />
-
-                        <i
-                            class="pi text-500"
-                            [ngClass]="expanded ? 'pi-chevron-down' : 'pi-chevron-right'"
-                        ></i>
+                        <i class="pi text-500" [ngClass]="expanded ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
                     </div>
+
                 </td>
                 <td>
                     {{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}
@@ -320,6 +328,9 @@
                     {{ bill.billYear + '-' + bill.billMonth }}
                 </td>
                 <td>
+                    {{ bill.dueDate | date:'yyyy-MM-dd' }}
+                </td>
+                <td>
                     {{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}
                 </td>
                 <td>
@@ -332,7 +343,7 @@
         </ng-template>
         <ng-template #expandedrow let-bill>
             <tr>
-                <td colspan="8" class="p-0">
+                <td colspan="9" class="p-0">
                     <div class="p-2">
                         <div class="bill-cards">
 
@@ -361,7 +372,7 @@
                                     <i class="pi pi-arrow-up"></i>
                                     <span class="detail-label">Current KWH</span>
                                 </div>
-                                <div class="detail-value">{{ bill.currentKva ?? '—'  | number:'1.0-4' }}</div>
+                                <div class="detail-value">{{ bill.currentKva == null ? '—' : (bill.currentKva | number:'1.0-4') }}</div>
                             </div>
 
                             <div class="detail-card detail-card--third">
@@ -372,13 +383,22 @@
                                 <div class="detail-value">{{ bill.subscriptionAmps | number:'1.0-4' }}</div>
                             </div>
 
+                            <!-- Amount per KVA -->
+                            <div class="detail-card detail-card--third">
+                                <div class="detail-head">
+                                    <i class="pi pi-tag"></i>
+                                    <span class="detail-label">Amount Per KWH</span>
+                                </div>
+                                <div class="detail-value">{{ bill.amountPerKva == null ? '—' : (bill.amountPerKva | number:'1.0-4') }}</div>
+                            </div>
+
                             <!-- Row 2: Fees -->
                             <div class="detail-card detail-card--third">
                                 <div class="detail-head">
                                     <i class="pi pi-tag"></i>
                                     <span class="detail-label">Total KWH Fee</span>
                                 </div>
-                                <div class="detail-value">{{ bill.kvaFee ?? '—'  | number:'1.0-4' }}</div>
+                                <div class="detail-value">{{ bill.kvaFee == null ? '—' : (bill.kvaFee | number:'1.0-4') }}</div>
                             </div>
 
                             <div class="detail-card detail-card--third">
@@ -386,7 +406,7 @@
                                     <i class="pi pi-wallet"></i>
                                     <span class="detail-label">Subscription Fee Fixed</span>
                                 </div>
-                                <div class="detail-value">{{ bill.subscriptionFeeFixed ?? '—'  | number:'1.0-4' }}</div>
+                                <div class="detail-value">{{ bill.subscriptionFeeFixed == null ? '—' : (bill.subscriptionFeeFixed | number:'1.0-4') }}</div>
                             </div>
 
                         </div>
@@ -396,12 +416,12 @@
         </ng-template>
         <ng-template #emptymessage>
             <tr>
-                <td colspan="8">No bills found.</td>
+                <td colspan="9">No bills found.</td>
             </tr>
         </ng-template>
         <ng-template #loadingbody>
             <tr>
-                <td colspan="8">Loading bills data. Please wait.</td>
+                <td colspan="9">Loading bills data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>

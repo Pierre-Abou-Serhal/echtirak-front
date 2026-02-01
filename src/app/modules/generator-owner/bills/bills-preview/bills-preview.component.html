@@ -127,6 +127,13 @@
                     </div>
                 </th>
 
+                <th class="no-wrap-text" pSortableColumn="dueDate">
+                    <div class="flex justify-between items-center gap-2">
+                        Due Date
+                        <p-sortIcon field="dueDate" />
+                    </div>
+                </th>
+
                 <th class="no-wrap-text" pSortableColumn="amount">
                     <div class="flex justify-between items-center gap-2">
                         Amount
@@ -191,6 +198,7 @@
                 <td>{{ bill.generatorCode }}</td>
                 <td>{{ bill.billDate | date:'yyyy-MM-dd' }}</td>
                 <td>{{ bill.billYear + '-' + bill.billMonth }}</td>
+                <td>{{ bill.dueDate | date:'yyyy-MM-dd' }}</td>
                 <td>{{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}</td>
                 <td>
                     <p-tag [value]="bill.statusCode" [severity]="getBillSeverity(bill.statusCode)" />
@@ -200,7 +208,7 @@
 
         <ng-template #expandedrow let-bill>
             <tr>
-                <td colspan="8" class="p-0">
+                <td colspan="9" class="p-0">
                     <div class="p-2">
                         <div class="bill-cards">
 
@@ -238,6 +246,15 @@
                                 <div class="detail-value">{{ bill.subscriptionAmps ?? '—' | number:'1.0-4' }}</div>
                             </div>
 
+                            <!-- Amount per KVA -->
+                            <div class="detail-card detail-card--third">
+                                <div class="detail-head">
+                                    <i class="pi pi-tag"></i>
+                                    <span class="detail-label">Amount Per KWH</span>
+                                </div>
+                                <div class="detail-value">{{ bill.amountPerKva == null ? '—' : (bill.amountPerKva | number:'1.0-4') }}</div>
+                            </div>
+
                             <!-- Row 2 -->
                             <div class="detail-card detail-card--third">
                                 <div class="detail-head">
@@ -263,7 +280,7 @@
 
         <ng-template #emptymessage>
             <tr>
-                <td colspan="8">No bills found.</td>
+                <td colspan="9">No bills found.</td>
             </tr>
         </ng-template>
     </p-table>
@@ -307,7 +324,7 @@
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
             [rows]="10"
             [globalFilterFields]="[
-    'subscriberFirstName','subscriberLastName','generatorCode','billDate','amount',
+    'subscriberFirstName','subscriberLastName','generatorCode','billDate','amount', 'dueDate',
     'currencyCode','statusCode','previousKva','currentKva','subscriptionAmps',
     'kvaFee','subscriptionFeeFixed','notes','billYear','billMonth','duplicateMessage'
   ]"
@@ -396,6 +413,13 @@
                         </div>
                     </th>
 
+                    <th class="no-wrap-text" pSortableColumn="dueDate">
+                        <div class="flex justify-between items-center gap-2">
+                            Due Date
+                            <p-sortIcon field="dueDate" />
+                        </div>
+                    </th>
+
                     <th class="no-wrap-text" pSortableColumn="amount">
                         <div class="flex justify-between items-center gap-2">
                             Amount
@@ -448,6 +472,7 @@
                     <td>{{ bill.generatorCode }}</td>
                     <td>{{ bill.billDate | date:'yyyy-MM-dd' }}</td>
                     <td>{{ bill.billYear + '-' + bill.billMonth }}</td>
+                    <td>{{ bill.dueDate | date:'yyyy-MM-dd' }}</td>
                     <td>{{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}</td>
                     <td>
                         <p-tag [value]="bill.statusCode" [severity]="getBillSeverity(bill.statusCode)" />
@@ -458,7 +483,7 @@
             <!-- EXACT SAME expanded row UI -->
             <ng-template #expandedrow let-bill>
                 <tr>
-                    <td colspan="7" class="p-0">
+                    <td colspan="8" class="p-0">
                         <div class="p-2">
                             <div class="bill-cards">
 
@@ -496,6 +521,15 @@
                                     <div class="detail-value">{{ bill.subscriptionAmps ?? '—' | number:'1.0-4' }}</div>
                                 </div>
 
+                                <!-- Amount per KVA -->
+                                <div class="detail-card detail-card--third">
+                                    <div class="detail-head">
+                                        <i class="pi pi-tag"></i>
+                                        <span class="detail-label">Amount Per KWH</span>
+                                    </div>
+                                    <div class="detail-value">{{ bill.amountPerKva == null ? '—' : (bill.amountPerKva | number:'1.0-4') }}</div>
+                                </div>
+
                                 <!-- Row 2 -->
                                 <div class="detail-card detail-card--third">
                                     <div class="detail-head">
@@ -521,7 +555,7 @@
 
             <ng-template #emptymessage>
                 <tr>
-                    <td colspan="7">No duplicate bills found.</td>
+                    <td colspan="8">No duplicate bills found.</td>
                 </tr>
             </ng-template>
         </p-table>

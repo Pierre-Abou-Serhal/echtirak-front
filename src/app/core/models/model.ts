@@ -28,6 +28,8 @@ export class Subscriber {
     createdByUsername: string = '';
     modifiedAt: string = '';
     modifiedByUsername: string = '';
+    smsEnabled: boolean = false;
+    preferredLanguage?: string | null;
 }
 
 export interface Generator {
@@ -63,6 +65,7 @@ export interface SmsTemplate {
     body: string;
     bodyAr?: string;
     language: string;
+    roleCode: string;
     isActive: boolean;
     createdAt: string;
     modifiedAt: string;
@@ -96,10 +99,13 @@ export interface Bill {
     billDate: string;
     billYear: string;
     billMonth: string;
+    dueDate: string;
     amount: number;
     currencyCode: string;
     statusCode: string;
     statusDescription: string;
+    billIssuedSmsStatus: string;
+    billOverdueSmsStatus: string;
     previousKva: number;
     currentKva: number;
     subscriptionAmps: number;
@@ -107,6 +113,7 @@ export interface Bill {
     subscriptionFeeVar: number;
     subscriptionFeeFixed: number;
     notes: string;
+    amountPerKva: number;
     generatedFrom: number;
     hasDuplicateBill: boolean;
     duplicateMessage: string;

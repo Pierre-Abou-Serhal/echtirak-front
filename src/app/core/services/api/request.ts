@@ -26,6 +26,7 @@ export interface GetSubscribersQueryParams {
     createdAtTo?: string;
     modifiedBy?: string;
     keyword?: string;
+    smsEnabled?: boolean;
 }
 export interface UpsertSubscriberRequest extends Subscriber {}
 
@@ -84,9 +85,8 @@ export interface UpsertSubscriptionBillingModelRequest extends SubscriptionBilli
 export interface CreateSmsCampaignRequest {
     templateId: number;
     campaignName: string;
-    selectionCriteriaType: string;
-    customSubscriberIds?: number[];
-    language: string;
+    subscriberIds?: number[];
+    billIds?: number[];
 }
 
 
@@ -131,6 +131,9 @@ export interface WalletForecastRequest {
     smsCount?: number;
     selectionCriteriaType?: string;
     customSubscriberIds?: number[];
+    billIds?: number[];
+    templateId?: number;
+    subscriberIds?: number[];
 }
 
 export interface UpdateBillRequest {
@@ -287,6 +290,7 @@ export interface PublishAnnouncementRequest {
 
 export interface GetSmsTemplatesQueryParams {
     generatorOwnerUserId: number;
+    roleCode?: string;
 }
 
 export interface UpsertSmsTemplateRequest {
@@ -297,6 +301,7 @@ export interface UpsertSmsTemplateRequest {
     body: string;
     bodyAr: string;
     language: string;
+    roleCode: string;
     isActive: boolean;
 }
 
@@ -322,4 +327,12 @@ export interface GetGoWalletTransactionsQueryParams {
     FromDate?: string;
     ToDate?: string;
     Type?: string;
+}
+
+export interface GetGoSmsTemplatesQueryParams {
+    roleCode?: string;
+}
+
+export interface GetBillsForSmsQueryParams {
+    role: string;
 }

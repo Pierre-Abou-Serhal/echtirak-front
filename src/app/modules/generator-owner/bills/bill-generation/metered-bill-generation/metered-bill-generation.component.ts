@@ -223,7 +223,6 @@ export class MeteredBillGenerationComponent implements OnInit, OnDestroy {
     }
 
     updateKvaReading(kvaReading: KvaReading) {
-        console.log('kva reading to update', kvaReading);
 
         if (kvaReading.kvaReading <= kvaReading.kvaCurrent) {
             this.notificationService.error('Error', 'KWH reading must be greater than ' + kvaReading.kvaCurrent);
@@ -280,8 +279,6 @@ export class MeteredBillGenerationComponent implements OnInit, OnDestroy {
                 billYear: period.billYear
             };
 
-            console.log(request);
-
             this.generatorOwnerService.generateBillsForMeteredSubscribers(request).subscribe({
                 next: (response: GenerateBillsForMeteredSubscribersResponse) => {
                     this.generatedBills.emit(
@@ -290,8 +287,6 @@ export class MeteredBillGenerationComponent implements OnInit, OnDestroy {
                             id: index + 1
                         }))
                     );
-
-                    console.log(this.generatedBills);
 
                     this.isBillsGenerating = false;
                 },

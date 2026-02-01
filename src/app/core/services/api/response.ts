@@ -152,8 +152,7 @@ export interface GetSmsCampaignsResponse {
     page: GetSmsCampaignPage;
 }
 
-export interface CreateSmsCampaignResponse extends SmsCampaign {
-}
+export interface CreateSmsCampaignResponse extends SmsCampaign {}
 
 export interface GetSmsCampaignDetailsResponse {
     campaign: SmsCampaignDetail;
@@ -402,4 +401,18 @@ export interface GetGoStatusResponse {
         statusCode: string;
         canUsePlatform: boolean;
     };
+}
+
+export interface GetBillsForSmsResponse {
+    page: GetBillsForSmsPage;
+}
+
+export interface GetBillsForSmsPage {
+    items: Bill[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
 }
