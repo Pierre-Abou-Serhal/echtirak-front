@@ -28,7 +28,7 @@
         [globalFilterFields]="[
       'subscriberFirstName','subscriberLastName','generatorCode','billDate','amount',
       'currencyCode','statusCode','previousKva','currentKva','subscriptionAmps',
-      'kvaFee','subscriptionFeeFixed','notes'
+      'kvaFee','subscriptionFeeFixed','notes', 'billPeriodKey'
     ]"
     >
         <ng-template #caption>
@@ -120,10 +120,10 @@
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="billMonth">
+                <th class="no-wrap-text" pSortableColumn="billPeriodKey">
                     <div class="flex justify-between items-center gap-2">
                         Bill Year/Month
-                        <p-sortIcon field="billMonth" />
+                        <p-sortIcon field="billPeriodKey" />
                     </div>
                 </th>
 
@@ -197,7 +197,7 @@
                 <td>{{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}</td>
                 <td>{{ bill.generatorCode }}</td>
                 <td>{{ bill.billDate | date:'yyyy-MM-dd' }}</td>
-                <td>{{ bill.billYear + '-' + bill.billMonth }}</td>
+                <td>{{ bill.billPeriodKey }}</td>
                 <td>{{ bill.dueDate | date:'yyyy-MM-dd' }}</td>
                 <td>{{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}</td>
                 <td>
@@ -243,7 +243,7 @@
                                     <i class="pi pi-bolt"></i>
                                     <span class="detail-label">Subscription AMPS</span>
                                 </div>
-                                <div class="detail-value">{{ bill.subscriptionAmps ?? '—' | number:'1.0-4' }}</div>
+                                <div class="detail-value">{{ bill.billingModel }} {{ bill.subscriptionAmps | number:'1.0-4' }}</div>
                             </div>
 
                             <!-- Amount per KVA -->
@@ -326,7 +326,7 @@
             [globalFilterFields]="[
     'subscriberFirstName','subscriberLastName','generatorCode','billDate','amount', 'dueDate',
     'currencyCode','statusCode','previousKva','currentKva','subscriptionAmps',
-    'kvaFee','subscriptionFeeFixed','notes','billYear','billMonth','duplicateMessage'
+    'kvaFee','subscriptionFeeFixed','notes','billYear','billMonth','duplicateMessage', 'billPeriodKey'
   ]"
             [expandedRowKeys]="expandedDuplicateRows"
             (onRowExpand)="onDuplicateRowExpand($event)"
@@ -406,10 +406,10 @@
                         </div>
                     </th>
 
-                    <th class="no-wrap-text" pSortableColumn="billMonth">
+                    <th class="no-wrap-text" pSortableColumn="billPeriodKey">
                         <div class="flex justify-between items-center gap-2">
                             Bill Year/Month
-                            <p-sortIcon field="billMonth" />
+                            <p-sortIcon field="billPeriodKey" />
                         </div>
                     </th>
 
@@ -471,7 +471,7 @@
                     <td>{{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}</td>
                     <td>{{ bill.generatorCode }}</td>
                     <td>{{ bill.billDate | date:'yyyy-MM-dd' }}</td>
-                    <td>{{ bill.billYear + '-' + bill.billMonth }}</td>
+                    <td>{{ bill.billPeriodKey }}</td>
                     <td>{{ bill.dueDate | date:'yyyy-MM-dd' }}</td>
                     <td>{{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}</td>
                     <td>
@@ -518,7 +518,7 @@
                                         <i class="pi pi-bolt"></i>
                                         <span class="detail-label">Subscription AMPS</span>
                                     </div>
-                                    <div class="detail-value">{{ bill.subscriptionAmps ?? '—' | number:'1.0-4' }}</div>
+                                    <div class="detail-value">{{ bill.billingModel }} {{ bill.subscriptionAmps | number:'1.0-4' }}</div>
                                 </div>
 
                                 <!-- Amount per KVA -->

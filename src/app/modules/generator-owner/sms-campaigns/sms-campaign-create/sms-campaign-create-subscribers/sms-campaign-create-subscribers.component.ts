@@ -8,7 +8,7 @@ import { WalletService } from '@/core/services/wallet.service';
 import { NotificationService } from '@/core/services/notification.service';
 
 import { SmsTemplateRole } from '@/core/enums/enum';
-import { SelectOptionNumValue } from '@/core/dtos/dto';
+import { SelectOptionNumValue, SmsCampaignCreateSubscriber } from '@/core/dtos/dto';
 
 import { CreateSmsCampaignResponse, GetSmsTemplatesResponse, WalletForecastResponse, GetSubscribersResponse, GetGeneratorsResponse } from '@/core/services/api/response';
 
@@ -25,11 +25,6 @@ import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { LbPhonePipe } from '@/core/pipes/pipes';
-
-export interface SmsCampaignCreateSubscriber {
-    templateId?: number;
-    campaignName?: string;
-}
 
 @Component({
     selector: 'app-sms-campaign-create-subscribers-component',
@@ -95,6 +90,8 @@ export class SmsCampaignCreateSubscribersComponent implements OnInit {
     displayWarning = false;
     displayConfirmation = false;
     forecastWallet: Forecast | null = null;
+
+    submitted = false;
 
     ngOnInit(): void {
         this.loadTemplates();
@@ -318,6 +315,27 @@ export class SmsCampaignCreateSubscribersComponent implements OnInit {
         return hasTemplate && hasName && hasSubs;
     }
 
+    onCreateClick(): void {
+        this.submitted = true;
+
+        const nameValid = !!this.smsCampaignCreateSubscriber.campaignName?.trim();
+        const templateValid =
+            typeof this.smsCampaignCreateSubscriber.templateId === 'number' &&
+            this.smsCampaignCreateSubscriber.templateId > 0;
+
+        // If inputs invalid -> show inline errors only
+        if (!nameValid || !templateValid) return;
+
+        // Subscribers selection -> ONLY toast (as you requested)
+        if (!this.selectedSubscriberIds.size) {
+            this.notificationService.warn('Warning', 'Please select at least one subscriber');
+            return;
+        }
+
+        // all good
+        this.forecastSmsCampaign();
+    }
+
     forecastSmsCampaign(): void {
         if (!this.isSmsCampaignValid()) return;
 
@@ -359,6 +377,8 @@ export class SmsCampaignCreateSubscribersComponent implements OnInit {
             .subscribe({
                 next: (_response: CreateSmsCampaignResponse) => {
                     this.notificationService.success('Success', 'SMS Campaign successfully created');
+
+                    this.submitted = false;
 
                     // reset UI
                     this.smsCampaignCreateSubscriber.campaignName = undefined;

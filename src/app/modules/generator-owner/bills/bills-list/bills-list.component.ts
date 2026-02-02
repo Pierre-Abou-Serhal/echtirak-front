@@ -6,7 +6,12 @@ import { InputIcon } from 'primeng/inputicon';
 import { Table, TableModule } from 'primeng/table';
 import { InputText } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
-import { GetBillsResponse, GetGeneratorsResponse, GetLookupResponse, UpdateBillResponse } from '@/core/services/api/response';
+import {
+    GetBillsResponse,
+    GetGeneratorsResponse,
+    GetLookupResponse,
+    UpdateBillResponse
+} from '@/core/services/api/response';
 import { Bill, Generator, Lookup } from '@/core/models/model';
 import { BillAction, BillIssuedSmsStatus, BillStatus, LookupDomain } from '@/core/enums/enum';
 import { debounceTime, finalize, Subject, switchMap, tap } from 'rxjs';
@@ -16,7 +21,7 @@ import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { DatePipe, DecimalPipe, formatDate, NgClass } from '@angular/common';
 import { DatePicker } from 'primeng/datepicker';
 import { Select } from 'primeng/select';
-import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
+import { BillRow, BillSearchFilter, SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
 import { UpdateBillRequest } from '@/core/services/api/request';
 import { NotificationService } from '@/core/services/notification.service';
 import { BillEditModalComponent } from '@/modules/generator-owner/bills/bill-edit-modal/bill-edit-modal.component';
@@ -27,16 +32,7 @@ import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
 import { Tooltip } from 'primeng/tooltip';
-
-export interface BillSearchFilter {
-    generatorId?: number;
-    subscriberName?: string;
-    statusCode?: string;
-    billDateFrom?: Date;
-    billDateTo?: Date;
-    subscriberPhoneNumber?: string;
-    keyword?: string;
-}
+import { mapBillToBillRow } from '@/core/utils/utils';
 
 @Component({
     selector: 'app-bills-list-component',
@@ -77,8 +73,8 @@ export class BillsListComponent implements OnInit {
         this.billSearchFilter = {};
     }
 
-    bills: Bill[] = [];
-    selectedBills: Bill[] = [];
+    bills: BillRow[] = [];
+    selectedBills: BillRow[] = [];
 
     loading = true;
     private loadingMore = false;
@@ -103,12 +99,6 @@ export class BillsListComponent implements OnInit {
     isBillStatusesLoading: boolean = true;
     isGeneratorsLoading: boolean = true;
 
-    // Edit inside table
-    clonedBills: { [id: string]: Bill } = {};
-
-    // per-row loading flags
-    editBtnLoading: Record<number, boolean> = {};
-
     private search$ = new Subject<BillSearchFilter>();
 
     // Expandable Rows
@@ -116,11 +106,11 @@ export class BillsListComponent implements OnInit {
 
     // Update Bill Modal
     editVisible = false;
-    billToEdit: Bill | null = null;
+    billToEdit: BillRow | null = null;
 
     // Context Menu Bill Action Buttons
     items: MenuItem[] | undefined;
-    selectedBill: Bill | null = null;
+    selectedBill: BillRow | null = null;
 
     private actionLoading: Record<string, boolean> = {}; // key = `${billId}:${action}`
 
@@ -221,8 +211,10 @@ export class BillsListComponent implements OnInit {
 
                     const { items = [], pageNumber: apiPageNumber, pageSize, totalCount, hasNext } = page;
 
+                    const mapped = items.map((b) => mapBillToBillRow(b));
+
                     // Append items from this page to the list
-                    this.bills = [...this.bills, ...items];
+                    this.bills = [...this.bills, ...mapped];
 
                     // Track API pagination state
                     this.currentApiPage = apiPageNumber;
@@ -386,13 +378,7 @@ export class BillsListComponent implements OnInit {
         this.applyFilters();
     }
 
-    // Edit inside table functions
-    onRowEditInit(bill: Bill) {
-        // Keep a clone so we can revert on cancel or error
-        this.clonedBills[bill.id] = { ...bill };
-    }
-
-    openBillEditModal(bill: Bill | null | undefined) {
+    openBillEditModal(bill: BillRow | null | undefined) {
         if (!bill) return;
 
         // if you want "loading" while opening modal (optional)
@@ -421,8 +407,7 @@ export class BillsListComponent implements OnInit {
         // optional hook
     }
 
-    updateBill(bill: Bill, action: BillAction) {
-
+    updateBill(bill: BillRow, action: BillAction) {
         this.setActionLoading(bill.id, action, true);
 
         let request: UpdateBillRequest = {
@@ -449,16 +434,17 @@ export class BillsListComponent implements OnInit {
         return this.generatorOwnerService.updateBill(request).pipe(
             finalize(() => this.setActionLoading(bill.id, action, false)),
             tap((response: UpdateBillResponse) => {
-                // same update logic you already have
-                this.bills[this.findIndexById(request.billId)] = response.response.oldBill;
+                this.bills[this.findIndexById(request.billId)] = mapBillToBillRow(response.response.oldBill);
+
                 if (response.response.newBill.id !== response.response.oldBill.id) {
-                    this.bills.unshift(response.response.newBill);
+                    const newRow = mapBillToBillRow(response.response.newBill);
+                    this.bills.unshift(newRow);
                 }
             })
         );
     }
 
-    payBill(bill: Bill | null | undefined) {
+    payBill(bill: BillRow | null | undefined) {
         if (!bill) return;
 
         this.confirmationService.confirm({
@@ -468,7 +454,7 @@ export class BillsListComponent implements OnInit {
             acceptButtonStyleClass: 'p-button-success',
             rejectButtonStyleClass: 'p-button-secondary p-button-outlined',
             accept: () => {
-                const updated: Bill = { ...bill, statusCode: BillStatus.PAID };
+                const updated: BillRow = { ...bill, statusCode: BillStatus.PAID };
 
                 this.updateBill(updated, BillAction.PAY).subscribe({
                     next: () => this.notificationService.success('Successful', 'Bill paid successfully'),
@@ -480,7 +466,7 @@ export class BillsListComponent implements OnInit {
         });
     }
 
-    cancelBill(bill: Bill | null | undefined) {
+    cancelBill(bill: BillRow | null | undefined) {
         if (!bill) return;
 
         this.confirmationService.confirm({
@@ -490,7 +476,7 @@ export class BillsListComponent implements OnInit {
             acceptButtonStyleClass: 'p-button-danger',
             rejectButtonStyleClass: 'p-button-secondary p-button-outlined',
             accept: () => {
-                const updated: Bill = { ...bill, statusCode: BillStatus.CANCELLED };
+                const updated: BillRow = { ...bill, statusCode: BillStatus.CANCELLED };
 
                 this.updateBill(updated, BillAction.CANCEL).subscribe({
                     next: () => this.notificationService.success('Successful', 'Bill cancelled successfully'),
@@ -534,7 +520,7 @@ export class BillsListComponent implements OnInit {
         this.expandedRows = {};
     }
 
-    openRowMenu(event: MouseEvent, bill: Bill, cm: ContextMenu) {
+    openRowMenu(event: MouseEvent, bill: BillRow, cm: ContextMenu) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -547,7 +533,7 @@ export class BillsListComponent implements OnInit {
         return !!b && b.statusCode === BillStatus.PENDING;
     }
 
-    private buildMenuItems(bill: Bill): MenuItem[] {
+    private buildMenuItems(bill: BillRow): MenuItem[] {
         const id = bill.id;
 
         return [

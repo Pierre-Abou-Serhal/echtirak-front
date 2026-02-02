@@ -1,20 +1,12 @@
 
 <p-button icon="pi pi-arrow-left" class="me-2" label="Go Back" severity="primary" (click)="backClicked()" />
-<!-- INFO ICON -->
-<p-button
-    type="button"
-    icon="pi pi-info-circle"
-    severity="info"
-    rounded
-    text
-    pTooltip="Only subscribers having SMS enabled will appear in Bills/Subscribers lists and can receive SMS."
-    tooltipPosition="left"
-    ariaLabel="SMS enabled info"
-></p-button>
+
 <h1 class="text-3xl font-bold mb-4">SMS Campaigns Creation</h1>
 
 <div class="card">
     <p-tabs [(value)]="activeTab" (valueChange)="onTabChange($event)">
+        <p-tag icon="pi pi-info-circle" severity="info" value="Only subscribers having SMS enabled will appear in Bills/Subscribers lists and can receive SMS." />
+
         <p-tablist>
             <p-tab value="0"><span class="text-2xl font-bold">Bills</span></p-tab>
             <p-tab value="1"><span class="text-2xl font-bold">Subscribers</span></p-tab>

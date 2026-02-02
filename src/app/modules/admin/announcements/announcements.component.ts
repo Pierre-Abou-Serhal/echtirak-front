@@ -2,7 +2,7 @@ import { Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core'
 import { NotificationService } from '@/core/services/notification.service';
 import { Table, TableModule } from 'primeng/table';
 import { AdminAnnouncement } from '@/core/models/model';
-import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
+import { AdminAnnouncementSearchFilter, SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
 import { debounceTime, finalize, firstValueFrom, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GetAdminAnnouncementsQueryParams, UpsertAnnouncementRequest } from '@/core/services/api/request';
@@ -25,11 +25,6 @@ import { DatePicker } from 'primeng/datepicker';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { Checkbox } from 'primeng/checkbox';
 import { MultiSelect } from 'primeng/multiselect';
-
-export interface AdminAnnouncementSearchFilter {
-    keyword?: string;
-    isPublished?: boolean;
-}
 
 @Component({
     selector: 'app-announcements.component',

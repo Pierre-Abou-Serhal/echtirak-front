@@ -118,6 +118,7 @@ export interface Bill {
     hasDuplicateBill: boolean;
     duplicateMessage: string;
     hasRecentPayment: boolean;
+    billingModel: string;
 }
 
 

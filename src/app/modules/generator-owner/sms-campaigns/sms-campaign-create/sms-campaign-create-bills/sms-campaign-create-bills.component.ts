@@ -2,14 +2,14 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Button, ButtonDirective } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
-import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
+import { BillRow, SelectOptionNumValue, SelectOptionStrValue, SmsCampaignCreateBill } from '@/core/dtos/dto';
 import { BillStatus, SmsTemplateRole } from '@/core/enums/enum';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { CreateSmsCampaignResponse, GetBillsForSmsResponse, GetSmsTemplatesResponse, WalletForecastResponse } from '@/core/services/api/response';
-import { Bill, Forecast, SmsTemplate } from '@/core/models/model';
+import { Forecast, SmsTemplate } from '@/core/models/model';
 import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { Table, TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -18,14 +18,6 @@ import { Dialog } from 'primeng/dialog';
 import { NotificationService } from '@/core/services/notification.service';
 import { WalletService } from '@/core/services/wallet.service';
 import { WalletForecastRequest } from '@/core/services/api/request';
-
-export interface SmsCampaignCreateBill {
-    role?: string;
-    templateId?: number;
-    campaignName?: string;
-}
-
-type BillRow = Bill & { billPeriodKey: string };
 
 @Component({
     selector: 'app-sms-campaign-create-bills-component',
@@ -75,6 +67,8 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
     displayConfirmation: boolean = false;
     forecastWallet: Forecast | null = null;
 
+    submitted = false;
+
     constructor() {
         this.smsCampaignCreateBill = {};
     }
@@ -122,9 +116,9 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
 
         this.generatorOwnerService.getBillsForSms({ role: this.smsCampaignCreateBill.role! }).subscribe({
             next: (response: GetBillsForSmsResponse) => {
-                this.bills = response.page.items.map((b) => ({
+                this.bills = response.bills.map((b) => ({
                     ...b,
-                    billPeriodKey: `${b.billYear}-${String(b.billMonth)}`
+                    billPeriodKey: `${b.billYear}-${b.billMonth}`
                 }));
 
                 this.isBillsLoading = false;
@@ -146,6 +140,26 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
         const hasBills = this.selectedBills.length > 0;
 
         return hasRole && hasTemplate && hasName && hasBills;
+    }
+
+    onCreateClick(): void {
+        this.submitted = true;
+
+        const roleValid = !!this.smsCampaignCreateBill.role?.trim();
+        const nameValid = !!this.smsCampaignCreateBill.campaignName?.trim();
+        const templateValid = !!this.smsCampaignCreateBill.templateId && this.smsCampaignCreateBill.templateId > 0;
+
+        // If any input is invalid -> just show inline errors (no toast)
+        if (!roleValid || !nameValid || !templateValid) return;
+
+        // Bills: ONLY toast notification
+        if (!this.selectedBills?.length) {
+            this.notificationService.warn('Warning', 'Please select at least one bill');
+            return;
+        }
+
+        // all good
+        this.forecastSmsCampaign();
     }
 
     forecastSmsCampaign() {
@@ -314,6 +328,8 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
 
     onCreateSmsCampaignSuccess(): void {
         this.notificationService.success('Success', 'SMS Campaign successfully created');
+
+        this.submitted = false;
 
         // 1- Clear filters
         this.keyword = '';

@@ -1,3 +1,6 @@
+import { Bill } from '@/core/models/model';
+import { BillRow } from '@/core/dtos/dto';
+
 export function stripLebanonPrefix(phone: string | null | undefined): string {
     if (!phone) return '';
 
@@ -42,4 +45,11 @@ export function getBillYearMonth(billPeriod: Date | null): { billYear: string; b
     const month = String(billPeriod.getMonth() + 1).padStart(2, '0'); // 01-12
 
     return { billYear: year, billMonth: month };
+}
+
+export function mapBillToBillRow(b: Bill): BillRow {
+    return {
+        ...b,
+        billPeriodKey: `${b.billYear}-${b.billMonth}`
+    };
 }

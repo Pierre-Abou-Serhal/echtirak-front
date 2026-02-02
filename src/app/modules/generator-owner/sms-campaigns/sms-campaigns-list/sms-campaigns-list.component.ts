@@ -13,7 +13,7 @@ import { Router } from '@angular/router';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { Select } from 'primeng/select';
-import { SelectOptionStrValue } from '@/core/dtos/dto';
+import { SelectOptionStrValue, SmsCampaignSearchFilter } from '@/core/dtos/dto';
 import * as Papa from 'papaparse';
 import { debounceTime, finalize, Subject, switchMap, tap } from 'rxjs';
 import { GetLookupResponse, GetSmsCampaignsResponse } from '@/core/services/api/response';
@@ -21,12 +21,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePicker } from 'primeng/datepicker';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
-
-export interface SmsCampaignSearchFilter {
-    status?: string;
-    fromDate?: Date;
-    toDate?: Date;
-}
 
 @Component({
     selector: 'app-sms-campaigns-list',

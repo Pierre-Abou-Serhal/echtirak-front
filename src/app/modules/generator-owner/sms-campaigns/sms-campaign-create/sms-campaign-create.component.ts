@@ -8,11 +8,11 @@ import {
 } from '@/modules/generator-owner/sms-campaigns/sms-campaign-create/sms-campaign-create-bills/sms-campaign-create-bills.component';
 import { Button } from 'primeng/button';
 import { Location } from '@angular/common';
-import { Tooltip } from 'primeng/tooltip';
+import { Tag } from 'primeng/tag';
 
 @Component({
     selector: 'app-sms-campaign-create.component',
-    imports: [Tab, TabList, TabPanel, TabPanels, Tabs, SmsCampaignCreateSubscribersComponent, SmsCampaignCreateBillsComponent, Button, Tooltip],
+    imports: [Tab, TabList, TabPanel, TabPanels, Tabs, SmsCampaignCreateSubscribersComponent, SmsCampaignCreateBillsComponent, Button, Tag],
     templateUrl: './sms-campaign-create.component.html',
     styleUrl: './sms-campaign-create.component.scss'
 })

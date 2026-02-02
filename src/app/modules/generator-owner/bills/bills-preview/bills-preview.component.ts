@@ -16,6 +16,8 @@ import { Tooltip } from 'primeng/tooltip';
 import { BillEditModalComponent } from '@/modules/generator-owner/bills/bill-edit-modal/bill-edit-modal.component';
 import { Dialog } from 'primeng/dialog';
 
+type BillRow = Bill & { billPeriodKey: string };
+
 @Component({
     selector: 'app-bills-preview-component',
     imports: [TableModule, FormsModule, InputText, Button, DecimalPipe, Tag, DatePipe, ButtonDirective, IconField, InputIcon, Tooltip, BillEditModalComponent, NgClass, Dialog],
@@ -23,41 +25,20 @@ import { Dialog } from 'primeng/dialog';
     styleUrl: './bills-preview.component.scss'
 })
 export class BillsPreviewComponent {
-    private _allBills: Bill[] = [];
-
-    displayBills: Bill[] = [];
-    duplicateBills: Bill[] = [];
-
-    duplicatesVisible = false;
-
-    @Input({ required: true })
-    set billsPreview(value: Bill[]) {
-        this._allBills = value ?? [];
-
-        this.duplicateBills = this._allBills.filter((b) => b.hasDuplicateBill);
-        this.displayBills = this._allBills.filter((b) => !b.hasDuplicateBill);
-
-        // Reset table-related state whenever new data arrives
-        this.selectedBills = [];
-        this.expandedRows = {};
-        this.expandedDuplicateRows = {};
-        this.first = 0;
-
-        // Auto-open duplicates dialog if any duplicates exist
-        if (this.duplicateBills.length > 0) {
-            this.duplicatesVisible = true;
-        }
-    }
-    get billsPreview(): Bill[] {
-        return this._allBills;
-    }
-
-    @Output() billAcceptedSuccess = new EventEmitter<void>();
-
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly notificationService = inject(NotificationService);
 
-    selectedBills: Bill[] = [];
+    // keep everything internally as BillRow
+    private _allBills: BillRow[] = [];
+
+    displayBills: BillRow[] = [];
+    duplicateBills: BillRow[] = [];
+
+    duplicatesVisible = false;
+
+    @Output() billAcceptedSuccess = new EventEmitter<void>();
+
+    selectedBills: BillRow[] = [];
 
     rowsPerPageOptions = [10, 20, 50, 100];
     first = 0;
@@ -69,12 +50,55 @@ export class BillsPreviewComponent {
     // expandable rows
     expandedRows: Record<string, boolean> = {};
 
-    // expandable rows (duplicates dialog table)
+    // duplicates dialog
     duplicateKeyword = '';
     expandedDuplicateRows: Record<string, boolean> = {};
 
+    // edit modal
+    editVisible = false;
+    billToEdit: BillRow | null = null;
+
+    // ========= INPUT =========
+    @Input({ required: true })
+    set billsPreview(value: Bill[]) {
+        const incoming = value ?? [];
+
+        // map -> BillRow (computed field)
+        this._allBills = incoming.map((b) => this.toBillRow(b));
+
+        this.splitBills();
+
+        // Reset table-related state whenever new data arrives
+        this.selectedBills = [];
+        this.expandedRows = {};
+        this.expandedDuplicateRows = {};
+        this.first = 0;
+
+        // Auto-open duplicates dialog if any duplicates exist
+        this.duplicatesVisible = this.duplicateBills.length > 0;
+    }
+
+    get billsPreview(): Bill[] {
+        // if someone reads it, return as Bill[]
+        return this._allBills;
+    }
+
+    // ========= helpers =========
+    private toBillRow(b: Bill): BillRow {
+        return {
+            ...b,
+            billPeriodKey: `${b.billYear}-${String(b.billMonth).padStart(2, '0')}`
+        };
+    }
+
+    private splitBills(): void {
+        this.duplicateBills = this._allBills.filter((b) => b.hasDuplicateBill);
+        this.displayBills = this._allBills.filter((b) => !b.hasDuplicateBill);
+    }
+
+    // ========= duplicates table =========
     onDuplicateGlobalFilter(table: Table, value: string) {
-        const v = value.trim();
+        const v = (value ?? '').trim();
         this.duplicateKeyword = v;
         table.filterGlobal(v, 'contains');
     }
@@ -102,17 +126,13 @@ export class BillsPreviewComponent {
         this.expandedDuplicateRows = {};
     }
 
-    // edit modal
-    editVisible = false;
-    billToEdit: Bill | null = null;
-
-    // --- table helpers
+    // ========= main table =========
     clear(table: Table) {
         table.clear();
     }
 
     onGlobalFilter(table: Table, value: string) {
-        const v = value.trim();
+        const v = (value ?? '').trim();
         table.filterGlobal(v, 'contains');
     }
 
@@ -139,7 +159,6 @@ export class BillsPreviewComponent {
         return this.displayBills ? this.first === 0 : true;
     }
 
-    // --- row expansion
     onRowExpand(event: any) {
         const id = event.data?.id;
         if (id != null) this.expandedRows[String(id)] = true;
@@ -158,30 +177,36 @@ export class BillsPreviewComponent {
         this.expandedRows = {};
     }
 
-    // --- modal open / save
-    openBillEditModal(bill: Bill) {
+    // ========= modal =========
+    openBillEditModal(bill: BillRow) {
         this.billToEdit = bill;
         this.editVisible = true;
     }
 
     onBillEditSave(updatedBill: Bill) {
-        // If edited bill is now duplicate / not duplicate, re-split safely:
-        const idx = this._allBills.findIndex((b) => b.id === updatedBill.id);
-        if (idx !== -1) this._allBills[idx] = updatedBill;
+        // modal returns Bill; convert it back to BillRow
+        const updatedRow = this.toBillRow(updatedBill);
 
-        this.duplicateBills = this._allBills.filter((b) => b.hasDuplicateBill);
-        this.displayBills = this._allBills.filter((b) => !b.hasDuplicateBill);
+        // Update in the source array
+        const idx = this._allBills.findIndex((b) => b.id === updatedRow.id);
+        if (idx !== -1) this._allBills[idx] = updatedRow;
+
+        // Re-split after change
+        this.splitBills();
 
         // Keep selection in sync
-        const sIdx = this.selectedBills.findIndex((b) => b.id === updatedBill.id);
-        if (sIdx !== -1) this.selectedBills[sIdx] = updatedBill;
+        const sIdx = this.selectedBills.findIndex((b) => b.id === updatedRow.id);
+        if (sIdx !== -1) this.selectedBills[sIdx] = updatedRow;
+
+        // If currently editing, update reference
+        if (this.billToEdit?.id === updatedRow.id) {
+            this.billToEdit = updatedRow;
+        }
     }
 
-    onBillEditCancel() {
-        // optional
-    }
+    onBillEditCancel() {}
 
-    // --- UI styling
+    // ========= UI styling =========
     getBillSeverity(statusCode: string) {
         switch (statusCode) {
             case BillStatus.PENDING:
@@ -195,7 +220,7 @@ export class BillsPreviewComponent {
         }
     }
 
-    // --- Accept Bills (unchanged)
+    // ========= Accept Bills =========
     acceptBills() {
         this.isAcceptBillsLoading = true;
 
@@ -211,8 +236,8 @@ export class BillsPreviewComponent {
         this.generatorOwnerService
             .acceptBills({
                 bills: this.selectedBills,
-                billMonth: billMonth,
-                billYear: billYear
+                billMonth,
+                billYear
             })
             .subscribe({
                 next: (response: AcceptBillsResponse) => {
@@ -222,28 +247,29 @@ export class BillsPreviewComponent {
                         this.notificationService.error('Bill Rejected', `Something went wrong while inserting bills`);
                     }
 
-                    // clear
-                    this._allBills = [];
-                    this.displayBills = [];
-                    this.duplicateBills = [];
-                    this.selectedBills = [];
-                    this.expandedRows = {};
-                    this.isAcceptBillsLoading = false;
+                    this.clearAllState();
                     this.billAcceptedSuccess.emit();
                 },
                 error: (err) => {
                     console.log(err);
-                    this._allBills = [];
-                    this.displayBills = [];
-                    this.duplicateBills = [];
-                    this.selectedBills = [];
-                    this.expandedRows = {};
-                    this.isAcceptBillsLoading = false;
+                    this.clearAllState();
                 }
             });
     }
 
-    // Button handler
+    private clearAllState(): void {
+        this._allBills = [];
+        this.displayBills = [];
+        this.duplicateBills = [];
+        this.selectedBills = [];
+        this.expandedRows = {};
+        this.expandedDuplicateRows = {};
+        this.isAcceptBillsLoading = false;
+        this.duplicatesVisible = false;
+        this.billToEdit = null;
+        this.editVisible = false;
+    }
+
     openDuplicatesDialog() {
         this.duplicatesVisible = true;
     }

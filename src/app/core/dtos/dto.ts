@@ -1,5 +1,5 @@
 import { UserRole } from '@/core/enums/enum';
-import { SmsMessage, SmsTemplate } from '@/core/models/model';
+import { Bill, SmsMessage, SmsTemplate } from '@/core/models/model';
 
 export interface TokenPair {
     accessToken: string;
@@ -371,3 +371,53 @@ export interface AccountingPeriodSummary {
     outstandingReceivables: number;
     accountsPayable: number;
 }
+
+export interface BillSearchFilter {
+    generatorId?: number;
+    subscriberName?: string;
+    statusCode?: string;
+    billDateFrom?: Date;
+    billDateTo?: Date;
+    subscriberPhoneNumber?: string;
+    keyword?: string;
+}
+
+export interface AdminAnnouncementSearchFilter {
+    keyword?: string;
+    isPublished?: boolean;
+}
+
+export interface KvaReadingLocalFilter {
+    keyword?: string;
+    subscriberId?: number;
+    createdAtFrom?: Date;
+    createdAtTo?: Date;
+}
+
+export interface KvaReadingSearchFilter {
+    generatorId?: number;
+    subscriberId?: number;
+    status?: string;
+    createdAtFrom?: Date;
+    createdAtTo?: Date;
+    keyword?: string;
+}
+
+export interface SmsCampaignCreateBill {
+    role?: string;
+    templateId?: number;
+    campaignName?: string;
+}
+
+export interface SmsCampaignCreateSubscriber {
+    templateId?: number;
+    campaignName?: string;
+}
+
+export interface SmsCampaignSearchFilter {
+    status?: string;
+    fromDate?: Date;
+    toDate?: Date;
+}
+
+export type BillRow = Bill & { billPeriodKey?: string };

@@ -404,15 +404,5 @@ export interface GetGoStatusResponse {
 }
 
 export interface GetBillsForSmsResponse {
-    page: GetBillsForSmsPage;
-}
-
-export interface GetBillsForSmsPage {
-    items: Bill[];
-    pageNumber: number;
-    pageSize: number;
-    totalCount: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrevious: boolean;
+    bills: Bill[];
 }

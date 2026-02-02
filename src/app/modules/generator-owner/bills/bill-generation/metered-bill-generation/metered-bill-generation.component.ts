@@ -14,7 +14,7 @@ import { Tag } from 'primeng/tag';
 import { GenerateBillsForMeteredSubscribersRequest, UpdateKVAReadingRequest } from '@/core/services/api/request';
 import { NotificationService } from '@/core/services/notification.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { SelectOptionStrValue } from '@/core/dtos/dto';
+import { KvaReadingLocalFilter, SelectOptionStrValue } from '@/core/dtos/dto';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { finalize, Subject, Subscription } from 'rxjs';
 import { Dialog } from 'primeng/dialog';
@@ -27,13 +27,6 @@ import {
 import { DatePicker } from 'primeng/datepicker';
 import { getBillYearMonth } from '@/core/utils/utils';
 import { InputNumber } from 'primeng/inputnumber';
-
-export interface KvaReadingLocalFilter {
-    keyword?: string;
-    subscriberId?: number;
-    createdAtFrom?: Date;
-    createdAtTo?: Date;
-}
 
 @Component({
     selector: 'app-metered-bill-generation',

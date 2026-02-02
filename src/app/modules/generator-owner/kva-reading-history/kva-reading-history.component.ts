@@ -20,7 +20,7 @@ import { NotificationService } from '@/core/services/notification.service';
 import { GetGeneratorsResponse, GetLookupResponse, GetKVAReadingsResponse, UpdateKVAReadingResponse } from '@/core/services/api/response';
 import { Generator, KvaReading, Lookup } from '@/core/models/model';
 import { KvaReadingStatus, LookupDomain } from '@/core/enums/enum';
-import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
+import { KvaReadingSearchFilter, SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
 import { UpdateKVAReadingRequest } from '@/core/services/api/request';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Dialog } from 'primeng/dialog';
@@ -30,15 +30,6 @@ import {
 } from '@/modules/generator-owner/kva-reading-history/kva-edit-modal/kva-edit-modal.component';
 import { LbPhonePipe } from '@/core/pipes/pipes';
 import { provideNgxMask } from 'ngx-mask';
-
-export interface KvaReadingSearchFilter {
-    generatorId?: number;
-    subscriberId?: number;
-    status?: string;
-    createdAtFrom?: Date;
-    createdAtTo?: Date;
-    keyword?: string;
-}
 
 @Component({
     selector: 'app-kva-reading-history.component',

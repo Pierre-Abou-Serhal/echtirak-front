@@ -17,6 +17,13 @@
                     placeholder="Campaign name"
                 />
             </p-iconfield>
+
+            @if(submitted && !smsCampaignCreateSubscriber.campaignName?.trim()) {
+                <small class="text-red-500 mt-1">
+                    Campaign Name is required.
+                </small>
+            }
+
         </div>
 
         <!-- SMS Template -->
@@ -26,27 +33,50 @@
             </label>
 
             <div class="flex items-center gap-2">
-                <p-select
-                    inputId="smsTemplate"
-                    class="w-full"
-                    [options]="smsTemplatesDropDown"
-                    optionLabel="label"
-                    optionValue="value"
-                    placeholder="Template"
-                    [(ngModel)]="smsCampaignCreateSubscriber.templateId"
-                    [loading]="isSmsTemplateLoading"
-                    (onChange)="onTemplateChange()"
-                ></p-select>
+                <div>
+                    <p-select
+                        inputId="smsTemplate"
+                        class="w-full"
+                        [options]="smsTemplatesDropDown"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Template"
+                        [(ngModel)]="smsCampaignCreateSubscriber.templateId"
+                        [loading]="isSmsTemplateLoading"
+                        (onChange)="onTemplateChange()"
+                    ></p-select>
 
-                <p-button
-                    type="button"
-                    icon="pi pi-eye"
-                    label="Preview"
-                    severity="secondary"
-                    variant="outlined"
-                    (onClick)="openTemplatePreview()"
-                    [disabled]="!smsCampaignCreateSubscriber.templateId"
-                ></p-button>
+                    @if(submitted && (!smsCampaignCreateSubscriber.templateId || smsCampaignCreateSubscriber.templateId <= 0)) {
+                        <small class="text-red-500 mt-1">
+                            SMS Template is required.
+                        </small>
+                    } @else {
+                        <small>
+                            &nbsp;
+                        </small>
+                    }
+
+                </div>
+
+                <div>
+                    <p-button
+                        type="button"
+                        icon="pi pi-eye"
+                        label="Preview"
+                        severity="secondary"
+                        variant="outlined"
+                        (onClick)="openTemplatePreview()"
+                        [disabled]="!smsCampaignCreateSubscriber.templateId"
+                    ></p-button>
+
+                    <div>
+                        <small>
+                            &nbsp;
+                        </small>
+                    </div>
+
+                </div>
+
             </div>
         </div>
 
@@ -55,9 +85,8 @@
             <p-button
                 label="Create"
                 icon="pi pi-plus"
-                (onClick)="forecastSmsCampaign()"
+                (onClick)="onCreateClick()"
                 [loading]="isCreatingSmsCampaign"
-                [disabled]="!isSmsCampaignValid()"
             ></p-button>
         </div>
 

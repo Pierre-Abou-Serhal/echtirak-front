@@ -66,16 +66,9 @@
                 <!-- Subscription AMPS (disabled) -->
                 <div>
                     <label for="billSubscriptionAmps" class="block text-sm font-semibold mb-2">Subscription AMPS</label>
-                    <p-inputnumber
-                        inputId="billSubscriptionAmps"
-                        [ngModel]="editableBill.subscriptionAmps"
-                        mode="decimal"
-                        [minFractionDigits]="0"
-                        [maxFractionDigits]="4"
-                        class="w-full"
-                        [disabled]="true"
-                        [min]="0"
-                    ></p-inputnumber>
+                    <input type="hidden" name="subscriptionAmps" [(ngModel)]="editableBill.subscriptionAmps" />
+
+                    <input [value]="bill.billingModel + ' ' + (bill.subscriptionAmps | number:'1.0-4')" disabled pInputText class="w-full">
                 </div>
 
                 <!-- Total KWH Fee (disabled) -->

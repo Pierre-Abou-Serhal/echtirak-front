@@ -255,10 +255,10 @@
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="billMonth">
+                <th class="no-wrap-text" pSortableColumn="billPeriodKey">
                     <div class="flex justify-between items-center gap-2">
                         Bill Year/Month
-                        <p-sortIcon field="billMonth" />
+                        <p-sortIcon field="billPeriodKey" />
                     </div>
                 </th>
 
@@ -325,7 +325,7 @@
                     {{ bill.billDate | date:'yyyy-MM-dd' }}
                 </td>
                 <td>
-                    {{ bill.billYear + '-' + bill.billMonth }}
+                    {{ bill.billPeriodKey }}
                 </td>
                 <td>
                     {{ bill.dueDate | date:'yyyy-MM-dd' }}
@@ -380,7 +380,7 @@
                                     <i class="pi pi-bolt"></i>
                                     <span class="detail-label">Subscription AMPS</span>
                                 </div>
-                                <div class="detail-value">{{ bill.subscriptionAmps | number:'1.0-4' }}</div>
+                                <div class="detail-value">{{ bill.billingModel }} {{ bill.subscriptionAmps | number:'1.0-4' }}</div>
                             </div>
 
                             <!-- Amount per KVA -->
