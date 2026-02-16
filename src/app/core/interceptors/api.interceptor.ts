@@ -109,7 +109,7 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
                                 const mapped = mapApiError(retryErr);
 
                                 if (mapped.status === 400 || mapped.status === 404 || mapped.status === 500) {
-                                    notify.error(mapped.title, mapped.detail);
+                                    notify.error('Something went wrong', mapped.detail);
                                 }
 
                                 // do NOT logout here — refresh already succeeded
@@ -122,7 +122,7 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
 
             // ---------- other errors ----------
             if (apiError.status === 400 || apiError.status === 500 || apiError.status === 404) {
-                notify.error(apiError.title, apiError.detail);
+                notify.error("Something went wrong", apiError.detail);
             }
 
             // if 401 and we couldn't refresh (no refresh token at all) -> logout
