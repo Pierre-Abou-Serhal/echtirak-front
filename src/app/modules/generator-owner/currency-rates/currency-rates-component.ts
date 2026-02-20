@@ -1,27 +1,30 @@
 import { Component, Inject, inject, LOCALE_ID, OnInit } from '@angular/core';
-import { Select } from 'primeng/select';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
-import { NotificationService } from '@/core/services/notification.service';
-import { Currency, CurrencyRate } from '@/core/models/model';
-import { GetCurrencyRatesQueryParams, UpsertCurrencyRatesRequest } from '@/core/services/api/request';
 import { DatePipe, DecimalPipe, formatDate } from '@angular/common';
-import { GetCurrenciesResponse, GetCurrencyRatesResponse, UpsertCurrencyRatesResponse } from '@/core/services/api/response';
-import { SelectOptionStrValue } from '@/core/dtos/dto';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+
+import { Button } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
-import { Table, TableModule } from 'primeng/table';
-import { IconField } from 'primeng/iconfield';
+import { Dialog } from 'primeng/dialog';
+import { InputNumber } from 'primeng/inputnumber';
+import { Select } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+
 import * as Papa from 'papaparse';
 import { firstValueFrom } from 'rxjs';
-import { Dialog } from 'primeng/dialog';
-import { Message } from 'primeng/message';
-import { InputNumber } from 'primeng/inputnumber';
-import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
+
+import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
+import { NotificationService } from '@/core/services/notification.service';
+
+import { Currency, CurrencyRate } from '@/core/models/model';
+import { SelectOptionStrValue } from '@/core/dtos/dto';
+import { GetCurrencyRatesQueryParams, UpsertCurrencyRatesRequest } from '@/core/services/api/request';
+import { GetCurrenciesResponse, GetCurrencyRatesResponse } from '@/core/services/api/response';
+import { InputText } from 'primeng/inputtext';
 
 @Component({
     selector: 'app-currency-rates-component',
-    imports: [Select, FormsModule, Button, DatePicker, TableModule, DatePipe, IconField, DecimalPipe, Dialog, Message, ReactiveFormsModule, InputNumber],
+    standalone: true,
+    imports: [FormsModule, ReactiveFormsModule, Button, DatePicker, Dialog, InputNumber, Select, TableModule, DecimalPipe, InputText, DatePipe],
     templateUrl: './currency-rates-component.html',
     styleUrl: './currency-rates-component.scss'
 })
@@ -29,42 +32,63 @@ export class CurrencyRatesComponent implements OnInit {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
     private readonly notificationService = inject(NotificationService);
 
+    // Active rate pair managed from this screen
+    readonly activeFromCurrencyCode = 'USD';
+    readonly activeToCurrencyCode = 'LBP';
+
     currencies: SelectOptionStrValue[] = [];
     isCurrenciesLoading: boolean = false;
-    filters: GetCurrencyRatesQueryParams;
 
+    // Filters remain fully open for the user
+    filters: GetCurrencyRatesQueryParams = {};
+
+    // Table = inactive rates only
     currencyRates: CurrencyRate[] = [];
     selectedCurrencyRates: CurrencyRate[] = [];
     isCurrencyRatesLoading: boolean = false;
+
+    // Current active rate section
+    activeCurrencyRate: CurrencyRate | null = null;
+    isActiveCurrencyRateLoading: boolean = false;
 
     // Data table vars
     rowsPerPageOptions = [10, 20, 50, 100];
     first = 0;
     rows = 10;
 
-    // Modal variables
+    // Modal vars
     isCurrencyRateDialogOpen: boolean = false;
     isCurrencyRateSaving: boolean = false;
-
     currencyRateForm: FormGroup;
+
+    // Important behavior:
+    // When editing the active rate, we intentionally save as a NEW record (id = -1)
+    // so the previous active one becomes inactive and appears in the history table.
     selectedCurrencyRateId: number = -1;
 
     constructor(
         @Inject(LOCALE_ID) private locale: string,
         private fb: FormBuilder
     ) {
-        this.filters = {};
-
         this.currencyRateForm = this.fb.group({
-            fromCurrencyCode: [null, Validators.required],
-            toCurrencyCode: [null, Validators.required],
-            date: [null, [Validators.required]],
-            rate: [null, [Validators.required]]
+            fromCurrencyCode: [this.activeFromCurrencyCode, Validators.required],
+            toCurrencyCode: [this.activeToCurrencyCode, Validators.required],
+            date: [null, Validators.required], // keep Date in the form
+            rate: [null, [Validators.required, Validators.min(0.0001)]]
         });
+
+        // Keep pair visible but not editable in the modal
+        this.currencyRateForm.get('fromCurrencyCode')?.disable({ emitEvent: false });
+        this.currencyRateForm.get('toCurrencyCode')?.disable({ emitEvent: false });
     }
 
-    ngOnInit() {
+    ngOnInit(): void {
         this.loadCurrencies();
+        this.refreshScreen();
+    }
+
+    private refreshScreen() {
+        this.loadActiveCurrencyRate();
         this.loadCurrencyRates();
     }
 
@@ -87,39 +111,62 @@ export class CurrencyRatesComponent implements OnInit {
         });
     }
 
+    // Loads ONLY the current active rate for the managed pair (USD / LBP)
+    loadActiveCurrencyRate() {
+        this.isActiveCurrencyRateLoading = true;
+
+        this.generatorOwnerService
+            .getCurrencyRates({
+                fromCurrencyCode: this.activeFromCurrencyCode,
+                toCurrencyCode: this.activeToCurrencyCode
+            })
+            .subscribe({
+                next: (response: GetCurrencyRatesResponse) => {
+                    this.activeCurrencyRate = response.rates.find((r) => r.isActive) ?? null;
+                    this.isActiveCurrencyRateLoading = false;
+                },
+                error: (err) => {
+                    console.log(err);
+                    this.activeCurrencyRate = null;
+                    this.isActiveCurrencyRateLoading = false;
+                }
+            });
+    }
+
+    // Loads table data using user filters, then keeps only INACTIVE rows
     loadCurrencyRates() {
         this.isCurrencyRatesLoading = true;
 
-        this.generatorOwnerService.getCurrencyRates({
-            fromCurrencyCode: this.filters.fromCurrencyCode,
-            toCurrencyCode: this.filters.toCurrencyCode,
-            dateFrom: this.filters.dateFrom ? formatDate(this.filters.dateFrom, 'yyyy-MM-dd', this.locale) : undefined,
-            dateTo: this.filters.dateTo ? formatDate(this.filters.dateTo, 'yyyy-MM-dd', this.locale) : undefined,
-        }).subscribe({
-            next: (response: GetCurrencyRatesResponse) => {
-                this.currencyRates = response.rates;
-                this.isCurrencyRatesLoading = false;
-            },
-            error: (err) => {
-                console.log(err);
-                this.currencyRates = [];
-                this.isCurrencyRatesLoading = false;
-            }
-        });
+        this.generatorOwnerService
+            .getCurrencyRates({
+                fromCurrencyCode: this.filters.fromCurrencyCode,
+                toCurrencyCode: this.filters.toCurrencyCode,
+                dateFrom: this.filters.dateFrom ? formatDate(this.filters.dateFrom, 'yyyy-MM-dd', this.locale) : undefined,
+                dateTo: this.filters.dateTo ? formatDate(this.filters.dateTo, 'yyyy-MM-dd', this.locale) : undefined
+            })
+            .subscribe({
+                next: (response: GetCurrencyRatesResponse) => {
+                    this.currencyRates = response.rates.filter((r) => !r.isActive);
+                    this.isCurrencyRatesLoading = false;
+                },
+                error: (err) => {
+                    console.log(err);
+                    this.currencyRates = [];
+                    this.isCurrencyRatesLoading = false;
+                }
+            });
     }
 
     resetFilters() {
         this.filters = {};
+        this.first = 0;
+        this.loadCurrencyRates();
     }
 
     // Data table functions
     pageChange(event: any) {
         this.first = event.first ?? this.first;
         this.rows = event.rows ?? this.rows;
-    }
-
-    clear(table: Table) {
-        table.clear();
     }
 
     next() {
@@ -155,52 +202,33 @@ export class CurrencyRatesComponent implements OnInit {
         const csv = Papa.unparse(listToExport);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
+
         const a = document.createElement('a');
         a.href = url;
         a.download = 'currency-rates.csv';
         a.click();
+
         URL.revokeObjectURL(url);
     }
 
-    // Dialog functions
+    // Dialog actions
+
+    // Creates a new active rate (used by New button)
     openNew() {
         this.selectedCurrencyRateId = -1;
 
-        const currentDate = new Date();
-
-        this.currencyRateForm.get('fromCurrencyCode')?.reset();
-        this.currencyRateForm.get('toCurrencyCode')?.reset();
-        this.currencyRateForm.get('date')?.setValue(formatDate(currentDate, 'yyyy-MM-dd', this.locale));
-        this.currencyRateForm.get('rate')?.reset();
-
-        this.isCurrencyRateDialogOpen = true;
-    }
-
-    editCurrencyRate(rate: CurrencyRate) {
-        this.selectedCurrencyRateId = rate.id;
-
-        this.currencyRateForm.get('fromCurrencyCode')?.setValue(rate.fromCurrencyCode);
-        this.currencyRateForm.get('toCurrencyCode')?.setValue(rate.toCurrencyCode);
-        this.currencyRateForm.get('date')?.setValue(formatDate(rate.date, 'yyyy-MM-dd', this.locale));
-        this.currencyRateForm.get('rate')?.setValue(rate.rate);
+        this.currencyRateForm.reset({
+            fromCurrencyCode: this.activeFromCurrencyCode,
+            toCurrencyCode: this.activeToCurrencyCode,
+            date: new Date(),
+            rate: null
+        });
 
         this.isCurrencyRateDialogOpen = true;
     }
 
     hideDialog() {
         this.isCurrencyRateDialogOpen = false;
-    }
-
-    findIndexById(id: number): number {
-        let index = -1;
-        for (let i = 0; i < this.currencyRates.length; i++) {
-            if (this.currencyRates[i].id === id) {
-                index = i;
-                break;
-            }
-        }
-
-        return index;
     }
 
     async saveCurrencyRate() {
@@ -212,60 +240,41 @@ export class CurrencyRatesComponent implements OnInit {
             return;
         }
 
-        let upsertCurrencyRateRequest: UpsertCurrencyRatesRequest = {
+        const raw = this.currencyRateForm.getRawValue();
+
+        const request: UpsertCurrencyRatesRequest = {
             rates: [
                 {
-                    id: this.selectedCurrencyRateId,
-                    fromCurrencyCode: this.currencyRateForm.get('fromCurrencyCode')?.value,
-                    toCurrencyCode: this.currencyRateForm.get('toCurrencyCode')?.value,
-                    date: formatDate(this.currencyRateForm.get('date')?.value, 'yyyy-MM-dd', this.locale),
-                    rate: this.currencyRateForm.get('rate')?.value
+                    id: this.selectedCurrencyRateId, // always -1 for active create/replace flow
+                    fromCurrencyCode: raw.fromCurrencyCode,
+                    toCurrencyCode: raw.toCurrencyCode,
+                    date: formatDate(raw.date, 'yyyy-MM-dd', this.locale),
+                    rate: raw.rate,
+                    isActive: true
                 }
             ]
         };
 
         try {
-            const response: UpsertCurrencyRatesResponse = await firstValueFrom(this.generatorOwnerService.upsertCurrencyRates(upsertCurrencyRateRequest));
+            await firstValueFrom(this.generatorOwnerService.upsertCurrencyRates(request));
 
-            let notificationMsg: string;
-            if (this.selectedCurrencyRateId === -1) {
-                // Add
-                this.currencyRates = this.currencyRates.concat(response.rates);
-                notificationMsg = 'Added';
-            } else {
-                // Edit
-                response.rates.forEach((rate) => {
-                    this.currencyRates[this.findIndexById(rate.id)] = rate;
-                });
-                notificationMsg = 'Updated';
-            }
-
-            this.currencyRates = [...this.currencyRates];
-
-            this.notificationService.success('Successful', `Currency Rates ${notificationMsg}`);
+            this.notificationService.success('Successful', 'Active Currency Rate Saved');
 
             this.isCurrencyRateSaving = false;
             this.isCurrencyRateDialogOpen = false;
+
+            // Refresh both areas:
+            // - Active section gets the new active rate
+            // - Table gets the old active rate as inactive history
+            this.refreshScreen();
         } catch (error) {
             console.log(error);
             this.isCurrencyRateSaving = false;
         }
     }
 
-    isInvalid(controlName: string) {
+    isInvalid(controlName: string): boolean {
         const control = this.currencyRateForm.get(controlName);
-        return control?.invalid && (control.touched || this.isCurrencyRateSaving);
-    }
-
-    // To prevent ngPrim Modal Bug
-    getOverlayOptions(): OverlayOptions {
-        return {
-            listener: (event: Event, options?: OverlayListenerOptions) => {
-                if (options?.type === 'scroll') {
-                    return false;
-                }
-                return options?.valid;
-            }
-        };
+        return !!(control?.invalid && (control.touched || this.isCurrencyRateSaving));
     }
 }

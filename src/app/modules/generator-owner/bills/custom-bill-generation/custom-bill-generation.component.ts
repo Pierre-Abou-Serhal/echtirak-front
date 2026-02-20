@@ -19,7 +19,7 @@ import { BillsPreviewComponent } from '@/modules/generator-owner/bills/bills-pre
 import { LbPhonePipe } from '@/core/pipes/pipes';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { DatePicker } from 'primeng/datepicker';
-import { getBillYearMonth } from '@/core/utils/utils';
+import { formatSubscriberAddress, getBillYearMonth } from '@/core/utils/utils';
 
 @Component({
     selector: 'app-custom-bill-generation-component',
@@ -330,4 +330,6 @@ export class CustomBillGenerationComponent implements OnInit {
     collapseAll() {
         this.expandedRows = {};
     }
+
+    protected readonly formatSubscriberAddress = formatSubscriberAddress;
 }

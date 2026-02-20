@@ -16,9 +16,8 @@ import { BillingModel, LookupDomain, SubscriberStatus } from '@/core/enums/enum'
 import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
 import { NotificationService } from '@/core/services/notification.service';
-import { SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
+import { SelectOptionNumValue, SelectOptionStrValue, SubscriberAddress } from '@/core/dtos/dto';
 import { InputNumber } from 'primeng/inputnumber';
-import { Textarea } from 'primeng/textarea';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Skeleton } from 'primeng/skeleton';
 import { WalletForecastRequest } from '@/core/services/api/request';
@@ -27,13 +26,16 @@ import { InputMaskModule } from 'primeng/inputmask';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
-import { addLebanonPrefix, stripLebanonPrefix } from '@/core/utils/utils';
+import { addLebanonPrefix, formatSubscriberAddress, stripLebanonPrefix } from '@/core/utils/utils';
 import { LbPhonePipe } from '@/core/pipes/pipes';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { Listbox } from 'primeng/listbox';
 import { Card } from 'primeng/card';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { AutoComplete } from 'primeng/autocomplete';
+
+type AddressHintVm = SubscriberAddress & { label: string };
 
 @Component({
     selector: 'app-subscribers',
@@ -50,7 +52,6 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
         Dialog,
         Select,
         InputNumber,
-        Textarea,
         Skeleton,
         InputMaskModule,
         InputGroupModule,
@@ -61,7 +62,8 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
         DecimalPipe,
         Listbox,
         Card,
-        ToggleSwitch
+        ToggleSwitch,
+        AutoComplete
     ],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
@@ -137,6 +139,27 @@ export class SubscribersComponent implements OnInit {
         { label: 'English', value: 'EN' },
         { label: 'Arabic', value: 'AR' }
     ];
+
+    // Subscriber Address Variables
+    private readonly COUNTRY = 'Lebanon';
+
+    citySuggestions: string[] = [];
+    streetSuggestions: string[] = [];
+    buildingSuggestions: string[] = [];
+
+    private citiesCache: string[] = [];
+    private streetsCacheByCity = new Map<string, string[]>();
+    private buildingsCacheByKey = new Map<string, string[]>(); // key = `${city}|${street}`
+
+    addressHintSuggestions: AddressHintVm[] = [];
+    selectedHint: AddressHintVm | string | null = null;
+    private lastStreet = '';
+    private lastCity = '';
+
+    cityLoading = false;
+    streetLoading = false;
+    buildingLoading = false;
+    private suppressHintFetch = false;
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -393,14 +416,28 @@ export class SubscribersComponent implements OnInit {
         this.selectedSubscriber.smsEnabled = false;
         this.selectedSubscriber.preferredLanguage = null;
 
+        this.ensureAddressInitialized();
+
         this.submitted = false;
         this.isSubscriberDialogOpen = true;
         this.filteredSubscriptionBillingModels = [];
         this.subscriptionBillingFee = '';
+
+        this.streetSuggestions = [];
+        this.buildingSuggestions = [];
+        this.lastStreet = this.selectedSubscriber.address!.street ?? '';
+        this.lastCity = this.selectedSubscriber.address!.city ?? '';
     }
 
     editSubscriber(subscriber: Subscriber) {
-        this.selectedSubscriber = { ...subscriber, phoneNumber: stripLebanonPrefix(subscriber.phoneNumber) };
+        const clone = structuredClone(subscriber);
+        this.selectedSubscriber = {
+            ...clone,
+            phoneNumber: stripLebanonPrefix(clone.phoneNumber),
+            address: clone.address ? { ...clone.address } : null
+        };
+
+        this.ensureAddressInitialized();
 
         if (!this.selectedSubscriber.smsEnabled) {
             this.selectedSubscriber.preferredLanguage = null;
@@ -409,6 +446,8 @@ export class SubscribersComponent implements OnInit {
         this.isSubscriberDialogOpen = true;
         this.filterSubscriptionBillingModels(this.selectedSubscriber.generatorId);
         this.subscriptionBillingFee = this.getSubscriptionBillingFee(this.selectedSubscriber.subscriptionBillingModelId);
+        this.lastStreet = this.selectedSubscriber.address!.street ?? '';
+        this.lastCity = this.selectedSubscriber.address!.city ?? '';
     }
 
     hideDialog() {
@@ -474,7 +513,24 @@ export class SubscribersComponent implements OnInit {
 
         this.generatorOwnerService
             .upsertSubscriber({
-                ...this.selectedSubscriber
+                id: this.selectedSubscriber.id,
+                generatorId: this.selectedSubscriber.generatorId,
+                phoneNumber: this.selectedSubscriber.phoneNumber,
+                firstName: this.selectedSubscriber.firstName,
+                lastName: this.selectedSubscriber.lastName,
+                addressCountry: this.selectedSubscriber.address!.country,
+                addressCity: this.selectedSubscriber.address!.city,
+                addressStreet: this.selectedSubscriber.address!.street,
+                addressBuilding: this.selectedSubscriber.address!.building,
+                addressFloor: this.selectedSubscriber.address?.floor,
+                previousKva: this.selectedSubscriber.previousKva,
+                currentKva: this.selectedSubscriber.currentKva,
+                electricMeterNumber: this.selectedSubscriber.electricMeterNumber,
+                subscriptionBillingModelId: this.selectedSubscriber.subscriptionBillingModelId,
+                overrideAmount: this.selectedSubscriber.overrideAmount,
+                statusCode: this.selectedSubscriber.statusCode,
+                smsEnabled: this.selectedSubscriber.smsEnabled,
+                preferredLanguage: this.selectedSubscriber.preferredLanguage
             })
             .subscribe({
                 next: (response: UpsertSubscriberResponse) => {
@@ -492,6 +548,8 @@ export class SubscribersComponent implements OnInit {
                         this.notificationService.success('Successful', 'Subscriber Created');
                     }
 
+                    this.refreshAddressCaches();
+
                     this.subscribers = [...this.subscribers];
                     this.isSubscriberDialogOpen = false;
                     this.selectedSubscriber = new Subscriber();
@@ -505,13 +563,16 @@ export class SubscribersComponent implements OnInit {
     }
 
     isSubscriberValid() {
+        const a = this.selectedSubscriber.address;
+        const addressOk = !!a && !!a.city?.trim() && !!a.street?.trim() && !!a.building?.trim();
+
         return (
             this.selectedSubscriber.phoneNumber.length > 0 &&
             this.selectedSubscriber.generatorId > 0 &&
             this.selectedSubscriber.subscriptionBillingModelId > 0 &&
             this.selectedSubscriber.firstName.length > 0 &&
             this.selectedSubscriber.lastName.length > 0 &&
-            this.selectedSubscriber.address.length > 0 &&
+            addressOk &&
             this.selectedSubscriber.electricMeterNumber.length > 0 &&
             this.selectedSubscriber.statusCode.length > 0 &&
             (!this.selectedSubscriber.smsEnabled || !!this.selectedSubscriber.preferredLanguage) &&
@@ -717,5 +778,243 @@ export class SubscribersComponent implements OnInit {
         };
     }
 
+    // Subscriber Address Helpers
+    private ensureAddressInitialized(): void {
+        if (!this.selectedSubscriber.address) {
+            this.selectedSubscriber.address = {
+                id: 0, // or -1; backend decides create/link
+                country: this.COUNTRY,
+                city: '',
+                street: '',
+                building: '',
+                floor: ''
+            };
+        } else {
+            // enforce Lebanon
+            this.selectedSubscriber.address.country = this.COUNTRY;
+        }
+    }
+
+    private filterValues(values: string[], query: string): string[] {
+        const q = (query || '').trim().toLowerCase();
+        if (!q) return values.slice(0, 50); // limit for UI
+        return values.filter((v) => v.toLowerCase().includes(q)).slice(0, 50);
+    }
+
+    // AutoComplete handlers
+    onCityComplete(event: any) {
+        const q = (event.query || '').trim();
+
+        // If cached, filter immediately
+        if (this.citiesCache.length) {
+            this.citySuggestions = this.filterValues(this.citiesCache, q);
+            return;
+        }
+
+        // Not cached yet -> show loading (and avoid "No results found")
+        this.cityLoading = true;
+        this.citySuggestions = [];
+
+        this.generatorOwnerService
+            .getCities({ country: this.COUNTRY })
+            .pipe(finalize(() => (this.cityLoading = false)))
+            .subscribe({
+                next: (res) => {
+                    this.citiesCache = res.values ?? [];
+                    this.citySuggestions = this.filterValues(this.citiesCache, q);
+                },
+                error: () => {
+                    this.citiesCache = [];
+                    this.citySuggestions = [];
+                }
+            });
+    }
+
+    onStreetComplete(event: any) {
+        const q = (event.query || '').trim();
+        const city = (this.selectedSubscriber.address?.city || '').trim();
+        if (!city) {
+            this.streetSuggestions = [];
+            return;
+        }
+
+        const cached = this.streetsCacheByCity.get(city);
+        if (cached?.length) {
+            this.streetSuggestions = this.filterValues(cached, q);
+            return;
+        }
+
+        this.streetLoading = true;
+        this.streetSuggestions = [];
+
+        this.generatorOwnerService
+            .getStreets({ country: this.COUNTRY, city })
+            .pipe(finalize(() => (this.streetLoading = false)))
+            .subscribe({
+                next: (res) => {
+                    const values = res.values ?? [];
+                    this.streetsCacheByCity.set(city, values);
+                    this.streetSuggestions = this.filterValues(values, q);
+                },
+                error: () => {
+                    this.streetsCacheByCity.set(city, []);
+                    this.streetSuggestions = [];
+                }
+            });
+    }
+
+    onBuildingComplete(event: any) {
+        const q = (event.query || '').trim();
+        const city = (this.selectedSubscriber.address?.city || '').trim();
+        const street = (this.selectedSubscriber.address?.street || '').trim();
+        if (!city || !street) {
+            this.buildingSuggestions = [];
+            return;
+        }
+
+        const key = `${city}|${street}`;
+        const cached = this.buildingsCacheByKey.get(key);
+        if (cached?.length) {
+            this.buildingSuggestions = this.filterValues(cached, q);
+            return;
+        }
+
+        this.buildingLoading = true;
+        this.buildingSuggestions = [];
+
+        this.generatorOwnerService
+            .getBuildings({ country: this.COUNTRY, city, street })
+            .pipe(finalize(() => (this.buildingLoading = false)))
+            .subscribe({
+                next: (res) => {
+                    const values = res.values ?? [];
+                    this.buildingsCacheByKey.set(key, values);
+                    this.buildingSuggestions = this.filterValues(values, q);
+                },
+                error: () => {
+                    this.buildingsCacheByKey.set(key, []);
+                    this.buildingSuggestions = [];
+                }
+            });
+    }
+
+    // Cascading resets
+    private norm(s: string) {
+        return (s || '').trim();
+    }
+
+    onAddressHintComplete(event: any) {
+        if (this.suppressHintFetch) return;
+
+        const q = (event.query || '').trim();
+        if (!q) {
+            // user cleared input -> don't fetch "all hints" here
+            this.addressHintSuggestions = [];
+            return;
+        }
+
+        this.loadAddressHints(q);
+    }
+
+    applyHint(h: SubscriberAddress, ac: AutoComplete) {
+        this.suppressHintFetch = true;
+
+        this.selectedSubscriber.address = { ...h, country: this.COUNTRY };
+
+        this.lastCity = (this.selectedSubscriber.address.city || '').trim();
+        this.lastStreet = (this.selectedSubscriber.address.street || '').trim();
+
+        // Clear suggestions + close panel
+        this.addressHintSuggestions = [];
+        ac.hide();
+
+        // Clear input only on select
+        this.selectedHint = '';
+
+        // allow future fetches (next tick)
+        setTimeout(() => (this.suppressHintFetch = false), 0);
+    }
+
+    onStreetPicked() {
+        const current = this.norm(this.selectedSubscriber.address!.street);
+        const prev = this.norm(this.lastStreet);
+
+        if (current === prev) return; // ✅ don't clear if same street
+
+        this.selectedSubscriber.address!.building = '';
+        this.buildingSuggestions = [];
+        this.lastStreet = current;
+    }
+
+    onStreetBlur() {
+        const a = this.selectedSubscriber.address!;
+        const current = (a.street || '').trim();
+        const prev = (this.lastStreet || '').trim();
+
+        if (current !== prev) {
+            a.building = '';
+            this.buildingSuggestions = [];
+            this.lastStreet = current;
+        }
+    }
+
+    onCityPicked() {
+        const current = this.norm(this.selectedSubscriber.address!.city);
+        const prev = this.norm(this.lastCity);
+
+        if (current === prev) return; // ✅ don't clear if same city
+
+        this.clearAfterCityChange();
+        this.lastCity = current;
+    }
+
+    onCityBlur() {
+        const current = (this.selectedSubscriber.address!.city || '').trim();
+        const prev = (this.lastCity || '').trim();
+
+        if (current !== prev) {
+            this.clearAfterCityChange();
+            this.lastCity = current;
+        }
+    }
+
+    private clearAfterCityChange() {
+        const a = this.selectedSubscriber.address!;
+        a.street = '';
+        a.building = '';
+        this.streetSuggestions = [];
+        this.buildingSuggestions = [];
+    }
+
+    private loadAddressHints(query: string) {
+        this.generatorOwnerService.getAddressHints({ query: query || undefined }).subscribe({
+            next: (res) => {
+                this.addressHintSuggestions = (res.hints ?? []).map((h) => ({
+                    ...h,
+                    label: formatSubscriberAddress(h)
+                }));
+            },
+            error: () => (this.addressHintSuggestions = [])
+        });
+    }
+
+    onHintFocus(ac: AutoComplete) {
+        const q = (ac?.inputEL?.nativeElement?.value ?? '').trim();
+        this.loadAddressHints(q); // if q === '' -> loads all hints (your desired behavior)
+        ac.show();
+    }
+
+    private refreshAddressCaches() {
+        this.citiesCache = [];
+        this.streetsCacheByCity.clear();
+        this.buildingsCacheByKey.clear();
+
+        // also clear current suggestion lists
+        this.citySuggestions = [];
+        this.streetSuggestions = [];
+        this.buildingSuggestions = [];
+    }
+
     protected readonly BillingModel = BillingModel;
+    protected readonly formatSubscriberAddress = formatSubscriberAddress;
 }

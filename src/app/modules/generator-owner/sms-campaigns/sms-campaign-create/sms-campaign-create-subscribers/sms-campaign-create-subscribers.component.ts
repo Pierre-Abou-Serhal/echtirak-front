@@ -25,6 +25,7 @@ import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { LbPhonePipe } from '@/core/pipes/pipes';
+import { formatSubscriberAddress } from '@/core/utils/utils';
 
 @Component({
     selector: 'app-sms-campaign-create-subscribers-component',
@@ -467,4 +468,6 @@ export class SmsCampaignCreateSubscribersComponent implements OnInit {
         // Only keep selections that exist in the currently loaded array (current pages loaded in memory)
         this.selectedSubscribers = this.subscribers.filter((s) => this.selectedSubscriberIds.has(s.id));
     }
+
+    protected readonly formatSubscriberAddress = formatSubscriberAddress;
 }

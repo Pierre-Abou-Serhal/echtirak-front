@@ -28,7 +28,12 @@ import {
     GetKVAReadingsQueryParams,
     GetSubscribersQrCodeZipRequest,
     GetGoSmsTemplatesQueryParams,
-    GetBillsForSmsQueryParams
+    GetBillsForSmsQueryParams,
+    GetAddressHintsQueryParams,
+    GetCitiesQueryParams,
+    GetStreetsQueryParams,
+    GetBuildingsQueryParams,
+    BulkUpdateAddressesRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -63,7 +68,12 @@ import {
     GetAnnouncementsResponse,
     GetAnnouncementsUnreadCountResponse,
     GetKVAReadingsResponse,
-    GetBillsForSmsResponse
+    GetBillsForSmsResponse,
+    GetAddressHintsResponse,
+    GetCountriesResponse,
+    GetCitiesResponse,
+    GetStreetsResponse,
+    GetBuildingsResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -258,5 +268,45 @@ export class GeneratorOwnerService {
         return this.apiService.get<GetBillsForSmsResponse>(`/GeneratorOwner/BillsForSms`, {
             params: params
         });
+    }
+
+    public getAddressHints(queryParams: GetAddressHintsQueryParams): Observable<GetAddressHintsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetAddressHintsResponse>(`/GeneratorOwner/AddressHints`, {
+            params: params
+        });
+    }
+
+    public getCountries(): Observable<GetCountriesResponse> {
+        return this.apiService.get<GetCountriesResponse>(`/GeneratorOwner/Addresses/Countries`);
+    }
+
+    public getCities(queryParams: GetCitiesQueryParams): Observable<GetCitiesResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetCitiesResponse>(`/GeneratorOwner/Addresses/Cities`, {
+            params: params
+        });
+    }
+
+    public getStreets(queryParams: GetStreetsQueryParams): Observable<GetStreetsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetStreetsResponse>(`/GeneratorOwner/Addresses/Streets`, {
+            params: params
+        });
+    }
+
+    public getBuildings(queryParams: GetBuildingsQueryParams): Observable<GetBuildingsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetBuildingsResponse>(`/GeneratorOwner/Addresses/Buildings`, {
+            params: params
+        });
+    }
+
+    public bulkUpdateAddresses(request: BulkUpdateAddressesRequest): Observable<void> {
+        return this.apiService.put<void>('/GeneratorOwner/Addresses/BulkUpdate', request);
     }
 }

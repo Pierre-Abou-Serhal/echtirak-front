@@ -42,10 +42,54 @@
                     <input pInputText id="billStatus" class="w-full" [ngModel]="editableBill.statusCode" disabled />
                 </div>
 
+                <!-- Bill Reference (disabled) -->
+                <div>
+                    <label for="billReference" class="block text-sm font-semibold mb-2">Bill Reference</label>
+                    <p-inputnumber
+                        inputId="billReference"
+                        [ngModel]="editableBill.billReference"
+                        [useGrouping]="false"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="0"
+                        class="w-full"
+                        [disabled]="true"
+                    ></p-inputnumber>
+                </div>
+
                 <!-- Currency (disabled) -->
                 <div>
                     <label for="billCurrency" class="block text-sm font-semibold mb-2">Currency</label>
                     <input pInputText id="billCurrency" class="w-full" [ngModel]="editableBill.currencyCode" disabled />
+                </div>
+
+                <!-- Exchange Rate (disabled) -->
+                <div>
+                    <label for="billExchangeRate" class="block text-sm font-semibold mb-2">Exchange Rate</label>
+                    <p-inputnumber
+                        inputId="billExchangeRate"
+                        [ngModel]="editableBill.exchangeRate"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="6"
+                        class="w-full"
+                        [disabled]="true"
+                        [min]="0"
+                    ></p-inputnumber>
+                </div>
+
+                <!-- Amount LBP (disabled) -->
+                <div>
+                    <label for="billAmountLBP" class="block text-sm font-semibold mb-2">Amount (LBP)</label>
+                    <p-inputnumber
+                        inputId="billAmountLBP"
+                        [ngModel]="editableBill.amountLBP"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                        [disabled]="true"
+                        [min]="0"
+                    ></p-inputnumber>
                 </div>
 
                 <!-- Previous KWH (disabled) -->

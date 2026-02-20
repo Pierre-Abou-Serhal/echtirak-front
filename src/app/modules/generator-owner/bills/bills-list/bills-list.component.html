@@ -409,6 +409,50 @@
                                 <div class="detail-value">{{ bill.subscriptionFeeFixed == null ? '—' : (bill.subscriptionFeeFixed | number:'1.0-4') }}</div>
                             </div>
 
+                            <!-- Bill Reference -->
+                            @if (bill.billReference != null) {
+                                <div class="detail-card detail-card--third">
+                                    <div class="detail-head">
+                                        <i class="pi pi-hashtag"></i>
+                                        <span class="detail-label">Bill Reference</span>
+                                    </div>
+                                    <div class="detail-value">{{ bill.billReference }}</div>
+                                </div>
+                            }
+
+                            <!-- Exchange Rate -->
+                            @if (bill.exchangeRate != null) {
+                                <div class="detail-card detail-card--third">
+                                    <div class="detail-head">
+                                        <i class="pi pi-sync"></i>
+                                        <span class="detail-label">Exchange Rate</span>
+                                    </div>
+                                    <div class="detail-value">{{ bill.exchangeRate | number:'1.0-4' }}</div>
+                                </div>
+                            }
+
+                            <!-- Amount LBP -->
+                            @if (bill.amountLBP != null) {
+                                <div class="detail-card detail-card--third">
+                                    <div class="detail-head">
+                                        <i class="pi pi-money-bill"></i>
+                                        <span class="detail-label">Amount (LBP)</span>
+                                    </div>
+                                    <div class="detail-value">{{ bill.amountLBP | number:'1.0-4' }} LBP</div>
+                                </div>
+                            }
+
+                            <!-- Paid At -->
+                            @if (bill.paidAt) {
+                                <div class="detail-card detail-card--third">
+                                    <div class="detail-head">
+                                        <i class="pi pi-calendar-check"></i>
+                                        <span class="detail-label">Paid At</span>
+                                    </div>
+                                    <div class="detail-value">{{ bill.paidAt | date: 'yyyy-MM-dd'}}</div>
+                                </div>
+                            }
+
                         </div>
                     </div>
                 </td>

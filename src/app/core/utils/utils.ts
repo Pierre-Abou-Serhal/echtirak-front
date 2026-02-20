@@ -1,5 +1,5 @@
 import { Bill } from '@/core/models/model';
-import { BillRow } from '@/core/dtos/dto';
+import { BillRow, SubscriberAddress } from '@/core/dtos/dto';
 
 export function stripLebanonPrefix(phone: string | null | undefined): string {
     if (!phone) return '';
@@ -52,4 +52,18 @@ export function mapBillToBillRow(b: Bill): BillRow {
         ...b,
         billPeriodKey: `${b.billYear}-${b.billMonth}`
     };
+}
+
+export function formatSubscriberAddress(addr?: SubscriberAddress | null): string {
+    if (!addr) return '—';
+
+    const parts = [
+        addr.street,
+        addr.building,
+        addr.floor ? `Floor ${addr.floor}` : null,
+        addr.city,
+        addr.country
+    ].filter(Boolean);
+
+    return parts.join(', ');
 }

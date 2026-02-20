@@ -1,17 +1,31 @@
 <h1 class="text-3xl font-bold mb-4">Generators</h1>
 
 <div class="card">
-
     <div class="mb-4">
         <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
         <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
         <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
     </div>
+
     <p-table
         #dt
         [value]="generators"
         dataKey="id"
-        [globalFilterFields]="['code', 'description', 'location']"
+        [globalFilterFields]="[
+            'code',
+            'description',
+            'location',
+            'size',
+            'capacityUnit',
+            'model',
+            'manufacturer',
+            'serialNumber',
+            'voltage',
+            'phase',
+            'frequency',
+            'statusCode',
+            'statusDescription'
+        ]"
         responsiveLayout="scroll"
         [loading]="loading"
         rowHover
@@ -38,17 +52,17 @@
                     <p-inputicon>
                         <i class="pi pi-search"></i>
                     </p-inputicon>
-                    <input pInputText type="text"
-                           (input)="onGlobalFilter(dt, $event)" placeholder="Search keyword" />
+                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search keyword" />
                 </p-iconfield>
             </div>
         </ng-template>
+
         <ng-template #header>
             <tr>
                 <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
                 <th style="width: 5rem"></th>
 
-                <th pSortableColumn="code" style="min-width: 14rem">
+                <th pSortableColumn="code" style="min-width: 12rem">
                     <div class="flex justify-between items-center gap-2">
                         Code
                         <p-sortIcon field="code" />
@@ -68,8 +82,31 @@
                         <p-sortIcon field="location" />
                     </div>
                 </th>
+
+                <th pSortableColumn="model" style="min-width: 12rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Model
+                        <p-sortIcon field="model" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="manufacturer" style="min-width: 12rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Manufacturer
+                        <p-sortIcon field="manufacturer" />
+                    </div>
+                </th>
+
+                <th style="min-width: 10rem">Capacity</th>
+                <th pSortableColumn="statusDescription" style="min-width: 12rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Status
+                        <p-sortIcon field="statusDescription" />
+                    </div>
+                </th>
             </tr>
         </ng-template>
+
         <ng-template #body let-generator>
             <tr [pSelectableRow]="generator">
                 <td>
@@ -78,58 +115,298 @@
                 <td>
                     <p-button icon="pi pi-pencil" styleClass="p-button-sm" (click)="editGenerator(generator)" severity="info" rounded />
                 </td>
+                <td>{{ generator.code }}</td>
+                <td>{{ generator.description }}</td>
+                <td>{{ generator.location }}</td>
+                <td>{{ generator.model || '-' }}</td>
+                <td>{{ generator.manufacturer || '-' }}</td>
                 <td>
-                    {{ generator.code }}
+                    @if (generator.capacity != null) {
+                        {{ generator.capacity }} {{ generator.capacityUnit || '' }}
+                    } @else {
+                        -
+                    }
                 </td>
-                <td>
-                    {{ generator.description }}
-                </td>
-                <td>
-                    {{ generator.location }}
-                </td>
+                <td>{{ generator.statusDescription || generator.statusCode || '-' }}</td>
             </tr>
         </ng-template>
+
         <ng-template #emptymessage>
             <tr>
-                <td colspan="11">No generators found.</td>
+                <td colspan="20">No generators found.</td>
             </tr>
         </ng-template>
+
         <ng-template #loadingbody>
             <tr>
-                <td colspan="11">Loading generators data. Please wait.</td>
+                <td colspan="20">Loading generators data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>
 
-    <!-- Add/Edit Subscriber Dialog -->
     <p-dialog
         [(visible)]="isGeneratorDialogOpen"
-        [style]="{ width: '640px' }"
+        [style]="{ width: '900px' }"
         header="Generator Details"
         [modal]="true"
     >
         <ng-template #content>
             <form [formGroup]="generatorForm">
-                <label for="dialogCode" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Code</label>
-                <input pInputText id="dialogCode" type="text" placeholder="Code" class="w-full md:w-120 mb-4"  formControlName="code" [invalid]="isInvalid('code')" />
+                <!-- Responsive grid: 1 col on small, 2 cols on md+ -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                @if (isInvalid('code')) {
-                    <p-message severity="error" size="small" variant="simple">Code is required.</p-message>
-                }
+                    <!-- Code / Location / Status Code -->
+                    <div class="md:col-span-2">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label for="dialogCode" class="block text-sm font-semibold mb-2">
+                                    Code
+                                </label>
+                                <input
+                                    pInputText
+                                    id="dialogCode"
+                                    type="text"
+                                    class="w-full"
+                                    placeholder="Code"
+                                    formControlName="code"
+                                    [invalid]="isInvalid('code')"
+                                />
+                                @if (isInvalid('code')) {
+                                    <small class="text-red-500">Code is required.</small>
+                                }
+                            </div>
 
-                <label for="dialogDescription" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Description</label>
-                <input pInputText id="dialogDescription" type="text" placeholder="Description" class="w-full md:w-120 mb-4"  formControlName="description" [invalid]="isInvalid('description')" />
+                            <div>
+                                <label for="dialogLocation" class="block text-sm font-semibold mb-2">
+                                    Location
+                                </label>
+                                <input
+                                    pInputText
+                                    id="dialogLocation"
+                                    type="text"
+                                    class="w-full"
+                                    placeholder="Location"
+                                    formControlName="location"
+                                    [invalid]="isInvalid('location')"
+                                />
+                                @if (isInvalid('location')) {
+                                    <small class="text-red-500">Location is required.</small>
+                                }
+                            </div>
 
-                @if (isInvalid('description')) {
-                    <p-message severity="error" size="small" variant="simple">Description is required.</p-message>
-                }
+                            <div>
+                                <label for="dialogStatusCode" class="block text-sm font-semibold mb-2">
+                                    Status Code
+                                </label>
 
-                <label for="dialogLocation" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Location</label>
-                <input pInputText id="dialogLocation" type="text" placeholder="Location" class="w-full md:w-120 mb-4"  formControlName="location" [invalid]="isInvalid('location')" />
+                                <p-select
+                                    class="w-full"
+                                    [options]="generatorStatusCodes"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    formControlName="statusCode"
+                                    [loading]="isGeneratorStatusCodesLoading"
+                                    [invalid]="isInvalid('statusCode')"
+                                    placeholder="Status Code"
+                                />
+                                @if (isInvalid('statusCode')) {
+                                    <small class="text-red-500">Status code is required.</small>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Description: full width -->
+                    <div class="md:col-span-2">
+                        <label for="dialogDescription" class="block text-sm font-semibold mb-2">
+                            Description
+                        </label>
+                        <textarea
+                            pInputText
+                            id="dialogDescription"
+                            type="text"
+                            class="w-full"
+                            placeholder="Description"
+                            formControlName="description"
+                            [invalid]="isInvalid('description')">
 
-                @if (isInvalid('location')) {
-                    <p-message severity="error" size="small" variant="simple">Location is required.</p-message>
-                }
+                        </textarea>
+                        @if (isInvalid('description')) {
+                            <small class="text-red-500">Description is required.</small>
+                        }
+                    </div>
+
+                    <!-- Technical Specs Group -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold mb-2">Technical Specifications</label>
+
+                        <div class="border border-surface-200 rounded-xl p-4">
+                            <!-- Row 1 -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label for="dialogSize" class="block text-xs text-color-secondary mb-1">
+                                        Size
+                                    </label>
+                                    <input
+                                        pInputText
+                                        id="dialogSize"
+                                        type="text"
+                                        class="w-full"
+                                        placeholder="Size"
+                                        formControlName="size"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label for="dialogModel" class="block text-xs text-color-secondary mb-1">
+                                        Model
+                                    </label>
+                                    <input
+                                        pInputText
+                                        id="dialogModel"
+                                        type="text"
+                                        class="w-full"
+                                        placeholder="Model"
+                                        formControlName="model"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Row 2 -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                                <div>
+                                    <label for="dialogManufacturer" class="block text-xs text-color-secondary mb-1">
+                                        Manufacturer
+                                    </label>
+                                    <input
+                                        pInputText
+                                        id="dialogManufacturer"
+                                        type="text"
+                                        class="w-full"
+                                        placeholder="Manufacturer"
+                                        formControlName="manufacturer"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label for="dialogSerialNumber" class="block text-xs text-color-secondary mb-1">
+                                        Serial Number
+                                    </label>
+                                    <input
+                                        pInputText
+                                        id="dialogSerialNumber"
+                                        type="text"
+                                        class="w-full"
+                                        placeholder="Serial Number"
+                                        formControlName="serialNumber"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                                <div>
+                                    <label for="dialogCapacity" class="block text-xs text-color-secondary mb-1">
+                                        Capacity
+                                    </label>
+                                    <input
+                                        pInputText
+                                        id="dialogCapacity"
+                                        class="w-full"
+                                        placeholder="Capacity"
+                                        formControlName="capacity"
+                                        [invalid]="isInvalid('capacity')"
+                                    />
+                                    @if (isInvalid('capacity')) {
+                                        <small class="text-red-500">Capacity must be 0 or more.</small>
+                                    }
+                                </div>
+
+                                <div>
+                                    <label for="dialogCapacityUnit" class="block text-xs text-color-secondary mb-1">
+                                        Capacity Unit
+                                    </label>
+                                    <input
+                                        pInputText
+                                        id="dialogCapacityUnit"
+                                        type="text"
+                                        class="w-full"
+                                        placeholder="Capacity Unit"
+                                        formControlName="capacityUnit"
+                                        [invalid]="isInvalid('capacityUnit')"
+                                    />
+                                    @if (isInvalid('capacityUnit')) {
+                                        <small class="text-red-500">
+                                            Capacity Unit is required when Capacity is provided.
+                                        </small>
+                                    }
+                                </div>
+
+                                <div>
+                                    <label for="dialogAmperage" class="block text-xs text-color-secondary mb-1">
+                                        Amperage
+                                    </label>
+                                    <p-inputNumber
+                                        inputId="dialogAmperage"
+                                        class="w-full"
+                                        placeholder="Amperage"
+                                        formControlName="amperage"
+                                        [invalid]="isInvalid('amperage')"
+                                        [min]="0"
+                                    ></p-inputNumber>
+                                    @if (isInvalid('amperage')) {
+                                        <small class="text-red-500">Amperage must be 0 or more.</small>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Row 4 -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                                <div>
+                                    <label for="dialogVoltage" class="block text-xs text-color-secondary mb-1">
+                                        Voltage
+                                    </label>
+                                    <input
+                                        pInputText
+                                        id="dialogVoltage"
+                                        type="text"
+                                        class="w-full"
+                                        placeholder="Voltage"
+                                        formControlName="voltage"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label for="dialogPhase" class="block text-xs text-color-secondary mb-1">
+                                        Phase
+                                    </label>
+                                    <input
+                                        pInputText
+                                        id="dialogPhase"
+                                        type="text"
+                                        class="w-full"
+                                        placeholder="Phase"
+                                        formControlName="phase"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label for="dialogFrequency" class="block text-xs text-color-secondary mb-1">
+                                        Frequency
+                                    </label>
+                                    <input
+                                        pInputText
+                                        id="dialogFrequency"
+                                        type="text"
+                                        class="w-full"
+                                        placeholder="Frequency"
+                                        formControlName="frequency"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </form>
         </ng-template>
 

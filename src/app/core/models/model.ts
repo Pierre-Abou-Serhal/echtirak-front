@@ -1,4 +1,5 @@
 import { UserRole } from '@/core/enums/enum';
+import { SubscriberAddress } from '@/core/dtos/dto';
 
 export interface User {
     id: number;
@@ -13,7 +14,7 @@ export class Subscriber {
     phoneNumber: string = '';
     firstName: string = '';
     lastName: string = '';
-    address: string = '';
+    address?: SubscriberAddress | null = null;
     previousKva: number = 0;
     currentKva: number = 0;
     electricMeterNumber: string = '';
@@ -30,13 +31,28 @@ export class Subscriber {
     modifiedByUsername: string = '';
     smsEnabled: boolean = false;
     preferredLanguage?: string | null;
+    publicViewUrl?: string;
+    subscriberBillCode?: string;
 }
 
+// TODO: `capacityUnit` is mandatory if `capacity` is provided
 export interface Generator {
-    id: number,
-    code: string,
-    description: string,
-    location: string
+    id: number;
+    code: string;
+    description: string;
+    location: string;
+    size?: string;
+    capacity?: number;
+    capacityUnit?: string;
+    model?: string;
+    manufacturer?: string;
+    serialNumber?: string;
+    voltage?: string;
+    phase?: string;
+    frequency?: string;
+    amperage?: number;
+    statusCode?: string;
+    statusDescription?: string;
 }
 
 export interface GeneratorOwnerProfile {
@@ -90,6 +106,7 @@ export interface Lookup {
 
 export interface Bill {
     id: number;
+    billReference?: number;
     kvaReadingId?: number;
     subscriberId: number;
     subscriberFirstName: string;
@@ -101,6 +118,8 @@ export interface Bill {
     billMonth: string;
     dueDate: string;
     amount: number;
+    amountLBP?: number;
+    exchangeRate?: number;
     currencyCode: string;
     statusCode: string;
     statusDescription: string;
@@ -119,6 +138,7 @@ export interface Bill {
     duplicateMessage: string;
     hasRecentPayment: boolean;
     billingModel: string;
+    paidAt?: string;
 }
 
 
@@ -165,6 +185,7 @@ export interface CurrencyRate {
     toCurrencyCode: string;
     date: string;
     rate: number;
+    isActive: boolean;
 }
 
 export interface WalletBalance {

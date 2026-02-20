@@ -192,7 +192,7 @@
                                     <span class="detail-label">Address</span>
                                 </div>
                                 <div class="detail-value detail-value--multiline">
-                                    {{ subscriber.address || '—' }}
+                                    {{ formatSubscriberAddress(subscriber.address) }}
                                 </div>
                             </div>
 
@@ -391,17 +391,130 @@
 
                 <!-- Address: full width -->
                 <div class="md:col-span-2">
-                    <label for="dialogAddress" class="block text-sm font-semibold mb-2">
-                        Address
-                    </label>
-                    <textarea
-                        pTextarea id="dialogAddress"
-                        [(ngModel)]="selectedSubscriber.address"
-                        required
-                        class="w-full"
-                    ></textarea>
-                    @if (submitted && !selectedSubscriber.address) {
-                        <small class="text-red-500">Address is required.</small>
+                    <label class="block text-sm font-semibold mb-2">Address</label>
+
+                    <!-- Group wrapper -->
+                    <div class="border border-surface-200 rounded-xl p-4">
+
+                        <!-- Quick pick existing address -->
+                        <p-autoComplete
+                            #hintAc
+                            [(ngModel)]="selectedHint"
+                            [suggestions]="addressHintSuggestions"
+                            (completeMethod)="onAddressHintComplete($event)"
+                            (onSelect)="applyHint($event.value, hintAc)"
+                            (onFocus)="onHintFocus(hintAc)"
+                            field="label"
+                            [forceSelection]="false"
+                            placeholder="Search existing addresses..."
+                            class="w-full mb-4"
+                            inputStyleClass="w-full"
+                        />
+
+                        <!-- City -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs text-color-secondary mb-1">City</label>
+                                <p-autoComplete
+                                    [(ngModel)]="selectedSubscriber.address!.city"
+                                    [suggestions]="citySuggestions"
+                                    (completeMethod)="onCityComplete($event)"
+                                    (onSelect)="onCityPicked()"
+                                    (onBlur)="onCityBlur()"
+                                    [forceSelection]="false"
+                                    [dropdown]="true"
+                                    placeholder="Type city"
+                                    class="w-full"
+                                >
+                                    <ng-template #empty>
+                                        <div class="p-2 flex items-center gap-2 text-color-secondary">
+                                            @if (cityLoading) {
+                                                <i class="pi pi-spin pi-spinner"></i>
+                                                <span>Loading...</span>
+                                            } @else {
+                                                <span>No results found</span>
+                                            }
+                                        </div>
+                                    </ng-template>
+                                </p-autoComplete>
+                            </div>
+
+                            <!-- Street -->
+                            <div>
+                                <label class="block text-xs text-color-secondary mb-1">Street</label>
+                                <p-autoComplete
+                                    [(ngModel)]="selectedSubscriber.address!.street"
+                                    [suggestions]="streetSuggestions"
+                                    (completeMethod)="onStreetComplete($event)"
+                                    (onSelect)="onStreetPicked()"
+                                    (onBlur)="onStreetBlur()"
+                                    [forceSelection]="false"
+                                    [dropdown]="true"
+                                    placeholder="Type street"
+                                    class="w-full"
+                                >
+                                    <ng-template #empty>
+                                        <div class="p-2 flex items-center gap-2 text-color-secondary">
+                                            @if (streetLoading) {
+                                                <i class="pi pi-spin pi-spinner"></i>
+                                                <span>Loading...</span>
+                                            } @else {
+                                                <span>No results found</span>
+                                            }
+                                        </div>
+                                    </ng-template>
+                                </p-autoComplete>
+                            </div>
+
+                            <!-- Building -->
+                            <div>
+                                <label class="block text-xs text-color-secondary mb-1">Building</label>
+                                <p-autoComplete
+                                    [(ngModel)]="selectedSubscriber.address!.building"
+                                    [suggestions]="buildingSuggestions"
+                                    (completeMethod)="onBuildingComplete($event)"
+                                    (onBlur)="selectedSubscriber.address!.building = (selectedSubscriber.address!.building || '').trim()"
+                                    [forceSelection]="false"
+                                    [dropdown]="true"
+                                    placeholder="Type building"
+                                    class="w-full"
+                                >
+                                    <ng-template #empty>
+                                        <div class="p-2 flex items-center gap-2 text-color-secondary">
+                                            @if (buildingLoading) {
+                                                <i class="pi pi-spin pi-spinner"></i>
+                                                <span>Loading...</span>
+                                            } @else {
+                                                <span>No results found</span>
+                                            }
+                                        </div>
+                                    </ng-template>
+                                </p-autoComplete>
+                            </div>
+                        </div>
+
+                        <!-- Floor + Country -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                            <div>
+                                <label class="block text-xs text-color-secondary mb-1">Floor (optional)</label>
+                                <input
+                                    pInputText
+                                    [(ngModel)]="selectedSubscriber.address!.floor"
+                                    placeholder="e.g. 3"
+                                    class="w-full"
+                                />
+                            </div>
+
+                            <div>
+                                <label class="block text-xs text-color-secondary mb-1">Country</label>
+                                <input pInputText [value]="'Lebanon'" disabled class="w-full" />
+                            </div>
+                        </div>
+
+                    </div>
+
+                    @if (submitted && (!selectedSubscriber.address?.city || !selectedSubscriber.address?.street || !selectedSubscriber.address?.building)) {
+                        <small class="text-red-500">City, Street, and Building are required.</small>
                     }
                 </div>
 

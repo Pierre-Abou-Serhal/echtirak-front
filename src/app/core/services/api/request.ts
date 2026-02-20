@@ -1,5 +1,5 @@
 // Auth Requests
-import { Bill, BillCollectorProfile, CurrencyRate, Generator, GeneratorOwnerProfile, Subscriber, SubscriptionBillingModel } from '@/core/models/model';
+import { Bill, BillCollectorProfile, CurrencyRate, Generator, GeneratorOwnerProfile, SubscriptionBillingModel } from '@/core/models/model';
 
 export interface SignInRequest {
     username: string;
@@ -28,7 +28,27 @@ export interface GetSubscribersQueryParams {
     keyword?: string;
     smsEnabled?: boolean;
 }
-export interface UpsertSubscriberRequest extends Subscriber {}
+
+export interface UpsertSubscriberRequest {
+    id: number;
+    generatorId: number;
+    phoneNumber: string;
+    firstName: string;
+    lastName: string;
+    addressCountry: string;
+    addressCity: string;
+    addressStreet: string;
+    addressBuilding: string;
+    addressFloor?: string;
+    previousKva: number;
+    currentKva: number;
+    electricMeterNumber: string;
+    subscriptionBillingModelId: number;
+    overrideAmount?: number;
+    statusCode: string;
+    smsEnabled: boolean;
+    preferredLanguage?: string | null;
+}
 
 export interface UpsertGeneratorRequest extends Generator {}
 
@@ -335,4 +355,29 @@ export interface GetGoSmsTemplatesQueryParams {
 
 export interface GetBillsForSmsQueryParams {
     role: string;
+}
+
+export interface GetAddressHintsQueryParams {
+    query?: string;
+}
+
+export interface GetCitiesQueryParams {
+    country: string;
+}
+
+export interface GetStreetsQueryParams {
+    country: string;
+    city: string;
+}
+
+export interface GetBuildingsQueryParams {
+    country: string;
+    city: string;
+    street: string;
+}
+
+export interface BulkUpdateAddressesRequest {
+    fieldName: string;
+    oldValue: string;
+    newValue: string;
 }

@@ -181,7 +181,7 @@ export class GeneratorOwnersComponent implements OnInit {
     getGoSeverity(statusCode: String) {
         switch (statusCode) {
             case GeneratorOwnerStatus.DEACTIVATED:
-                return 'error';
+                return 'danger';
 
             case GeneratorOwnerStatus.SUSPENDED:
                 return 'warn';

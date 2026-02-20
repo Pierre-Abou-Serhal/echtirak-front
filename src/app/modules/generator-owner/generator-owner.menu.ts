@@ -6,6 +6,7 @@ export const GENERATOR_OWNER_MENU: MenuItem[] = [
         items: [
             { label: 'Dashboard', icon: 'pi pi-chart-bar', routerLink: ['/app/generator-owner/dashboard'], badge: undefined },
             { label: 'Subscribers', icon: 'pi pi-users', routerLink: ['/app/generator-owner/subscribers'], badge: undefined },
+            { label: 'Subscriber Addresses', icon: 'pi pi-address-book', routerLink: ['/app/generator-owner/subscriber-addresses'], badge: undefined },
             { label: 'Generators', icon: 'pi pi-bolt', routerLink: ['/app/generator-owner/generators'], badge: undefined },
             { label: 'Bill Collectors', icon: 'pi pi-user-edit', routerLink: ['/app/generator-owner/bill-collectors'], badge: undefined },
             { label: 'KWH Readings', icon: 'pi pi-book', routerLink: ['/app/generator-owner/kva-reading-history'], badge: undefined },

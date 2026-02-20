@@ -22,6 +22,9 @@ import {
 import {
     SmsCampaignCreateComponent
 } from '@/modules/generator-owner/sms-campaigns/sms-campaign-create/sms-campaign-create.component';
+import {
+    SubscriberAddressesComponent
+} from '@/modules/generator-owner/subscriber-addresses/subscriber-addresses.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -36,6 +39,7 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             { path: 'sms-campaigns/:id', component: SmsCampaignDetailsComponent },
             { path: 'sms-campaigns-create', component: SmsCampaignCreateComponent },
             { path: 'subscribers', component: SubscribersComponent },
+            { path: 'subscriber-addresses', component: SubscriberAddressesComponent },
             { path: 'generators', component: GeneratorsComponent },
             { path: 'profile', component: ProfileComponent },
             { path: 'bill-collectors', component: BillCollectorComponent },

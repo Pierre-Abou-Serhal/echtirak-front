@@ -1,7 +1,88 @@
 <h1 class="text-3xl font-bold mb-4">Currency Rates</h1>
+
 <div class="card">
+
+    <!-- ACTIVE CURRENCY RATE SECTION -->
+    <div class="mb-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-xl font-semibold m-0">Current Active Currency Rate</h2>
+
+            <div class="flex gap-2">
+                <p-button
+                    label="New"
+                    icon="pi pi-plus"
+                    severity="info"
+                    (click)="openNew()"
+                ></p-button>
+            </div>
+        </div>
+
+        <div class="border border-surface-200 rounded-xl p-4">
+            @if (isActiveCurrencyRateLoading) {
+                <div class="text-color-secondary">Loading active currency rate...</div>
+            } @else if (!activeCurrencyRate) {
+                <div class="text-color-secondary">No active currency rate found.</div>
+            } @else {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- From Currency -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">From Currency</label>
+                        <p-select
+                            [options]="currencies"
+                            optionLabel="label"
+                            optionValue="value"
+                            [ngModel]="activeCurrencyRate.fromCurrencyCode"
+                            [ngModelOptions]="{ standalone: true }"
+                            [disabled]="true"
+                            class="w-full"
+                        ></p-select>
+                    </div>
+
+                    <!-- To Currency -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">To Currency</label>
+                        <p-select
+                            [options]="currencies"
+                            optionLabel="label"
+                            optionValue="value"
+                            [ngModel]="activeCurrencyRate.toCurrencyCode"
+                            [ngModelOptions]="{ standalone: true }"
+                            [disabled]="true"
+                            class="w-full"
+                        ></p-select>
+                    </div>
+
+                    <!-- Date -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Date</label>
+                        <input
+                            pInputText
+                            [value]="activeCurrencyRate.date | date:'yyyy-MM-dd' "
+                            disabled
+                            class="w-full"
+                        />
+                    </div>
+
+                    <!-- Rate -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Rate</label>
+                        <input
+                            pInputText
+                            [value]="(activeCurrencyRate.rate | number:'1.0-4') ?? ''"
+                            disabled
+                            class="w-full"
+                        />
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
     <!-- FILTERS BAR -->
     <div class="mb-4">
+        <h2 class="text-xl font-semibold mt-3">History</h2>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
             <!-- From Currency -->
@@ -9,19 +90,17 @@
                 <label class="block text-sm font-semibold mb-2" for="filterFromCurrencyCode">
                     From Currency
                 </label>
-                <p-iconfield iconPosition="left" class="w-full">
-                    <p-select
-                        inputId="filterFromCurrencyCode"
-                        class="w-full"
-                        [options]="currencies"
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="From Currency"
-                        [showClear]="true"
-                        [(ngModel)]="filters.fromCurrencyCode"
-                        [loading]="isCurrenciesLoading"
-                    ></p-select>
-                </p-iconfield>
+                <p-select
+                    inputId="filterFromCurrencyCode"
+                    class="w-full"
+                    [options]="currencies"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="From Currency"
+                    [showClear]="true"
+                    [(ngModel)]="filters.fromCurrencyCode"
+                    [loading]="isCurrenciesLoading"
+                ></p-select>
             </div>
 
             <!-- To Currency -->
@@ -29,19 +108,17 @@
                 <label class="block text-sm font-semibold mb-2" for="filterToCurrencyCode">
                     To Currency
                 </label>
-                <p-iconfield iconPosition="left" class="w-full">
-                    <p-select
-                        inputId="filterToCurrencyCode"
-                        class="w-full"
-                        [options]="currencies"
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="To Currency"
-                        [showClear]="true"
-                        [(ngModel)]="filters.toCurrencyCode"
-                        [loading]="isCurrenciesLoading"
-                    ></p-select>
-                </p-iconfield>
+                <p-select
+                    inputId="filterToCurrencyCode"
+                    class="w-full"
+                    [options]="currencies"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="To Currency"
+                    [showClear]="true"
+                    [(ngModel)]="filters.toCurrencyCode"
+                    [loading]="isCurrenciesLoading"
+                ></p-select>
             </div>
 
             <!-- From Date -->
@@ -77,7 +154,7 @@
             </div>
 
             <!-- Actions -->
-            <div class="flex items-end gap-2">
+            <div class="lg:col-span-4 flex items-end justify-end gap-2">
                 <p-button
                     label="Apply"
                     icon="pi pi-filter"
@@ -93,15 +170,17 @@
                     (click)="resetFilters()"
                 ></p-button>
             </div>
-
         </div>
     </div>
 
+    <!-- Table pager shortcuts -->
     <div class="mb-4">
         <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
         <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
         <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
     </div>
+
+    <!-- TABLE: Inactive currency rates only -->
     <p-table
         [value]="currencyRates"
         dataKey="id"
@@ -121,133 +200,163 @@
     >
         <ng-template #caption>
             <div class="text-end pb-4">
-                <p-button icon="pi pi-plus" class="me-2" label="New" severity="info" (click)="openNew()" />
                 <p-button icon="pi pi-external-link" label="Export" (click)="exportToCsv()" />
             </div>
-
         </ng-template>
-        <ng-template pTemplate="header">
+
+        <ng-template #header>
             <tr>
                 <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
-                <th style="width: 5rem"></th>
 
-                <th pSortableColumn="date" style="min-width: 14rem">
+                <th pSortableColumn="date" style="min-width: 10rem">
                     <div class="flex justify-between items-center gap-2">
                         Date
                         <p-sortIcon field="date" />
                     </div>
                 </th>
 
-                <th pSortableColumn="from" style="min-width: 14rem">
+                <th pSortableColumn="fromCurrencyCode" style="min-width: 10rem">
                     <div class="flex justify-between items-center gap-2">
                         From
-                        <p-sortIcon field="from" />
+                        <p-sortIcon field="fromCurrencyCode" />
                     </div>
                 </th>
 
-                <th pSortableColumn="to" style="min-width: 14rem">
+                <th pSortableColumn="toCurrencyCode" style="min-width: 10rem">
                     <div class="flex justify-between items-center gap-2">
                         To
-                        <p-sortIcon field="to" />
+                        <p-sortIcon field="toCurrencyCode" />
                     </div>
                 </th>
 
-                <th pSortableColumn="rate" style="min-width: 14rem">
+                <th pSortableColumn="rate" style="min-width: 10rem">
                     <div class="flex justify-between items-center gap-2">
                         Rate
                         <p-sortIcon field="rate" />
                     </div>
                 </th>
-
             </tr>
         </ng-template>
 
-        <ng-template pTemplate="body" let-rate>
+        <ng-template #body let-rate>
             <tr [pSelectableRow]="rate">
                 <td>
                     <p-tableCheckbox [value]="rate" />
                 </td>
-                <td>
-                    <p-button icon="pi pi-pencil" styleClass="p-button-sm me-2" (click)="editCurrencyRate(rate)" severity="info" rounded/>
-                </td>
+
                 <td>{{ rate.date | date:'yyyy-MM-dd' }}</td>
                 <td>{{ rate.fromCurrencyCode }}</td>
                 <td>{{ rate.toCurrencyCode }}</td>
                 <td>{{ rate.rate | number:'1.0-4' }}</td>
-
             </tr>
         </ng-template>
+
         <ng-template #emptymessage>
             <tr>
-                <td colspan="6">No currency rates found.</td>
+                <td colspan="5">No inactive currency rates found.</td>
             </tr>
         </ng-template>
+
         <ng-template #loadingbody>
             <tr>
-                <td colspan="6">Loading currency rates data. Please wait.</td>
+                <td colspan="5">Loading currency rates data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>
 
-    <!-- Add/Edit Currency Rate Dialog -->
+    <!-- Add/Edit Active Currency Rate Dialog -->
     <p-dialog
         [(visible)]="isCurrencyRateDialogOpen"
+        [style]="{ width: '640px' }"
         header="Currency Rate Details"
         [modal]="true"
     >
         <ng-template #content>
             <form [formGroup]="currencyRateForm">
-                <label for="dialogFromCurrencyCode" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">From Currency</label>
-                <p-select id="dialogFromCurrencyCode" [options]="currencies" formControlName="fromCurrencyCode" optionLabel="label" class="w-full md:w-120 mb-4"
-                          optionValue="value" placeholder="From Currency" [overlayOptions]="getOverlayOptions()" [invalid]="isInvalid('fromCurrencyCode')"></p-select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                @if (isInvalid('fromCurrencyCode')) {
-                    <p-message severity="error" size="small" variant="simple">From Currency is required.</p-message>
-                }
+                    <!-- From Currency -->
+                    <div>
+                        <label for="dialogFromCurrencyCode" class="block text-sm font-semibold mb-2">
+                            From Currency
+                        </label>
+                        <p-select
+                            inputId="dialogFromCurrencyCode"
+                            [options]="currencies"
+                            optionLabel="label"
+                            optionValue="value"
+                            formControlName="fromCurrencyCode"
+                            class="w-full"
+                            placeholder="From Currency"
+                            [disabled]="true"
+                        ></p-select>
+                    </div>
 
-                <label for="dialogToCurrencyCode" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">To Currency</label>
-                <p-select id="dialogToCurrencyCode" [options]="currencies" formControlName="toCurrencyCode" optionLabel="label" class="w-full md:w-120 mb-4"
-                          optionValue="value" placeholder="From Currency" [overlayOptions]="getOverlayOptions()" [invalid]="isInvalid('toCurrencyCode')"></p-select>
+                    <!-- To Currency -->
+                    <div>
+                        <label for="dialogToCurrencyCode" class="block text-sm font-semibold mb-2">
+                            To Currency
+                        </label>
+                        <p-select
+                            inputId="dialogToCurrencyCode"
+                            [options]="currencies"
+                            optionLabel="label"
+                            optionValue="value"
+                            formControlName="toCurrencyCode"
+                            class="w-full"
+                            placeholder="To Currency"
+                            [disabled]="true"
+                        ></p-select>
+                    </div>
 
-                @if (isInvalid('toCurrencyCode')) {
-                    <p-message severity="error" size="small" variant="simple">To Currency is required.</p-message>
-                }
+                    <!-- Date -->
+                    <div>
+                        <label for="dialogDate" class="block text-sm font-semibold mb-2">Date</label>
+                        <p-datepicker
+                            inputId="dialogDate"
+                            formControlName="date"
+                            [showIcon]="true"
+                            [iconDisplay]="'input'"
+                            dateFormat="yy-mm-dd"
+                            appendTo="body"
+                            class="w-full"
+                            [invalid]="isInvalid('date')"
+                        ></p-datepicker>
 
-                <label for="dialogDate" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Date</label>
+                        @if (isInvalid('date')) {
+                            <small class="text-red-500">Date is required.</small>
+                        }
+                    </div>
 
-                <p-datepicker
-                    inputId="dialogDate"
-                    formControlName="date"
-                    [showIcon]="true"
-                    [iconDisplay]="'input'"
-                    dateFormat="yy-mm-dd"
-                    appendTo="body"
-                    class="w-full md:w-120 mb-4"
-                    placeholder="Date"
-                    [invalid]="isInvalid('date')"
-                ></p-datepicker>
+                    <!-- Rate -->
+                    <div>
+                        <label for="dialogRate" class="block text-sm font-semibold mb-2">Rate</label>
+                        <p-inputnumber
+                            inputId="dialogRate"
+                            formControlName="rate"
+                            mode="decimal"
+                            [minFractionDigits]="0"
+                            [maxFractionDigits]="4"
+                            class="w-full"
+                            placeholder="Rate"
+                            [invalid]="isInvalid('rate')"
+                            [min]="0"
+                        ></p-inputnumber>
 
-                @if (isInvalid('date')) {
-                    <p-message severity="error" size="small" variant="simple">Date is required.</p-message>
-                }
+                        @if (isInvalid('rate')) {
+                            <small class="text-red-500">Rate is required and must be greater than 0.</small>
+                        }
+                    </div>
 
-                <label for="dialogRate" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Rate</label>
-                <p-inputnumber
-                    inputId="dialogRate"
-                    formControlName="rate"
-                    mode="decimal"
-                    [minFractionDigits]="0"
-                    [maxFractionDigits]="4"
-                    class="w-full md:w-120 mb-4"
-                    placeholder="Rate"
-                    [invalid]="isInvalid('rate')"
-                    [min]="0"
-                ></p-inputnumber>
+                    <!-- Helper text -->
+                    <div class="md:col-span-2">
+                        <div class="border border-surface-200 rounded-xl p-3 text-sm text-color-secondary">
+                            Saving this rate will make it the current active rate for this currency pair.
+                            The previous active rate will move to the history table.
+                        </div>
+                    </div>
 
-                @if (isInvalid('rate')) {
-                    <p-message severity="error" size="small" variant="simple">Rate is required.</p-message>
-                }
-
+                </div>
             </form>
         </ng-template>
 

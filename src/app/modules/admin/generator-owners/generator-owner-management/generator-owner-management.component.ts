@@ -410,15 +410,15 @@ export class GeneratorOwnerManagementComponent implements OnInit {
             smsDisplayName: raw.smsDisplayName?.trim() || null,
             gracePeriodDays: raw.gracePeriodDays ?? null,
 
-            currencyRates: raw.currencyRates.length
-                ? raw.currencyRates.map((cr) => ({
-                      id: cr.id,
-                      fromCurrencyCode: cr.fromCurrencyCode,
-                      toCurrencyCode: cr.toCurrencyCode,
-                      date: cr.date ? formatDate(cr.date, 'yyyy-MM-dd', this.locale) : formatDate(new Date(), 'yyyy-MM-dd', this.locale),
-                      rate: cr.rate ?? 0
-                  }))
-                : null,
+            // currencyRates: raw.currencyRates.length
+            //     ? raw.currencyRates.map((cr) => ({
+            //           id: cr.id,
+            //           fromCurrencyCode: cr.fromCurrencyCode,
+            //           toCurrencyCode: cr.toCurrencyCode,
+            //           date: cr.date ? formatDate(cr.date, 'yyyy-MM-dd', this.locale) : formatDate(new Date(), 'yyyy-MM-dd', this.locale),
+            //           rate: cr.rate ?? 0
+            //       }))
+            //     : null,
 
             fixedPlatformFeeMonthly: raw.fixedPlatformFeeMonthly ?? null,
             pricePerSubscriberMonthly: raw.pricePerSubscriberMonthly ?? 0,

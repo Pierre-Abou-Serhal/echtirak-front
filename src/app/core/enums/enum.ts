@@ -56,7 +56,8 @@ export enum LookupDomain {
     USER_ROLE = 'USER_ROLE',
     WALLET_TRANSACTION_TYPE = 'WALLET_TRANSACTION_TYPE',
     KVA_READING_STATUS = 'KVA_READING_STATUS',
-    SMS_TEMPLATE_ROLE = 'SMS_TEMPLATE_ROLE'
+    SMS_TEMPLATE_ROLE = 'SMS_TEMPLATE_ROLE',
+    GENERATOR_STATUS = 'GENERATOR_STATUS'
 }
 
 export enum AnnouncementFilterType {
@@ -106,4 +107,11 @@ export enum SmsTemplateRole {
     BILL_ISSUANCE = 'BILL_ISSUANCE',
     OVERDUE_BILL = 'OVERDUE_BILL',
     SUBSCRIBER = 'SUBSCRIBER'
+}
+
+export enum AddressFields {
+    COUNTRY = 'Country',
+    CITY = 'City',
+    STREET = 'Street',
+    BUILDING = 'Building'
 }

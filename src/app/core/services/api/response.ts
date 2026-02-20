@@ -21,6 +21,7 @@ import {
     AdminAnnouncement
 } from '@/core/models/model';
 import {
+    SubscriberAddress,
     AdminDashboard,
     DashboardBills,
     DashboardConsumption,
@@ -405,4 +406,24 @@ export interface GetGoStatusResponse {
 
 export interface GetBillsForSmsResponse {
     bills: Bill[];
+}
+
+export interface GetAddressHintsResponse {
+    hints: SubscriberAddress[];
+}
+
+export interface GetCountriesResponse {
+    values: string[];
+}
+
+export interface GetCitiesResponse {
+    values: string[];
+}
+
+export interface GetStreetsResponse {
+    values: string[];
+}
+
+export interface GetBuildingsResponse {
+    values: string[];
 }

@@ -1,0 +1,256 @@
+<div class="mb-4">
+    <h1 class="text-3xl font-bold">Subscriber Addresses</h1>
+</div>
+
+<!-- Bulk Update Panel -->
+<div class="card mb-4">
+
+    <!-- Row 1: Field to update -->
+    <div class="mb-4">
+        <label class="block text-sm font-semibold mb-2">Field to update</label>
+        <p-selectbutton
+            [options]="fieldOptions"
+            [(ngModel)]="bulk.fieldName"
+            optionLabel="label"
+            optionValue="value"
+            (onChange)="onFieldChange()"
+            class="w-full"
+            [multiple]="false"
+            [allowEmpty]="false"
+        ></p-selectbutton>
+    </div>
+
+    <!-- Row 2: 5-column grid (collapses left when some fields hidden) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+
+        @if (bulk.fieldName === 'Street' || bulk.fieldName === 'Building') {
+            <!-- Context City -->
+            <div>
+                <label class="block text-sm font-semibold mb-2">City (context)</label>
+                <p-autoComplete
+                    [(ngModel)]="bulk.city"
+                    [suggestions]="contextCitySuggestions"
+                    (completeMethod)="onContextCityComplete($event)"
+                    (onSelect)="onContextCityPicked()"
+                    [forceSelection]="true"
+                    placeholder="Select city"
+                    class="w-full"
+                    inputStyleClass="w-full"
+                >
+                    <ng-template #empty>
+                        <div class="p-2 text-color-secondary flex items-center gap-2">
+                            @if (contextCityLoading) {
+                                <i class="pi pi-spin pi-spinner"></i><span>Loading...</span>
+                            } @else {
+                                <span>No results</span>
+                            }
+                        </div>
+                    </ng-template>
+                </p-autoComplete>
+            </div>
+        }
+
+        @if (bulk.fieldName === 'Building') {
+            <!-- Context Street -->
+            <div>
+                <label class="block text-sm font-semibold mb-2">Street (context)</label>
+                <p-autoComplete
+                    [(ngModel)]="bulk.street"
+                    [suggestions]="contextStreetSuggestions"
+                    (completeMethod)="onContextStreetComplete($event)"
+                    (onSelect)="onContextStreetPicked()"
+                    [forceSelection]="true"
+                    placeholder="Select street"
+                    class="w-full"
+                    inputStyleClass="w-full"
+                >
+                    <ng-template #empty>
+                        <div class="p-2 text-color-secondary flex items-center gap-2">
+                            @if (contextStreetLoading) {
+                                <i class="pi pi-spin pi-spinner"></i><span>Loading...</span>
+                            } @else {
+                                <span>No results</span>
+                            }
+                        </div>
+                    </ng-template>
+                </p-autoComplete>
+            </div>
+        }
+
+        <!-- Old value -->
+        <div>
+            <label class="block text-sm font-semibold mb-2">Old value</label>
+            <p-autoComplete
+                [(ngModel)]="bulk.oldValue"
+                [suggestions]="oldValueSuggestions"
+                (completeMethod)="onOldValueComplete($event)"
+                [forceSelection]="true"
+                placeholder="Pick existing value"
+                class="w-full"
+                inputStyleClass="w-full"
+            >
+                <ng-template #empty>
+                    <div class="p-2 text-color-secondary flex items-center gap-2">
+                        @if (oldValueLoading) {
+                            <i class="pi pi-spin pi-spinner"></i><span>Loading...</span>
+                        } @else {
+                            <span>No results</span>
+                        }
+                    </div>
+                </ng-template>
+            </p-autoComplete>
+        </div>
+
+        <!-- New value -->
+        <div>
+            <label class="block text-sm font-semibold mb-2">New value</label>
+            <input
+                pInputText
+                [(ngModel)]="bulk.newValue"
+                class="w-full"
+                placeholder="Type new value"
+            />
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-2 justify-start">
+            <p-button
+                label="Reset"
+                icon="pi pi-refresh"
+                severity="danger"
+                outlined
+                (click)="resetBulk()"
+            ></p-button>
+
+            <p-button
+                label="Update"
+                icon="pi pi-check"
+                (click)="submitBulkUpdate()"
+                [disabled]="!bulkIsValid()"
+                [loading]="submitting"
+            ></p-button>
+        </div>
+    </div>
+
+    <div class="mt-3 text-sm text-color-secondary">
+        <i class="pi pi-info-circle mr-2"></i>
+        Tip: click a row in the table to auto-fill context + old value.
+    </div>
+
+</div>
+
+
+<!-- Addresses Table -->
+<div class="card">
+    <p-table
+        #dt
+        [value]="addresses"
+        dataKey="id"
+        [globalFilterFields]="['label','city','street','building','floor']"
+        responsiveLayout="scroll"
+        [loading]="loadingAddresses"
+        rowHover
+        showGridlines
+        paginator
+        stripedRows
+        [first]="first"
+        [rows]="rows"
+        [totalRecords]="totalRecords"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        selectionMode="single"
+        [(selection)]="selectedRow"
+        (onPage)="pageChange($event)"
+        (onRowSelect)="onRowSelect($event)"
+    >
+        <ng-template #caption>
+            <div class="flex justify-between items-center flex-column sm:flex-row gap-3 pb-4">
+                <div class="flex items-center gap-2">
+                    <p-button
+                        icon="pi pi-refresh"
+                        label="Reload"
+                        severity="info"
+                        (click)="loadAllHints()"
+                        [loading]="loadingAddresses"
+                    />
+
+                    <button
+                        pButton
+                        label="Clear"
+                        class="p-button-outlined"
+                        icon="pi pi-filter-slash"
+                        (click)="clear(dt, searchInput)"
+                    ></button>
+                </div>
+
+                <p-iconfield iconPosition="left" class="ml-auto w-full sm:w-80">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input
+                        #searchInput
+                        pInputText
+                        type="text"
+                        (input)="onGlobalFilter(dt, $event)"
+                        placeholder="Search keyword"
+                        class="w-full"
+                    />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template #header>
+            <tr>
+                <th pSortableColumn="city" style="min-width: 12rem">
+                    <div class="flex justify-between items-center gap-2">
+                        City
+                        <p-sortIcon field="city" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="street" style="min-width: 14rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Street
+                        <p-sortIcon field="street" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="building" style="min-width: 14rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Building
+                        <p-sortIcon field="building" />
+                    </div>
+                </th>
+
+                <th pSortableColumn="label" style="min-width: 22rem">
+                    <div class="flex justify-between items-center gap-2">
+                        Full Address
+                        <p-sortIcon field="label" />
+                    </div>
+                </th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-address>
+            <tr
+                [pSelectableRow]="address"
+                [pRowToggler]="address"
+                class="cursor-pointer" (click)="pickAddress(address)">
+
+                <td>{{ address.city }}</td>
+                <td>{{ address.street }}</td>
+                <td>{{ address.building }}</td>
+                <td>{{ address.label }}</td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr><td colspan="7">No addresses found.</td></tr>
+        </ng-template>
+
+        <ng-template #loadingbody>
+            <tr><td colspan="7">Loading addresses data. Please wait.</td></tr>
+        </ng-template>
+    </p-table>
+</div>

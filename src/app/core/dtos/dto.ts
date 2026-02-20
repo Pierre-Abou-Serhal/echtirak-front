@@ -421,3 +421,12 @@ export interface SmsCampaignSearchFilter {
 }
 
 export type BillRow = Bill & { billPeriodKey?: string };
+
+export interface SubscriberAddress {
+    id: number;
+    country: string;
+    city: string;
+    street: string;
+    building: string;
+    floor?: string;
+}
