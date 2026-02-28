@@ -100,7 +100,9 @@ export enum BillOverdueSmsStatus {
 export enum BillAction {
     EDIT = 'EDIT',
     PAY = 'PAY',
-    CANCEL = 'CANCEL'
+    CANCEL = 'CANCEL',
+    GET_BILL_REPORT = 'GET_BILL_REPORT',
+    GET_RECEIPT_REPORT = 'GET_RECEIPT_REPORT',
 }
 
 export enum SmsTemplateRole {
@@ -114,4 +116,10 @@ export enum AddressFields {
     CITY = 'City',
     STREET = 'Street',
     BUILDING = 'Building'
+}
+
+export enum SubscriberAction {
+    EDIT = 'EDIT',
+    PRINT_QR_CODE = 'PRINT_QR_CODE',
+    VIEW_PENDING_BILLS = 'VIEW_PENDING_BILLS'
 }

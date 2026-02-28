@@ -5,14 +5,14 @@ import { IconField } from 'primeng/iconfield';
 import { FormsModule } from '@angular/forms';
 import { Button, ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Forecast, Generator, Lookup, Subscriber, SubscriptionBillingModel } from '@/core/models/model';
+import { ExtraFee, Forecast, Generator, Lookup, Subscriber, SubscriptionBillingModel } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import * as Papa from 'papaparse';
-import { GetGeneratorsResponse, GetLookupResponse, GetSubscribersResponse, GetSubscriptionBillingModelResponse, UpsertSubscriberResponse, WalletForecastResponse } from '@/core/services/api/response';
+import { GetExtraFeesResponse, GetGeneratorsResponse, GetLookupResponse, GetSubscribersResponse, GetSubscriptionBillingModelResponse, UpsertSubscriberResponse, WalletForecastResponse } from '@/core/services/api/response';
 import { Tag } from 'primeng/tag';
-import { BillingModel, LookupDomain, SubscriberStatus } from '@/core/enums/enum';
+import { BillingModel, LookupDomain, SubscriberAction, SubscriberStatus } from '@/core/enums/enum';
 import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
 import { NotificationService } from '@/core/services/notification.service';
@@ -31,9 +31,13 @@ import { LbPhonePipe } from '@/core/pipes/pipes';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { Listbox } from 'primeng/listbox';
 import { Card } from 'primeng/card';
-import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
+import { MenuItem, OverlayListenerOptions, OverlayOptions } from 'primeng/api';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { AutoComplete } from 'primeng/autocomplete';
+import { MultiSelect } from 'primeng/multiselect';
+import { Tooltip } from 'primeng/tooltip';
+import { ContextMenu } from 'primeng/contextmenu';
+import { Router } from '@angular/router';
 
 type AddressHintVm = SubscriberAddress & { label: string };
 
@@ -63,7 +67,10 @@ type AddressHintVm = SubscriberAddress & { label: string };
         Listbox,
         Card,
         ToggleSwitch,
-        AutoComplete
+        AutoComplete,
+        MultiSelect,
+        Tooltip,
+        ContextMenu
     ],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
@@ -74,6 +81,7 @@ export class SubscribersComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly notificationService = inject(NotificationService);
     private readonly walletService = inject(WalletService);
+    private readonly router = inject(Router);
 
     subscribers: Subscriber[] = [];
     selectedSubscribers: Subscriber[] = [];
@@ -161,6 +169,13 @@ export class SubscribersComponent implements OnInit {
     buildingLoading = false;
     private suppressHintFetch = false;
 
+    items: MenuItem[] | undefined;
+    private actionLoading: Record<string, boolean> = {};
+
+    // Extra Fees
+    extraFeesOptions: SelectOptionNumValue[] = [];
+    selectedExtraFeeIds: number[] = [];
+
     ngOnInit(): void {
         // Fetch generators drop down items
         this.generatorOwnerService.getGenerators().subscribe({
@@ -228,6 +243,19 @@ export class SubscribersComponent implements OnInit {
                     this.hasMoreFromServer = false;
                 }
             });
+
+        this.generatorOwnerService.getExtraFees().subscribe({
+            next: (response: GetExtraFeesResponse) => {
+                this.extraFeesOptions = response.extraFees.map((extraFee: ExtraFee) => ({
+                    value: extraFee.id!,
+                    label: extraFee.name!
+                }));
+            },
+            error: (err) => {
+                console.log(err);
+                this.subscriptionBillingModels = [];
+            }
+        });
 
         // Initial load (empty search)
         this.search$.next('');
@@ -427,6 +455,8 @@ export class SubscribersComponent implements OnInit {
         this.buildingSuggestions = [];
         this.lastStreet = this.selectedSubscriber.address!.street ?? '';
         this.lastCity = this.selectedSubscriber.address!.city ?? '';
+
+        this.selectedExtraFeeIds = [];
     }
 
     editSubscriber(subscriber: Subscriber) {
@@ -436,6 +466,8 @@ export class SubscribersComponent implements OnInit {
             phoneNumber: stripLebanonPrefix(clone.phoneNumber),
             address: clone.address ? { ...clone.address } : null
         };
+
+        this.selectedExtraFeeIds = (subscriber.extraFees ?? []).map((x) => x.extraFeeId!);
 
         this.ensureAddressInitialized();
 
@@ -530,7 +562,8 @@ export class SubscribersComponent implements OnInit {
                 overrideAmount: this.selectedSubscriber.overrideAmount,
                 statusCode: this.selectedSubscriber.statusCode,
                 smsEnabled: this.selectedSubscriber.smsEnabled,
-                preferredLanguage: this.selectedSubscriber.preferredLanguage
+                preferredLanguage: this.selectedSubscriber.preferredLanguage,
+                extraFeeIds: this.selectedExtraFeeIds?.length ? this.selectedExtraFeeIds : undefined
             })
             .subscribe({
                 next: (response: UpsertSubscriberResponse) => {
@@ -549,6 +582,8 @@ export class SubscribersComponent implements OnInit {
                     }
 
                     this.refreshAddressCaches();
+
+                    this.selectedExtraFeeIds = [];
 
                     this.subscribers = [...this.subscribers];
                     this.isSubscriberDialogOpen = false;
@@ -1015,6 +1050,72 @@ export class SubscribersComponent implements OnInit {
         this.buildingSuggestions = [];
     }
 
+    openSubscriberPendingBills(subscriberCode?: string) {
+        this.router.navigate(['gbc', subscriberCode]);
+    }
+
+    // Context Menu for multi actions
+    onMenuItemClick(item: MenuItem, ev: Event) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        item.command?.({ originalEvent: ev, item });
+    }
+
+    openRowMenu(event: MouseEvent, subscriber: Subscriber, cm: ContextMenu) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.selectedSubscriber = new Subscriber();
+        this.items = this.buildMenuItems(subscriber);
+        cm.show(event);
+    }
+
+    private buildMenuItems(subscriber: Subscriber): MenuItem[] {
+        const id = subscriber.id;
+
+        return [
+            {
+                label: 'Edit',
+                icon: 'pi pi-pencil',
+                data: { severity: 'info', loading: this.isActionLoading(id, SubscriberAction.EDIT) },
+                command: () => this.editSubscriber(subscriber)
+            },
+            {
+                label: 'Preview QR Code',
+                icon: 'pi pi-qrcode',
+                disabled: this.getSubscriptionBillingModel(subscriber.subscriptionBillingModelId) === BillingModel.FIXED,
+                data: { severity: 'secondary', loading: this.isActionLoading(id, SubscriberAction.PRINT_QR_CODE) },
+                command: () => this.previewSingleQrCode(subscriber)
+            },
+            {
+                label: 'Pending Bills',
+                icon: 'pi pi-money-bill',
+                data: { severity: 'contrast', loading: this.isActionLoading(id, SubscriberAction.VIEW_PENDING_BILLS) },
+                disabled: !subscriber.subscriberBillCode,
+                command: () => this.openSubscriberPendingBills(subscriber.subscriberBillCode)
+            }
+        ];
+    }
+
+    setActionLoading(id: number, action: SubscriberAction, value: boolean) {
+        this.actionLoading[this.key(id, action)] = value;
+
+        // refresh menu UI while it's open (new reference)
+        if (this.selectedSubscriber?.id === id) {
+            this.items = this.buildMenuItems(this.selectedSubscriber);
+        }
+    }
+
+    isActionLoading(id: number, action: SubscriberAction) {
+        return this.actionLoading[this.key(id, action)];
+    }
+
+    private key(id: number, action: SubscriberAction) {
+        return `${id}:${action}`;
+    }
+
     protected readonly BillingModel = BillingModel;
     protected readonly formatSubscriberAddress = formatSubscriberAddress;
+    protected readonly Subscriber = Subscriber;
 }

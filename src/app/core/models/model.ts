@@ -31,8 +31,10 @@ export class Subscriber {
     modifiedByUsername: string = '';
     smsEnabled: boolean = false;
     preferredLanguage?: string | null;
+    lastBilledAt?: string | null;
     publicViewUrl?: string;
     subscriberBillCode?: string;
+    extraFees?: ExtraFee[];
 }
 
 // TODO: `capacityUnit` is mandatory if `capacity` is provided
@@ -118,7 +120,7 @@ export interface Bill {
     billMonth: string;
     dueDate: string;
     amount: number;
-    amountLBP?: number;
+    amountLBP?: string;
     exchangeRate?: number;
     currencyCode: string;
     statusCode: string;
@@ -139,6 +141,7 @@ export interface Bill {
     hasRecentPayment: boolean;
     billingModel: string;
     paidAt?: string;
+    extraFees?: ExtraFee[];
 }
 
 
@@ -317,4 +320,18 @@ export interface AdminAnnouncement {
     modifiedByUsername: string;
     recipientCount: number;
     readCount: number;
+}
+
+// Used in Bills and Subscribers
+export interface ExtraFee {
+    id?: number;
+    extraFeeId?: number;
+    billId?: number;
+    subscriberId?: number;
+    name?: string;
+    extraFeeName?: string;
+    amount?: number;
+    amountLBP?: string;
+    isActive?: boolean;
+    createdAt?: string;
 }

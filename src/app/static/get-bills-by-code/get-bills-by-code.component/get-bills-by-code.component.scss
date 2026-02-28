@@ -98,7 +98,7 @@
 }
 
 .bill-amount-row .amount {
-    font-size: 1.55rem;
+    font-size: 1.45rem;
     font-weight: 800;
     color: #111827;
 }
@@ -310,4 +310,202 @@
     font-weight: 800;
     color: #0f172a;
     margin-left: 0.25rem;
+}
+
+/* =========================
+   SECONDARY AMOUNT ROW (LBP)
+========================= */
+.bill-amount-row--secondary {
+    margin-top: -0.2rem; /* pulls it closer to main amount */
+}
+
+.bill-amount-row--secondary .amount {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    opacity: 0.85;
+}
+
+.rate-hint {
+    margin-left: 0.4rem;
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* =========================
+   EXTRA FEES
+========================= */
+.extra-fees {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.extra-fees-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.extra-fees-totals {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.extra-fees-totals .total {
+    white-space: nowrap;
+}
+
+/* list container */
+.extra-fees-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* each fee row (name | USD | LBP) */
+.extra-fee-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.75rem;
+    align-items: center;
+
+    padding: 0.55rem 0.65rem;
+    border: 1px solid #eef2f7;
+    border-radius: 0.75rem;
+    background: #f8fafc;
+}
+
+/* fee name */
+.extra-fee-row .fee-name {
+    font-weight: 700;
+    color: #111827;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* amounts */
+.extra-fee-row .fee-amount,
+.extra-fee-row .fee-amount-lbp {
+    white-space: nowrap;
+    text-align: right;
+    font-weight: 700;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+}
+
+.extra-fee-row .fee-amount-lbp {
+    color: #475569;
+    font-weight: 700;
+}
+
+/* =========================
+   GRAND TOTAL (OPTIONAL)
+========================= */
+.extra-fees-grand {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: 0.7rem;
+    margin-top: 0.2rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.extra-fees-grand .label {
+    font-weight: 700;
+}
+
+.extra-fees-grand .value {
+    font-weight: 900;
+    font-size: 1.05rem;
+    color: #111827;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =========================
+   MOBILE TWEAK (if amounts feel tight)
+========================= */
+@media (max-width: 420px) {
+    .extra-fee-row {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+            "name usd"
+            "lbp lbp";
+        row-gap: 0.35rem;
+    }
+
+    .extra-fee-row .fee-name { grid-area: name; }
+    .extra-fee-row .fee-amount { grid-area: usd; }
+    .extra-fee-row .fee-amount-lbp {
+        grid-area: lbp;
+        text-align: left;
+        color: #64748b;
+        font-weight: 700;
+    }
+}
+
+
+/* =========================
+   HEADER ACTIONS (STATUS + PDF)
+========================= */
+.bill-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+/* Download button */
+.download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 999px;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.05s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.download-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.download-btn:active {
+    transform: scale(0.98);
+}
+
+.download-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Simple spinner */
+.download-spinner {
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 999px;
+    border: 2px solid #93c5fd;
+    border-top-color: transparent;
+    animation: spin 0.7s linear infinite;
+}
+
+.download-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.download-text {
+    line-height: 1;
 }

@@ -50,7 +50,7 @@ export const appRoutes: Routes = [
         ]
     },
     {
-        path: 'get-bills-by-code/:code',
+        path: 'gbc/:code',
         component: GetBillsByCodeComponent
     },
     {

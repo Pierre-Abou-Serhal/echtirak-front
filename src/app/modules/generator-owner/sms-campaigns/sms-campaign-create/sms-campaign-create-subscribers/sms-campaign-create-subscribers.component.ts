@@ -26,11 +26,12 @@ import { Tag } from 'primeng/tag';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { LbPhonePipe } from '@/core/pipes/pipes';
 import { formatSubscriberAddress } from '@/core/utils/utils';
+import { Tooltip } from 'primeng/tooltip';
 
 @Component({
     selector: 'app-sms-campaign-create-subscribers-component',
     standalone: true,
-    imports: [FormsModule, TableModule, Button, ButtonDirective, Select, Dialog, IconField, InputIcon, InputText, Tag, NgClass, DecimalPipe, LbPhonePipe],
+    imports: [FormsModule, TableModule, Button, ButtonDirective, Select, Dialog, IconField, InputIcon, InputText, Tag, NgClass, DecimalPipe, LbPhonePipe, Tooltip],
     templateUrl: './sms-campaign-create-subscribers.component.html',
     styleUrl: './sms-campaign-create-subscribers.component.scss'
 })
@@ -320,9 +321,7 @@ export class SmsCampaignCreateSubscribersComponent implements OnInit {
         this.submitted = true;
 
         const nameValid = !!this.smsCampaignCreateSubscriber.campaignName?.trim();
-        const templateValid =
-            typeof this.smsCampaignCreateSubscriber.templateId === 'number' &&
-            this.smsCampaignCreateSubscriber.templateId > 0;
+        const templateValid = typeof this.smsCampaignCreateSubscriber.templateId === 'number' && this.smsCampaignCreateSubscriber.templateId > 0;
 
         // If inputs invalid -> show inline errors only
         if (!nameValid || !templateValid) return;

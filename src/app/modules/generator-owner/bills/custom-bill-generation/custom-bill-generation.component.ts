@@ -20,10 +20,11 @@ import { LbPhonePipe } from '@/core/pipes/pipes';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { DatePicker } from 'primeng/datepicker';
 import { formatSubscriberAddress, getBillYearMonth } from '@/core/utils/utils';
+import { Tooltip } from 'primeng/tooltip';
 
 @Component({
     selector: 'app-custom-bill-generation-component',
-    imports: [Button, TableModule, ButtonDirective, IconField, InputIcon, InputText, FormsModule, Tag, Select, BillsPreviewComponent, LbPhonePipe, NgClass, DatePicker, DecimalPipe],
+    imports: [Button, TableModule, ButtonDirective, IconField, InputIcon, InputText, FormsModule, Tag, Select, BillsPreviewComponent, LbPhonePipe, NgClass, DatePicker, DecimalPipe, Tooltip],
     templateUrl: './custom-bill-generation.component.html',
     styleUrl: './custom-bill-generation.component.scss',
     standalone: true

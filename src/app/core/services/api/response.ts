@@ -18,7 +18,8 @@ import {
     KvaReading,
     Announcement,
     AdminGeneratorOwnerProfile,
-    AdminAnnouncement
+    AdminAnnouncement,
+    ExtraFee
 } from '@/core/models/model';
 import {
     SubscriberAddress,
@@ -426,4 +427,12 @@ export interface GetStreetsResponse {
 
 export interface GetBuildingsResponse {
     values: string[];
+}
+
+export interface GetExtraFeesResponse {
+    extraFees: ExtraFee[];
+}
+
+export interface UpsertExtraFeeResponse {
+    extraFee: ExtraFee;
 }

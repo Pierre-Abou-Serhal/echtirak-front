@@ -18,7 +18,7 @@ import { debounceTime, finalize, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import * as Papa from 'papaparse';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
-import { DatePipe, DecimalPipe, formatDate, NgClass } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe, formatDate, NgClass } from '@angular/common';
 import { DatePicker } from 'primeng/datepicker';
 import { Select } from 'primeng/select';
 import { BillRow, BillSearchFilter, SelectOptionNumValue, SelectOptionStrValue } from '@/core/dtos/dto';
@@ -56,7 +56,8 @@ import { mapBillToBillRow } from '@/core/utils/utils';
         InputGroupAddon,
         NgxMaskDirective,
         ContextMenuModule,
-        Tooltip
+        Tooltip,
+        CurrencyPipe
     ],
     templateUrl: './bills-list.component.html',
     styleUrl: './bills-list.component.scss',
@@ -113,6 +114,9 @@ export class BillsListComponent implements OnInit {
     selectedBill: BillRow | null = null;
 
     private actionLoading: Record<string, boolean> = {}; // key = `${billId}:${action}`
+
+    // Extra Options
+    extraFeesExpanded: Record<number, boolean> = {};
 
     ngOnInit(): void {
         // Fetch subscriber statuses drop down items
@@ -400,7 +404,7 @@ export class BillsListComponent implements OnInit {
             }
         });
 
-        this.updateBill(updatedBill, BillAction.EDIT);
+        // this.updateBill(updatedBill, BillAction.EDIT);
     }
 
     onBillEditCancel() {
@@ -457,7 +461,10 @@ export class BillsListComponent implements OnInit {
                 const updated: BillRow = { ...bill, statusCode: BillStatus.PAID };
 
                 this.updateBill(updated, BillAction.PAY).subscribe({
-                    next: () => this.notificationService.success('Successful', 'Bill paid successfully'),
+                    next: () => {
+                        this.notificationService.success('Successful', 'Bill paid successfully')
+                        this.getReceiptReport(bill);
+                    },
                     error: (err) => {
                         console.log(err);
                     }
@@ -509,7 +516,10 @@ export class BillsListComponent implements OnInit {
 
     onRowCollapse(event: any) {
         const id = event.data?.id;
-        if (id != null) delete this.expandedRows[id];
+        if (id != null) {
+            delete this.expandedRows[id];
+            delete this.extraFeesExpanded[id];
+        }
     }
 
     expandAll() {
@@ -531,6 +541,14 @@ export class BillsListComponent implements OnInit {
 
     private isPending(b: Bill | null | undefined) {
         return !!b && b.statusCode === BillStatus.PENDING;
+    }
+
+    private isPaid(b: Bill | null | undefined) {
+        return !!b && b.statusCode === BillStatus.PAID;
+    }
+
+    private isCancelled(b: Bill | null | undefined) {
+        return !!b && b.statusCode === BillStatus.CANCELLED;
     }
 
     private buildMenuItems(bill: BillRow): MenuItem[] {
@@ -557,6 +575,20 @@ export class BillsListComponent implements OnInit {
                 disabled: !this.isPending(bill) || this.isActionLoading(id, BillAction.CANCEL),
                 data: { severity: 'danger', loading: this.isActionLoading(id, BillAction.CANCEL) },
                 command: () => this.cancelBill(bill)
+            },
+            {
+                label: 'Get Bill Report',
+                icon: 'pi pi-print',
+                disabled: this.isCancelled(bill) || this.isActionLoading(id, BillAction.GET_BILL_REPORT),
+                data: { severity: 'contrast', loading: this.isActionLoading(id, BillAction.GET_BILL_REPORT) },
+                command: () => this.getBillReport(bill)
+            },
+            {
+                label: 'Get Receipt Report',
+                icon: 'pi pi-print',
+                disabled: !this.isPaid(bill) || this.isActionLoading(id, BillAction.GET_RECEIPT_REPORT),
+                data: { severity: 'contrast', loading: this.isActionLoading(id, BillAction.GET_RECEIPT_REPORT) },
+                command: () => this.getReceiptReport(bill)
             }
         ];
     }
@@ -566,7 +598,7 @@ export class BillsListComponent implements OnInit {
     }
 
     isActionLoading(id: number, action: BillAction) {
-        return !!this.actionLoading[this.key(id, action)];
+        return this.actionLoading[this.key(id, action)];
     }
 
     setActionLoading(id: number, action: BillAction, value: boolean) {
@@ -583,6 +615,76 @@ export class BillsListComponent implements OnInit {
         ev.stopPropagation();
 
         item.command?.({ originalEvent: ev, item });
+    }
+
+    // Extra Fees:
+    toggleExtraFees(billId: number) {
+        this.extraFeesExpanded[billId] = !this.extraFeesExpanded[billId];
+    }
+
+    isExtraFeesExpanded(billId: number): boolean {
+        return this.extraFeesExpanded[billId];
+    }
+
+    getExtraFeesTotalUsd(bill: BillRow): number {
+        return (bill.extraFees ?? []).reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+    }
+
+    getExtraFeesTotalLbp(bill: BillRow): number {
+        return (bill.extraFees ?? []).reduce((sum, f) => sum + (Number(f.amountLBP) || 0), 0);
+    }
+
+    // Reports
+    getBillReport(bill: BillRow) {
+        this.notificationService.success('Download Started', 'Your bill report is being downloaded.');
+
+        this.setActionLoading(bill.id, BillAction.GET_BILL_REPORT, true);
+
+        this.generatorOwnerService.getBillReport(bill.id).subscribe({
+            next: (response) => {
+                const url = URL.createObjectURL(response);
+
+                const a = document.createElement('a');
+                a.href = url;
+
+                a.download = `Bill-${bill.id}-${bill.subscriberFirstName}-${bill.subscriberLastName}.pdf`; // filename
+                a.click();
+
+                URL.revokeObjectURL(url);
+
+                this.setActionLoading(bill.id, BillAction.GET_BILL_REPORT, false);
+            },
+            error: (err) => {
+                console.error('report download failed', err);
+                this.setActionLoading(bill.id, BillAction.GET_BILL_REPORT, false);
+            }
+        });
+    }
+
+    getReceiptReport(bill: BillRow) {
+        this.notificationService.success('Download Started', 'Your receipt report is being downloaded.');
+
+        this.setActionLoading(bill.id, BillAction.GET_RECEIPT_REPORT, true);
+
+        this.generatorOwnerService.getBillReceipt(bill.id).subscribe({
+            next: (response) => {
+                const url = URL.createObjectURL(response);
+
+                const a = document.createElement('a');
+                a.href = url;
+
+                a.download = `Receipt-${bill.subscriberFirstName}-${bill.subscriberLastName}.pdf`; // filename
+                a.click();
+
+                URL.revokeObjectURL(url);
+
+                this.setActionLoading(bill.id, BillAction.GET_RECEIPT_REPORT, false);
+            },
+            error: (err) => {
+                console.error('report download failed', err);
+                this.setActionLoading(bill.id, BillAction.GET_RECEIPT_REPORT, false);
+            }
+        });
     }
 
     protected readonly BillStatus = BillStatus;

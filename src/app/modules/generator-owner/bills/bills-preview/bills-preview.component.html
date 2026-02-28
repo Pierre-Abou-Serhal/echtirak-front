@@ -182,6 +182,16 @@
                                     tooltipPosition="top"
                                 />
                             }
+
+                            @if ((bill.extraFees?.length ?? 0) > 0) {
+                                <p-tag
+                                    icon="pi pi-tags"
+                                    [value]="'' + bill.extraFees.length"
+                                    severity="info"
+                                    pTooltip="Extra fees"
+                                    tooltipPosition="top"
+                                />
+                            }
                         </div>
                         <p-button
                             icon="pi pi-pencil"
@@ -316,6 +326,73 @@
                                 </div>
                             }
 
+                            @if ((bill.extraFees?.length ?? 0) > 0) {
+                                <div
+                                    class="detail-card detail-card--wide cursor-pointer select-none"
+                                    (click)="toggleExtraFees(bill.id); $event.stopPropagation()"
+                                >
+                                    <!-- Header -->
+                                    <div class="detail-head">
+                                        <i class="pi pi-tags"></i>
+                                        <span class="detail-label">Extra Fees</span>
+
+                                        <div class="ml-auto flex items-center gap-3 text-xs text-surface-500">
+                                            <span class="whitespace-nowrap">USD: {{ getExtraFeesTotalUsd(bill) | currency:'USD':'symbol':'1.0-4' }}</span>
+                                            <span class="whitespace-nowrap">LBP: {{ getExtraFeesTotalLbp(bill) | number:'1.0-4' }} LBP</span>
+                                            <i
+                                                class="pi text-surface-500"
+                                                [ngClass]="isExtraFeesExpanded(bill.id) ? 'pi-chevron-up' : 'pi-chevron-down'"
+                                            ></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pills (one line, scroll horizontally) -->
+                                    <div class="flex flex-nowrap gap-2 overflow-x-auto py-1">
+                                        @for (f of (bill.extraFees ?? []); track $index) {
+                                            <p-tag
+                                                [value]="f.extraFeeName || '—'"
+                                                severity="info"
+                                                rounded
+                                            />
+                                        }
+                                    </div>
+
+                                    <!-- Details (expanded area) -->
+                                    @if (isExtraFeesExpanded(bill.id)) {
+                                        <div class="mt-3 border-t border-surface-200 pt-3" (click)="$event.stopPropagation()">
+                                            <p-table
+                                                [value]="bill.extraFees ?? []"
+                                                class="p-datatable-sm"
+                                                [scrollable]="true"
+                                                scrollHeight="220px"
+                                            >
+                                                <ng-template pTemplate="header">
+                                                    <tr>
+                                                        <th>Fee</th>
+                                                        <th class="text-right">USD</th>
+                                                        <th class="text-right">LBP</th>
+                                                    </tr>
+                                                </ng-template>
+
+                                                <ng-template pTemplate="body" let-f>
+                                                    <tr>
+                                                        <td class="max-w-[16rem] truncate" [pTooltip]="f.extraFeeName">
+                                                            {{ f.extraFeeName || '—' }}
+                                                        </td>
+                                                        <td class="text-right whitespace-nowrap">
+                                                            {{ (f.amount ?? 0) | currency:'USD':'symbol':'1.0-4' }}
+                                                        </td>
+                                                        <td class="text-right whitespace-nowrap">
+                                                            {{ f.amountLBP != null ? (f.amountLBP) + ' LBP' : '—' }}
+                                                        </td>
+                                                    </tr>
+                                                </ng-template>
+                                            </p-table>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
                         </div>
                     </div>
                 </td>
@@ -335,6 +412,8 @@
     [(visible)]="editVisible"
     [bill]="billToEdit"
     [isBillPeriodDisabled]="true"
+    [extraFeesEditable]="true"
+    [requireExtraFeeAmounts]="true"
     (save)="onBillEditSave($event)"
     (cancel)="onBillEditCancel()"
 />
@@ -506,6 +585,16 @@
                                         tooltipPosition="top"
                                     />
                                 }
+
+                                @if ((bill.extraFees?.length ?? 0) > 0) {
+                                    <p-tag
+                                        icon="pi pi-tags"
+                                        [value]="'' + bill.extraFees.length"
+                                        severity="info"
+                                        pTooltip="Extra fees"
+                                        tooltipPosition="top"
+                                    />
+                                }
                             </div>
 
                             <i class="pi text-500" [ngClass]="expanded ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
@@ -620,7 +709,7 @@
                                             <i class="pi pi-money-bill"></i>
                                             <span class="detail-label">Amount (LBP)</span>
                                         </div>
-                                        <div class="detail-value">{{ bill.amountLBP | number:'1.0-4' }} LBP</div>
+                                        <div class="detail-value">{{ bill.amountLBP | number:'1.0-4'}} LBP</div>
                                     </div>
                                 }
 
@@ -632,6 +721,73 @@
                                             <span class="detail-label">Paid At</span>
                                         </div>
                                         <div class="detail-value">{{ bill.paidAt | date: 'yyyy-MM-dd'}}</div>
+                                    </div>
+                                }
+
+                                @if ((bill.extraFees?.length ?? 0) > 0) {
+                                    <div
+                                        class="detail-card detail-card--wide cursor-pointer select-none"
+                                        (click)="toggleExtraFees(bill.id); $event.stopPropagation()"
+                                    >
+                                        <!-- Header -->
+                                        <div class="detail-head">
+                                            <i class="pi pi-tags"></i>
+                                            <span class="detail-label">Extra Fees</span>
+
+                                            <div class="ml-auto flex items-center gap-3 text-xs text-surface-500">
+                                                <span class="whitespace-nowrap">USD: {{ getExtraFeesTotalUsd(bill) | currency:'USD':'symbol':'1.0-4' }}</span>
+                                                <span class="whitespace-nowrap">LBP: {{ getExtraFeesTotalLbp(bill) | number:'1.0-4' }} LBP</span>
+                                                <i
+                                                    class="pi text-surface-500"
+                                                    [ngClass]="isExtraFeesExpanded(bill.id) ? 'pi-chevron-up' : 'pi-chevron-down'"
+                                                ></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Pills (one line, scroll horizontally) -->
+                                        <div class="flex flex-nowrap gap-2 overflow-x-auto py-1">
+                                            @for (f of (bill.extraFees ?? []); track $index) {
+                                                <p-tag
+                                                    [value]="f.extraFeeName || '—'"
+                                                    severity="info"
+                                                    rounded
+                                                />
+                                            }
+                                        </div>
+
+                                        <!-- Details (expanded area) -->
+                                        @if (isExtraFeesExpanded(bill.id)) {
+                                            <div class="mt-3 border-t border-surface-200 pt-3" (click)="$event.stopPropagation()">
+                                                <p-table
+                                                    [value]="bill.extraFees ?? []"
+                                                    class="p-datatable-sm"
+                                                    [scrollable]="true"
+                                                    scrollHeight="220px"
+                                                >
+                                                    <ng-template pTemplate="header">
+                                                        <tr>
+                                                            <th>Fee</th>
+                                                            <th class="text-right">USD</th>
+                                                            <th class="text-right">LBP</th>
+                                                        </tr>
+                                                    </ng-template>
+
+                                                    <ng-template pTemplate="body" let-f>
+                                                        <tr>
+                                                            <td class="max-w-[16rem] truncate" [pTooltip]="f.extraFeeName">
+                                                                {{ f.extraFeeName || '—' }}
+                                                            </td>
+                                                            <td class="text-right whitespace-nowrap">
+                                                                {{ (f.amount ?? 0) | currency:'USD':'symbol':'1.0-4' }}
+                                                            </td>
+                                                            <td class="text-right whitespace-nowrap">
+                                                                {{ f.amountLBP != null ? (f.amountLBP) + ' LBP' : '—' }}
+                                                            </td>
+                                                        </tr>
+                                                    </ng-template>
+                                                </p-table>
+                                            </div>
+                                        }
                                     </div>
                                 }
 
@@ -652,5 +808,55 @@
 
     <ng-template #footer>
         <p-button label="Close" icon="pi pi-times" text (click)="duplicatesVisible=false"></p-button>
+    </ng-template>
+</p-dialog>
+
+<!-- Accept Bills Confirmation (missing extra fee amounts) -->
+<p-dialog
+    header="Confirmation"
+    [(visible)]="displayAcceptConfirmation"
+    [style]="{ width: '420px', maxWidth: '95vw' }"
+    [modal]="true"
+    (onHide)="closeAcceptConfirmation()"
+>
+    <ng-template pTemplate="header">
+        <div class="flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle text-orange-500 text-xl"></i>
+            <span class="font-bold">Proceed with missing amounts?</span>
+        </div>
+    </ng-template>
+
+    <div class="text-color-secondary">
+        <p class="m-0">
+            {{ missingFeeBills.length }} selected bill(s) contain extra fee(s) with no amount.
+        </p>
+
+        <div class="mt-3 text-sm text-surface-500">
+            You can still proceed, but those extra fees may be saved with missing values.
+        </div>
+
+        <!-- Optional: show up to 3 examples -->
+        @if (missingFeeBills.length > 0) {
+            <div class="mt-3 text-sm">
+                <div class="font-semibold mb-1">Examples:</div>
+                <ul class="m-0 pl-5 list-disc text-surface-600">
+                    @for (b of missingFeeBills.slice(0, 3); track b.id) {
+                        <li>
+                            {{ b.subscriberFirstName }} {{ b.subscriberLastName }} - {{ b.billPeriodKey }}
+                        </li>
+                    }
+                </ul>
+                @if (missingFeeBills.length > 3) {
+                    <div class="text-xs text-surface-500 mt-1">
+                        +{{ missingFeeBills.length - 3 }} more
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <ng-template #footer>
+        <p-button label="No" icon="pi pi-times" (click)="closeAcceptConfirmation()" text severity="secondary" />
+        <p-button label="Yes" icon="pi pi-check" (click)="acceptBillsConfirmed()" severity="primary" outlined autofocus />
     </ng-template>
 </p-dialog>

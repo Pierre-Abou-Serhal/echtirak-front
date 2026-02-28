@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { WalletBalance, WarningMessage } from '@/core/models/model';
+import { ExtraFee, WalletBalance, WarningMessage } from '@/core/models/model';
 import { AuthService } from '@/core/services/auth.service';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
-import { GetAnnouncementsUnreadCountResponse, GetWalletBalancesResponse, GetWarningMessagesResponse } from '@/core/services/api/response';
+import { GetAnnouncementsUnreadCountResponse, GetExtraFeesResponse, GetWalletBalancesResponse, GetWarningMessagesResponse } from '@/core/services/api/response';
 import { UserRole } from '@/core/enums/enum';
 import { WalletService } from '@/core/services/wallet.service';
 
@@ -13,6 +13,7 @@ export class UserContextService {
     generatorOwnerWarnings$ = new BehaviorSubject<WarningMessage[]>([]);
     generatorOwnerWalletBalance$ = new BehaviorSubject<WalletBalance | null>(null);
     generatorOwnerAnnouncementUnreadCount$ = new BehaviorSubject<number | null>(null);
+    generatorOwnerExtraFees$ = new BehaviorSubject<ExtraFee[]>([]);
 
     private readonly loaders: Record<string, () => void> = {};
 
@@ -27,6 +28,7 @@ export class UserContextService {
                 this.loadWarnings();
                 this.loadWalletBalance();
                 this.loadAnnouncementsUnreadCount();
+                this.loadExtraFees();
             },
             [UserRole.BILL_COLLECTOR]: () => this.loadCollectorStats(),
             [UserRole.ADMIN]: () => this.loadAdminData()
@@ -75,6 +77,18 @@ export class UserContextService {
             error: (err) => {
                 this.generatorOwnerAnnouncementUnreadCount$.next(null);
                 console.error('Failed to load announcements unread count:', err);
+            }
+        });
+    }
+
+    public loadExtraFees() {
+        this.generatorOwnerService.getExtraFees().subscribe({
+            next: (res: GetExtraFeesResponse) => {
+                this.generatorOwnerExtraFees$.next(res.extraFees);
+            },
+            error: (err) => {
+                this.generatorOwnerExtraFees$.next([]);
+                console.error('Failed to load extra fees:', err);
             }
         });
     }

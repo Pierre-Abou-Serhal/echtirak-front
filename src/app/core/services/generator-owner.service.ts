@@ -33,7 +33,8 @@ import {
     GetCitiesQueryParams,
     GetStreetsQueryParams,
     GetBuildingsQueryParams,
-    BulkUpdateAddressesRequest
+    BulkUpdateAddressesRequest,
+    UpsertExtraFeeRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -73,7 +74,9 @@ import {
     GetCountriesResponse,
     GetCitiesResponse,
     GetStreetsResponse,
-    GetBuildingsResponse
+    GetBuildingsResponse,
+    GetExtraFeesResponse,
+    UpsertExtraFeeResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -308,5 +311,25 @@ export class GeneratorOwnerService {
 
     public bulkUpdateAddresses(request: BulkUpdateAddressesRequest): Observable<void> {
         return this.apiService.put<void>('/GeneratorOwner/Addresses/BulkUpdate', request);
+    }
+
+    public getExtraFees(): Observable<GetExtraFeesResponse> {
+        return this.apiService.get<GetExtraFeesResponse>(`/GeneratorOwner/ExtraFees`);
+    }
+
+    public upsertExtraFee(request: UpsertExtraFeeRequest): Observable<UpsertExtraFeeResponse> {
+        return this.apiService.post<UpsertExtraFeeResponse>(`/GeneratorOwner/ExtraFees`, request);
+    }
+
+    public deleteExtraFee(extraFeeId: number): Observable<void> {
+        return this.apiService.delete<void>(`/GeneratorOwner/ExtraFees/${extraFeeId}`);
+    }
+
+    public getBillReport(billId: number): Observable<Blob> {
+        return this.apiService.getBlob(`/GeneratorOwner/Bills/${billId}/Report`);
+    }
+
+    public getBillReceipt(billId: number): Observable<Blob> {
+        return this.apiService.getBlob(`/GeneratorOwner/Bills/${billId}/Receipt`);
     }
 }

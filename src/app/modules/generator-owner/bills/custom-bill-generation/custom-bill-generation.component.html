@@ -171,6 +171,16 @@
                 <td (click)="$event.stopPropagation()">
                     <div class="flex items-center gap-2">
                         <!-- purely visual cue -->
+                        @if ((subscriber.extraFees?.length ?? 0) > 0) {
+                            <p-tag
+                                icon="pi pi-tags"
+                                [value]="'' + subscriber.extraFees.length"
+                                severity="info"
+                                pTooltip="Extra fees"
+                                tooltipPosition="top"
+                            />
+                        }
+
                         <i class="pi text-500" [ngClass]="expanded ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
                     </div>
                 </td>
@@ -275,6 +285,23 @@
                                     />
                                 </div>
                             </div>
+
+                            @if (subscriber.extraFees?.length > 0) {
+                                <div class="detail-card detail-card--wide">
+                                    <div class="detail-head">
+                                        <i class="pi pi-tags"></i>
+                                        <span class="detail-label">Extra Fees</span>
+                                    </div>
+
+                                    <div class="detail-value">
+                                        <div class="flex flex-wrap gap-2">
+                                            @for (fee of subscriber.extraFees; track fee.id) {
+                                                <p-tag severity="info" [value]="fee.extraFeeName || '—'"></p-tag>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
 
                         </div>
                     </div>

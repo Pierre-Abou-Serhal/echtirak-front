@@ -1,6 +1,24 @@
 <h1 class="text-3xl font-bold mb-4">Subscribers List</h1>
 
 <div class="card">
+    <p-contextmenu #cm [model]="items">
+        <ng-template pTemplate="item" let-item>
+            <div class="w-full px-2 py-1 cursor-pointer">
+                <p-button
+                    class="w-full"
+                    styleClass="p-button-sm me-3"
+                    rounded
+                    [icon]="item.icon"
+                    [severity]="item.data?.severity"
+                    [disabled]="!!item.disabled"
+                    [loading]="!!item.data?.loading"
+                    (onClick)="onMenuItemClick(item, $event)"
+                ></p-button>
+                <span class="text-sm font-semibold">{{item.label}}</span>
+            </div>
+        </ng-template>
+    </p-contextmenu>
+
     <div class="mb-4">
         <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
         <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
@@ -143,18 +161,20 @@
                 <!-- Actions: do NOT toggle expansion -->
                 <td (click)="$event.stopPropagation()">
                     <div class="flex items-center gap-2">
-                        <p-button
-                            icon="pi pi-qrcode"
-                            styleClass="p-button-sm"
-                            severity="secondary"
-                            rounded
-                            (click)="previewSingleQrCode(subscriber)"
-                            [disabled]="this.getSubscriptionBillingModel(subscriber.subscriptionBillingModelId) === BillingModel.FIXED"
-                        />
+                        @if ((subscriber.extraFees?.length ?? 0) > 0) {
+                            <p-tag
+                                icon="pi pi-tags"
+                                [value]="'' + subscriber.extraFees.length"
+                                severity="info"
+                                pTooltip="Extra fees"
+                                tooltipPosition="top"
+                            />
+                        }
 
                         <p-button
                             icon="pi pi-pencil"
-                            styleClass="p-button-sm"
+                            styleClass="p-button-sm me-3"
+                            (onClick)="openRowMenu($event, subscriber, cm)"
                             severity="info"
                             rounded
                             (click)="editSubscriber(subscriber)"
@@ -266,6 +286,23 @@
                                     />
                                 </div>
                             </div>
+
+                            @if (subscriber.extraFees?.length > 0) {
+                                <div class="detail-card detail-card--wide">
+                                    <div class="detail-head">
+                                        <i class="pi pi-tags"></i>
+                                        <span class="detail-label">Extra Fees</span>
+                                    </div>
+
+                                    <div class="detail-value">
+                                        <div class="flex flex-wrap gap-2">
+                                            @for (fee of subscriber.extraFees; track fee.id) {
+                                                <p-tag severity="info" [value]="fee.extraFeeName || '—'"></p-tag>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
 
                         </div>
                     </div>
@@ -387,6 +424,26 @@
                         [disabled]="getSubscriptionBillingModel(selectedSubscriber.subscriptionBillingModelId) === BillingModel.METERED"
                         [min]="0"
                     ></p-inputnumber>
+                </div>
+
+                <!-- Extra Fees (optional): full width -->
+                <div class="md:col-span-2">
+                    <label for="dialogExtraFees" class="block text-sm font-semibold mb-2">
+                        Extra Fees
+                    </label>
+
+                    <p-multiSelect
+                        inputId="dialogExtraFees"
+                        [options]="extraFeesOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Select extra fees"
+                        [(ngModel)]="selectedExtraFeeIds"
+                        [filter]="true"
+                        [showClear]="true"
+                        display="chip"
+                        class="w-full"
+                    ></p-multiSelect>
                 </div>
 
                 <!-- Address: full width -->

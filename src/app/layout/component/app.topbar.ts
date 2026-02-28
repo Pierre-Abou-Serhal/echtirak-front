@@ -10,11 +10,12 @@ import { Menu } from 'primeng/menu';
 import { AuthService } from '@/core/services/auth.service';
 import { UserRole } from '@/core/enums/enum';
 import { WalletWidgetComponent } from '@/layout/generator-owner/wallet-widget/wallet-widget.component';
+import { ExtraFeesWidgetComponent } from '@/layout/generator-owner/extra-fees-widget/extra-fees-widget.component';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, StyleClassModule, Toast, Menu, NgOptimizedImage, WalletWidgetComponent],
+    imports: [RouterModule, CommonModule, StyleClassModule, Toast, Menu, NgOptimizedImage, WalletWidgetComponent, ExtraFeesWidgetComponent],
     template: ` <p-toast />
         <div class="layout-topbar">
             <div class="layout-topbar-logo-container">
@@ -49,6 +50,7 @@ import { WalletWidgetComponent } from '@/layout/generator-owner/wallet-widget/wa
                     <!-- Generator owner Global UI components -->
                     @if (authService.getRole() === UserRole.GENERATOR_OWNER) {
                         <app-wallet-widget></app-wallet-widget>
+                        <app-extra-fees-widget></app-extra-fees-widget>
                     }
                 </div>
 

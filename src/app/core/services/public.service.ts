@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
-import { GetBillsByCodeQueryParams } from '@/core/services/api/request';
+import { GetBillReportByCodeQueryParams, GetBillsByCodeQueryParams } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import { GetBillsByCodeResponse } from '@/core/services/api/response';
 
@@ -12,5 +12,13 @@ export class PublicService {
         let params = this.apiService.buildParams(queryParams);
 
         return this.apiService.get<GetBillsByCodeResponse>('/Public/GetBillsByCode', { params: params });
+    }
+
+    public getBillReportByCode(queryParams: GetBillReportByCodeQueryParams): Observable<Blob> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.getBlob(`/Public/GetBillReportByCode`, {
+            params: params
+        });
     }
 }

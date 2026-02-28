@@ -10,7 +10,7 @@ import { InputText } from 'primeng/inputtext';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { CreateSmsCampaignResponse, GetBillsForSmsResponse, GetSmsTemplatesResponse, WalletForecastResponse } from '@/core/services/api/response';
 import { Forecast, SmsTemplate } from '@/core/models/model';
-import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { Table, TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { DatePicker } from 'primeng/datepicker';
@@ -18,10 +18,11 @@ import { Dialog } from 'primeng/dialog';
 import { NotificationService } from '@/core/services/notification.service';
 import { WalletService } from '@/core/services/wallet.service';
 import { WalletForecastRequest } from '@/core/services/api/request';
+import { Tooltip } from 'primeng/tooltip';
 
 @Component({
     selector: 'app-sms-campaign-create-bills-component',
-    imports: [Button, Select, FormsModule, IconField, InputIcon, InputText, ButtonDirective, DatePipe, DecimalPipe, TableModule, Tag, NgClass, DatePicker, Dialog],
+    imports: [Button, Select, FormsModule, IconField, InputIcon, InputText, ButtonDirective, DatePipe, DecimalPipe, TableModule, Tag, NgClass, DatePicker, Dialog, CurrencyPipe, Tooltip],
     templateUrl: './sms-campaign-create-bills.component.html',
     styleUrl: './sms-campaign-create-bills.component.scss'
 })
@@ -68,6 +69,9 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
     forecastWallet: Forecast | null = null;
 
     submitted = false;
+
+    // Extra Options
+    extraFeesExpanded: Record<number, boolean> = {};
 
     constructor() {
         this.smsCampaignCreateBill = {};
@@ -209,6 +213,7 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
                 next: (response: CreateSmsCampaignResponse) => {
                     this.onCreateSmsCampaignSuccess();
                     this.isCreatingSmsCampaign = false;
+                    this.closeConfirmation();
                 },
                 error: (err) => {
                     console.log(err);
@@ -271,7 +276,10 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
 
     onRowCollapse(event: any) {
         const id = event.data?.id;
-        if (id != null) delete this.expandedRows[String(id)];
+        if (id != null) {
+            delete this.expandedRows[String(id)];
+            delete this.extraFeesExpanded[id];
+        }
     }
 
     expandAll() {
@@ -354,5 +362,22 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
     closeConfirmation() {
         this.isCreatingSmsCampaign = false;
         this.displayConfirmation = false;
+    }
+
+    // Extra Fees:
+    toggleExtraFees(billId: number) {
+        this.extraFeesExpanded[billId] = !this.extraFeesExpanded[billId];
+    }
+
+    isExtraFeesExpanded(billId: number): boolean {
+        return this.extraFeesExpanded[billId];
+    }
+
+    getExtraFeesTotalUsd(bill: BillRow): number {
+        return (bill.extraFees ?? []).reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+    }
+
+    getExtraFeesTotalLbp(bill: BillRow): number {
+        return (bill.extraFees ?? []).reduce((sum, f) => sum + (Number(f.amountLBP) || 0), 0);
     }
 }

@@ -48,6 +48,7 @@ export interface UpsertSubscriberRequest {
     statusCode: string;
     smsEnabled: boolean;
     preferredLanguage?: string | null;
+    extraFeeIds?: number[];
 }
 
 export interface UpsertGeneratorRequest extends Generator {}
@@ -109,8 +110,7 @@ export interface CreateSmsCampaignRequest {
     billIds?: number[];
 }
 
-
-export interface GetSmsCampaignsQueryParams{
+export interface GetSmsCampaignsQueryParams {
     pageNumber: number;
     pageSize: number;
     status?: string;
@@ -222,7 +222,6 @@ export interface UpsertKVAReadingRequest {
     imageFile?: File;
 }
 
-
 export interface GetDashboardQueryParams {
     period?: string;
     includeTrends?: boolean;
@@ -325,7 +324,6 @@ export interface UpsertSmsTemplateRequest {
     isActive: boolean;
 }
 
-
 export interface TopUpGoWalletRequest {
     generatorOwnerUserId: number;
     amount: number;
@@ -380,4 +378,14 @@ export interface BulkUpdateAddressesRequest {
     fieldName: string;
     oldValue: string;
     newValue: string;
+}
+
+export interface UpsertExtraFeeRequest {
+    id: number;
+    name: string;
+}
+
+export interface GetBillReportByCodeQueryParams {
+    subscriberBillCode: string;
+    billId: number;
 }

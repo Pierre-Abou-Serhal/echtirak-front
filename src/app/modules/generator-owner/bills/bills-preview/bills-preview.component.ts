@@ -4,7 +4,7 @@ import { Bill } from '@/core/models/model';
 import { FormsModule } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { Button, ButtonDirective } from 'primeng/button';
-import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { Tag } from 'primeng/tag';
 import { BillStatus } from '@/core/enums/enum';
 import { IconField } from 'primeng/iconfield';
@@ -20,7 +20,7 @@ type BillRow = Bill & { billPeriodKey: string };
 
 @Component({
     selector: 'app-bills-preview-component',
-    imports: [TableModule, FormsModule, InputText, Button, DecimalPipe, Tag, DatePipe, ButtonDirective, IconField, InputIcon, Tooltip, BillEditModalComponent, NgClass, Dialog],
+    imports: [TableModule, FormsModule, InputText, Button, DecimalPipe, Tag, DatePipe, ButtonDirective, IconField, InputIcon, Tooltip, BillEditModalComponent, NgClass, Dialog, CurrencyPipe],
     templateUrl: './bills-preview.component.html',
     styleUrl: './bills-preview.component.scss'
 })
@@ -57,6 +57,13 @@ export class BillsPreviewComponent {
     // edit modal
     editVisible = false;
     billToEdit: BillRow | null = null;
+
+    // Extra Options
+    extraFeesExpanded: Record<number, boolean> = {};
+
+    // Confirmation dialog for missing extra fee amounts
+    displayAcceptConfirmation = false;
+    missingFeeBills: BillRow[] = []; // bills that have at least 1 extra fee with missing amount
 
     // ========= INPUT =========
     @Input({ required: true })
@@ -166,7 +173,10 @@ export class BillsPreviewComponent {
 
     onRowCollapse(event: any) {
         const id = event.data?.id;
-        if (id != null) delete this.expandedRows[String(id)];
+        if (id != null) {
+            delete this.expandedRows[String(id)];
+            delete this.extraFeesExpanded[id];
+        }
     }
 
     expandAll() {
@@ -222,13 +232,29 @@ export class BillsPreviewComponent {
 
     // ========= Accept Bills =========
     acceptBills() {
-        this.isAcceptBillsLoading = true;
+        if (this.isAcceptBillsLoading) return;
 
         if (this.selectedBills.length === 0) {
-            this.isAcceptBillsLoading = false;
             this.notificationService.warn('Warning', 'Please select bills to accept');
             return;
         }
+
+        // ✅ pre-check
+        this.missingFeeBills = this.findBillsWithMissingExtraFeeAmounts(this.selectedBills);
+
+        if (this.missingFeeBills.length > 0) {
+            // show confirmation dialog
+            this.displayAcceptConfirmation = true;
+            return;
+        }
+
+        // no issues -> proceed
+        this.acceptBillsConfirmed();
+    }
+
+    acceptBillsConfirmed() {
+        this.displayAcceptConfirmation = false;
+        this.isAcceptBillsLoading = true;
 
         const billYear = this.selectedBills[0].billYear;
         const billMonth = this.selectedBills[0].billMonth;
@@ -272,6 +298,40 @@ export class BillsPreviewComponent {
 
     openDuplicatesDialog() {
         this.duplicatesVisible = true;
+    }
+
+    // Extra Fees:
+    toggleExtraFees(billId: number) {
+        this.extraFeesExpanded[billId] = !this.extraFeesExpanded[billId];
+    }
+
+    isExtraFeesExpanded(billId: number): boolean {
+        return this.extraFeesExpanded[billId];
+    }
+
+    getExtraFeesTotalUsd(bill: BillRow): number {
+        return (bill.extraFees ?? []).reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+    }
+
+    getExtraFeesTotalLbp(bill: BillRow): number {
+        return (bill.extraFees ?? []).reduce((sum, f) => sum + (Number(f.amountLBP) || 0), 0);
+    }
+
+    private hasMissingExtraFeeAmounts(bill: BillRow): boolean {
+        const fees = bill.extraFees ?? [];
+        if (fees.length === 0) return false;
+
+        return fees.some((f) => f.amount == null || f.amount == 0);
+    }
+
+    private findBillsWithMissingExtraFeeAmounts(bills: BillRow[]): BillRow[] {
+        return (bills ?? []).filter((b) => this.hasMissingExtraFeeAmounts(b));
+    }
+
+    // Accept dialog
+    closeAcceptConfirmation() {
+        this.displayAcceptConfirmation = false;
+        this.missingFeeBills = [];
     }
 
     protected readonly BillStatus = BillStatus;
