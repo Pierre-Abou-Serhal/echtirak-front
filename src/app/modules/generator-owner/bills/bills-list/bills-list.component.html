@@ -293,7 +293,15 @@
                 </td>
                 <!-- ACTIONS (edit / save / cancel) -->
                 <td (click)="$event.stopPropagation()">
-                    <div class="flex justify-center items-center">
+                    <div class="flex justify-start items-center">
+                        <p-button
+                            icon="pi pi-pencil"
+                            styleClass="p-button-sm me-3"
+                            rounded
+                            (onClick)="openRowMenu($event, bill, cm)"
+                            severity="info"
+                        ></p-button>
+
                         @if(bill.billIssuedSmsStatus === BillIssuedSmsStatus.SENT){
                             <p-tag
                                 icon="pi pi-envelope"
@@ -314,14 +322,6 @@
                                 class="me-3"
                             />
                         }
-
-                        <p-button
-                            icon="pi pi-pencil"
-                            styleClass="p-button-sm me-3"
-                            rounded
-                            (onClick)="openRowMenu($event, bill, cm)"
-                            severity="info"
-                        ></p-button>
 
                         <i class="pi text-500" [ngClass]="expanded ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
                     </div>

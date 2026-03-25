@@ -10,7 +10,7 @@ import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import * as Papa from 'papaparse';
-import { GetExtraFeesResponse, GetGeneratorsResponse, GetLookupResponse, GetSubscribersResponse, GetSubscriptionBillingModelResponse, UpsertSubscriberResponse, WalletForecastResponse } from '@/core/services/api/response';
+import { GetGeneratorsResponse, GetLookupResponse, GetSubscribersResponse, GetSubscriptionBillingModelResponse, UpsertSubscriberResponse, WalletForecastResponse } from '@/core/services/api/response';
 import { Tag } from 'primeng/tag';
 import { BillingModel, LookupDomain, SubscriberAction, SubscriberStatus } from '@/core/enums/enum';
 import { Dialog } from 'primeng/dialog';
@@ -38,6 +38,7 @@ import { MultiSelect } from 'primeng/multiselect';
 import { Tooltip } from 'primeng/tooltip';
 import { ContextMenu } from 'primeng/contextmenu';
 import { Router } from '@angular/router';
+import { UserContextService } from '@/core/services/user-context.service';
 
 type AddressHintVm = SubscriberAddress & { label: string };
 
@@ -82,6 +83,7 @@ export class SubscribersComponent implements OnInit {
     private readonly notificationService = inject(NotificationService);
     private readonly walletService = inject(WalletService);
     private readonly router = inject(Router);
+    private readonly userContext = inject(UserContextService);
 
     subscribers: Subscriber[] = [];
     selectedSubscribers: Subscriber[] = [];
@@ -244,21 +246,32 @@ export class SubscribersComponent implements OnInit {
                 }
             });
 
-        this.generatorOwnerService.getExtraFees().subscribe({
-            next: (response: GetExtraFeesResponse) => {
-                this.extraFeesOptions = response.extraFees.map((extraFee: ExtraFee) => ({
-                    value: extraFee.id!,
-                    label: extraFee.name!
-                }));
-            },
-            error: (err) => {
-                console.log(err);
-                this.subscriptionBillingModels = [];
-            }
-        });
+        // Extra fees
+        this.bindExtraFees();
 
         // Initial load (empty search)
         this.search$.next('');
+    }
+
+    private bindExtraFees(): void {
+        this.userContext.generatorOwnerExtraFees$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((fees) => {
+            this.extraFeesOptions = fees.map((extraFee: ExtraFee) => ({
+                value: extraFee.id!,
+                label: extraFee.name!
+            }));
+
+            const feeNameById = new Map(fees.filter((f) => f.id != null).map((f) => [f.id!, f.name ?? '—']));
+
+            this.subscribers = this.subscribers.map((subscriber) => ({
+                ...subscriber,
+                extraFees: (subscriber.extraFees ?? [])
+                    .filter((f) => f.extraFeeId != null && feeNameById.has(f.extraFeeId))
+                    .map((f) => ({
+                        ...f,
+                        extraFeeName: feeNameById.get(f.extraFeeId!) ?? '—'
+                    }))
+            }));
+        });
     }
 
     // =========================
@@ -563,7 +576,7 @@ export class SubscribersComponent implements OnInit {
                 statusCode: this.selectedSubscriber.statusCode,
                 smsEnabled: this.selectedSubscriber.smsEnabled,
                 preferredLanguage: this.selectedSubscriber.preferredLanguage,
-                extraFeeIds: this.selectedExtraFeeIds?.length ? this.selectedExtraFeeIds : undefined
+                extraFeeIds: this.selectedExtraFeeIds?.length ? this.selectedExtraFeeIds : []
             })
             .subscribe({
                 next: (response: UpsertSubscriberResponse) => {
@@ -1051,7 +1064,9 @@ export class SubscribersComponent implements OnInit {
     }
 
     openSubscriberPendingBills(subscriberCode?: string) {
-        this.router.navigate(['gbc', subscriberCode]);
+        const url = this.router.serializeUrl(this.router.createUrlTree(['gbc', subscriberCode]));
+        // Open the URL in a new tab
+        window.open(url, '_blank');
     }
 
     // Context Menu for multi actions

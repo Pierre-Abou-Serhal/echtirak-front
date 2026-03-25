@@ -359,32 +359,16 @@
 >
     @if (previewTemplate) {
         <div class="flex items-start justify-between gap-3 mb-3">
-            <div class="flex-1" [class.text-right]="previewLang === 'ar'" [attr.dir]="previewLang === 'ar' ? 'rtl' : 'ltr'">
+            <div class="flex-1">
                 <h3 class="text-lg font-semibold">
-                    {{ previewLang === 'en' ? previewTemplate.name : (previewTemplate.nameAr ?? 'العنوان غير متوفر') }}
+                    {{ previewTemplate.name }}
                 </h3>
             </div>
-
-            <button
-                type="button"
-                class="shrink-0 text-xs px-2 py-1 rounded-lg border border-surface-300 dark:border-surface-600
-               hover:bg-surface-100 dark:hover:bg-surface-800 transition"
-                (click)="previewLang = previewLang === 'en' ? 'ar' : 'en'">
-                {{ previewLang === 'en' ? 'EN' : 'AR' }}
-            </button>
         </div>
 
-        <div
-            class="p-4 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900"
-            [class.text-right]="previewLang === 'ar'"
-            [attr.dir]="previewLang === 'ar' ? 'rtl' : 'ltr'"
-        >
+        <div class="p-4 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900">
             <p class="whitespace-pre-line text-surface-700 dark:text-surface-200 leading-relaxed m-0">
-                {{
-                    previewLang === 'en'
-                        ? previewTemplate.body
-                        : (previewTemplate.bodyAr ?? 'هذا المحتوى غير متوفر باللغة العربية حالياً')
-                }}
+                {{ previewTemplate.body }}
             </p>
         </div>
     } @else {

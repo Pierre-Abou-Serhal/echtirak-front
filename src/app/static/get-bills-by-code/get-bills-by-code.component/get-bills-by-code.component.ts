@@ -5,11 +5,17 @@ import { PublicService } from '@/core/services/public.service';
 import { Bill } from '@/core/models/model';
 import { GetBillsByCodeResponse } from '@/core/services/api/response';
 import { finalize } from 'rxjs';
+import { Divider } from 'primeng/divider';
+import { Card } from 'primeng/card';
+import { Message } from 'primeng/message';
+import { ProgressSpinner } from 'primeng/progressspinner';
+import { Tag } from 'primeng/tag';
+import { Button } from 'primeng/button';
 
 @Component({
     selector: 'app-get-bills-by-code',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, Divider, Card, Message, ProgressSpinner, Tag, Button],
     templateUrl: './get-bills-by-code.component.html',
     styleUrl: './get-bills-by-code.component.scss'
 })

@@ -62,8 +62,11 @@ export class BillsPreviewComponent {
     extraFeesExpanded: Record<number, boolean> = {};
 
     // Confirmation dialog for missing extra fee amounts
-    displayAcceptConfirmation = false;
+    reviewMissingFeesVisible = false;
     missingFeeBills: BillRow[] = []; // bills that have at least 1 extra fee with missing amount
+    expandedMissingFeeRows: Record<string, boolean> = {};
+    missingFeeKeyword = '';
+    missingFeeExtraFeesExpanded: Record<number, boolean> = {};
 
     // ========= INPUT =========
     @Input({ required: true })
@@ -194,24 +197,25 @@ export class BillsPreviewComponent {
     }
 
     onBillEditSave(updatedBill: Bill) {
-        // modal returns Bill; convert it back to BillRow
         const updatedRow = this.toBillRow(updatedBill);
 
-        // Update in the source array
         const idx = this._allBills.findIndex((b) => b.id === updatedRow.id);
         if (idx !== -1) this._allBills[idx] = updatedRow;
 
-        // Re-split after change
         this.splitBills();
 
-        // Keep selection in sync
         const sIdx = this.selectedBills.findIndex((b) => b.id === updatedRow.id);
         if (sIdx !== -1) this.selectedBills[sIdx] = updatedRow;
 
-        // If currently editing, update reference
         if (this.billToEdit?.id === updatedRow.id) {
             this.billToEdit = updatedRow;
         }
+
+        // recompute problematic bills after edit
+        this.missingFeeBills = this.findBillsWithMissingExtraFeeAmounts(this.selectedBills);
+
+        const validIds = new Set(this.missingFeeBills.map((b) => String(b.id)));
+        this.expandedMissingFeeRows = Object.fromEntries(Object.entries(this.expandedMissingFeeRows).filter(([id]) => validIds.has(id)));
     }
 
     onBillEditCancel() {}
@@ -239,29 +243,27 @@ export class BillsPreviewComponent {
             return;
         }
 
-        // ✅ pre-check
         this.missingFeeBills = this.findBillsWithMissingExtraFeeAmounts(this.selectedBills);
 
         if (this.missingFeeBills.length > 0) {
-            // show confirmation dialog
-            this.displayAcceptConfirmation = true;
+            this.reviewMissingFeesVisible = true;
             return;
         }
 
-        // no issues -> proceed
         this.acceptBillsConfirmed();
     }
 
     acceptBillsConfirmed() {
-        this.displayAcceptConfirmation = false;
         this.isAcceptBillsLoading = true;
 
-        const billYear = this.selectedBills[0].billYear;
-        const billMonth = this.selectedBills[0].billMonth;
+        const sanitizedBills = this.sanitizeBillsForAccept(this.selectedBills);
+
+        const billYear = sanitizedBills[0].billYear;
+        const billMonth = sanitizedBills[0].billMonth;
 
         this.generatorOwnerService
             .acceptBills({
-                bills: this.selectedBills,
+                bills: sanitizedBills,
                 billMonth,
                 billYear
             })
@@ -321,7 +323,7 @@ export class BillsPreviewComponent {
         const fees = bill.extraFees ?? [];
         if (fees.length === 0) return false;
 
-        return fees.some((f) => f.amount == null || f.amount == 0);
+        return fees.some((f) => Number(f?.amount ?? 0) <= 0);
     }
 
     private findBillsWithMissingExtraFeeAmounts(bills: BillRow[]): BillRow[] {
@@ -330,9 +332,86 @@ export class BillsPreviewComponent {
 
     // Accept dialog
     closeAcceptConfirmation() {
-        this.displayAcceptConfirmation = false;
         this.missingFeeBills = [];
     }
 
+    private sanitizeBillsForAccept(bills: BillRow[]): Bill[] {
+        return (bills ?? []).map((bill) => {
+            const validExtraFees = (bill.extraFees ?? []).filter((f) => Number(f?.amount ?? 0) > 0);
+
+            return {
+                ...bill,
+                extraFees: validExtraFees.length > 0 ? validExtraFees : null
+            };
+        });
+    }
+
+    openMissingFeeBillEdit(bill: BillRow) {
+        this.openBillEditModal(bill);
+    }
+
+    closeMissingFeesReview() {
+        this.reviewMissingFeesVisible = false;
+    }
+
+    acceptBillsAnyway() {
+        this.reviewMissingFeesVisible = false;
+        this.acceptBillsConfirmed();
+    }
+
+    acceptBillsAfterReview() {
+        this.reviewMissingFeesVisible = false;
+        this.acceptBillsConfirmed();
+    }
+
+    getProblematicExtraFees(bill: BillRow) {
+        return (bill.extraFees ?? []).filter((f) => Number(f?.amount ?? 0) <= 0);
+    }
+
+    clearMissingFeeTable(table: Table) {
+        table.clear();
+        this.missingFeeKeyword = '';
+    }
+
+    onMissingFeeRowExpand(event: any) {
+        const id = event.data?.id;
+        if (id != null) this.expandedMissingFeeRows[String(id)] = true;
+    }
+
+    onMissingFeeRowCollapse(event: any) {
+        const id = event.data?.id;
+        if (id != null) {
+            delete this.expandedMissingFeeRows[String(id)];
+            delete this.missingFeeExtraFeesExpanded[id];
+        }
+    }
+
+    expandAllMissingFeeRows() {
+        this.expandedMissingFeeRows = Object.fromEntries(this.missingFeeBills.filter((b) => b?.id != null).map((b) => [String(b.id), true]));
+    }
+
+    collapseAllMissingFeeRows() {
+        this.expandedMissingFeeRows = {};
+    }
+
+    toggleMissingFeeExtraFees(billId: number) {
+        this.missingFeeExtraFeesExpanded[billId] = !this.missingFeeExtraFeesExpanded[billId];
+    }
+
+    isMissingFeeExtraFeesExpanded(billId: number): boolean {
+        return this.missingFeeExtraFeesExpanded[billId];
+    }
+
+    isMissingAmount(fee: any): boolean {
+        return Number(fee?.amount ?? 0) <= 0;
+    }
+
+    onMissingFeeGlobalFilter(table: Table, value: string) {
+        const v = (value ?? '').trim();
+        this.missingFeeKeyword = v;
+        table.filterGlobal(v, 'contains');
+    }
+
     protected readonly BillStatus = BillStatus;
+    protected readonly Number = Number;
 }

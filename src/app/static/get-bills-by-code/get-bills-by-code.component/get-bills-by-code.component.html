@@ -1,197 +1,251 @@
-<div class="bills-page">
-    <header class="bills-header">
-        <img src="/logo/logo.svg" alt="Echtirak Logo" class="bills-logo" />
+<div class="min-h-screen bg-surface-50 dark:bg-surface-800 text-color px-4 pt-4 pb-24">
+    <div class="mx-auto max-w-3xl">
+        <header class="mb-5 flex items-center gap-4">
+            <img src="/logo/logo.svg" alt="Echtirak Logo" class="h-14 w-14 shrink-0" />
 
-        <div class="bills-header-text">
-            <h1 class="page-title">Pending Bills</h1>
-            <p class="page-subtitle">Check your pending bills and details</p>
-        </div>
-    </header>
+            <div class="min-w-0">
+                <h1 class="m-0 text-3xl font-bold tracking-tight text-color">
+                    Pending Bills
+                </h1>
+                <p class="m-0 mt-1 text-sm text-color-secondary">
+                    Check your pending bills and details
+                </p>
+            </div>
+        </header>
 
-    <!-- Loading -->
-    @if (loading) {
-        <div class="state state-loading">
-            <div class="spinner"></div>
-            <span>Loading pending bills…</span>
-        </div>
-    }
+        @if (loading) {
+            <div class="flex items-center gap-3 rounded-2xl border border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 px-4 py-4 shadow-sm">
+                <p-progressSpinner
+                    strokeWidth="8"
+                    [style]="{ width: '24px', height: '24px' }"
+                ></p-progressSpinner>
+                <span class="text-sm font-medium text-color-secondary">Loading pending bills...</span>
+            </div>
+        }
 
-    <!-- No code -->
-    @if (!loading && !code) {
-        <div class="state state-info">Please enter a subscriber code to view bills.</div>
-    }
+        @if (!loading && !code) {
+            <p-message
+                severity="info"
+                text="Please enter a subscriber code to view bills."
+                styleClass="w-full"
+            ></p-message>
+        }
 
-    <!-- No bills -->
-    @if (!loading && code && pendingBills.length === 0) {
-        <div class="state state-empty">No pending bills were found.</div>
-    }
+        @if (!loading && code && pendingBills.length === 0) {
+            <p-message
+                severity="secondary"
+                text="No pending bills were found."
+                styleClass="w-full"
+            ></p-message>
+        }
 
-    <!-- Bills list -->
-    @if (!loading && code && pendingBills.length > 0) {
-        <div class="bills-list">
-            @for (bill of pendingBills; track bill.id) {
-                <article class="bill-card">
-                    <!-- Header: name + status -->
-                    <header class="bill-header">
-                        <div class="bill-name">
-                            {{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}
-                        </div>
+        @if (!loading && code && pendingBills.length > 0) {
+            <div class="space-y-4">
+                @for (bill of pendingBills; track bill.id) {
+                    <p-card styleClass="rounded-2xl border border-surface-200 dark:border-surface-600 shadow-sm overflow-hidden">
+                        <div class="flex flex-col gap-5">
+                            <!-- Header -->
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div class="truncate text-xl font-bold text-color md:text-2xl">
+                                        {{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}
+                                    </div>
+                                </div>
 
-                        <div class="bill-header-actions">
-                            <span class="status-pill">{{ bill.statusCode }}</span>
+                                <div class="flex shrink-0 items-center gap-2">
+                                    <p-tag
+                                        [value]="bill.statusCode"
+                                        [severity]="bill.statusCode === 'PENDING' ? 'success' : 'secondary'"
+                                    ></p-tag>
 
-                            <button
-                                type="button"
-                                class="download-btn"
-                                [disabled]="isDownloading(bill.id)"
-                                (click)="downloadBillPdf(bill); $event.stopPropagation()"
-                                [attr.aria-busy]="isDownloading(bill.id)"
-                                title="Download PDF"
-                            >
-                                @if (isDownloading(bill.id)) {
-                                    <span class="download-spinner" aria-hidden="true"></span>
-                                    <span class="download-text">Downloading…</span>
-                                } @else {
-                                    <i class="pi pi-cloud-download"></i>
-                                }
-                            </button>
-                        </div>
-                    </header>
-
-                    <!-- Sub-header: generator + date -->
-                    <div class="bill-subheader">
-                        <span class="label">Generator</span>
-                        <span class="value">{{ bill.generatorCode }}</span>
-
-                        <span class="label">Date</span>
-                        <span class="value"> {{ bill.billYear }}-{{ bill.billMonth }} </span>
-                    </div>
-
-                    <!-- Amount -->
-                    <div class="bill-amount-row">
-                        <span class="label">Amount</span>
-                        <span class="amount"> {{ bill.amount | number: '1.0-4' }} {{ bill.currencyCode }} </span>
-                    </div>
-
-                    <!-- Amount in LBP (computed) -->
-                    @if (bill.exchangeRate != null) {
-                        <div class="bill-amount-row bill-amount-row--secondary">
-                            <span class="label">Amount (LBP)</span>
-                            <span class="amount">
-                                {{ bill.amountLBP | number: '1.0-4' }} LBP
-                                <span class="rate-hint"> (Rate: {{ bill.exchangeRate | number: '1.0-4' }}) </span>
-                            </span>
-                        </div>
-                    }
-
-                    <!-- Technical info -->
-                    <div class="bill-grid">
-                        @if (bill.previousKva > 0 || bill.currentKva > 0) {
-                            <div class="bill-grid-item">
-                                <span class="label">Previous</span>
-                                <span class="value">{{ bill.previousKva | number: '1.0-4' }}</span>
-                                <span class="label-small">KWH</span>
+                                    <p-button
+                                        icon="pi pi-cloud-download"
+                                        [loading]="isDownloading(bill.id)"
+                                        [rounded]="true"
+                                        [text]="true"
+                                        severity="secondary"
+                                        styleClass="h-9 w-9"
+                                        [attr.aria-label]="'Download PDF'"
+                                        (onClick)="downloadBillPdf(bill)"
+                                    ></p-button>
+                                </div>
                             </div>
 
-                            <div class="bill-grid-item">
-                                <span class="label">Current</span>
-                                <span class="value">{{ bill.currentKva | number: '1.0-4' }}</span>
-                                <span class="label-small">KWH</span>
+                            <!-- Generator + Date -->
+                            <div class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+                                <span class="text-color-secondary">Generator</span>
+                                <span class="font-medium text-color">{{ bill.generatorCode }}</span>
+
+                                <span class="text-color-secondary">Date</span>
+                                <span class="font-medium text-color">
+                                    {{ bill.billYear }}-{{ bill.billMonth }}
+                                </span>
                             </div>
 
-                            <div class="bill-grid-item">
-                                <span class="label">Consumed</span>
-                                <span class="value"> {{ bill.currentKva - bill.previousKva | number: '1.0-4' }} </span>
-                                <span class="label-small">KWH</span>
+                            <!-- Main Amount -->
+                            <div class="flex items-end justify-between gap-3">
+                                <span class="text-sm text-color-secondary">Amount</span>
+                                <span class="text-3xl font-extrabold text-color md:text-4xl">
+                                    {{ bill.amount | number: '1.0-4' }} {{ bill.currencyCode }}
+                                </span>
                             </div>
-                        }
 
-                        <div class="bill-grid-item">
-                            <span class="label">Subscription</span>
-                            <span class="value">{{ bill.billingModel }} {{ bill.subscriptionAmps | number: '1.0-4' }}</span>
-                            <span class="label-small">(A)</span>
-                        </div>
-                    </div>
+                            <!-- LBP Amount -->
+                            @if (bill.exchangeRate != null) {
+                                <div class="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+                                    <span class="text-sm text-color-secondary">Amount (LBP)</span>
 
-                    <!-- Fees (only if > 0) -->
-                    @if (bill.subscriptionFeeFixed > 0 || bill.kvaFee > 0) {
-                        <div class="divider"></div>
-                        <div class="fees">
-                            @if (bill.subscriptionFeeFixed > 0) {
-                                <div class="fee-row">
-                                    <span class="label">Fixed subscription fee</span>
-                                    <span class="value">{{ bill.subscriptionFeeFixed | number: '1.0-4' }} {{ bill.currencyCode }}</span>
+                                    <div class="text-right">
+                                        <span class="text-xl font-bold text-color md:text-2xl">
+                                            {{ bill.amountLBP | number: '1.0-4' }} LBP
+                                        </span>
+                                        <span class="ml-2 text-xs font-medium text-color-secondary">
+                                            (Rate: {{ bill.exchangeRate | number: '1.0-4' }})
+                                        </span>
+                                    </div>
                                 </div>
                             }
-                            @if (bill.kvaFee > 0) {
-                                <div class="fee-row">
-                                    <span class="label">Total KWH fee</span>
-                                    <span class="value">{{ bill.kvaFee | number: '1.0-4' }} {{ bill.currencyCode }}</span>
-                                </div>
-                            }
-                        </div>
-                    }
 
-                    <!-- Extra Fees -->
-                    @if ((bill.extraFees?.length ?? 0) > 0) {
-                        <div class="divider"></div>
+                            <!-- Technical Info -->
+                            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+                                @if (bill.previousKva > 0 || bill.currentKva > 0) {
+                                    <div class="rounded-xl border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 p-3">
+                                        <div class="text-xs text-color-secondary">Previous</div>
+                                        <div class="mt-1 font-semibold text-color">
+                                            {{ bill.previousKva | number: '1.0-4' }}
+                                        </div>
+                                        <div class="text-xs text-muted-color">KWH</div>
+                                    </div>
 
-                        <section class="extra-fees">
-                            <div class="extra-fees-header">
-                                <div class="label">Extra Fees</div>
+                                    <div class="rounded-xl border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 p-3">
+                                        <div class="text-xs text-color-secondary">Current</div>
+                                        <div class="mt-1 font-semibold text-color">
+                                            {{ bill.currentKva | number: '1.0-4' }}
+                                        </div>
+                                        <div class="text-xs text-muted-color">KWH</div>
+                                    </div>
 
-                                <div class="extra-fees-totals">
-                                    <span class="total"> USD: {{ getExtraFeesTotalUsd(bill) | number: '1.0-4' }} {{ bill.currencyCode }} </span>
-                                    <span class="total"> LBP: {{ getExtraFeesTotalLbp(bill) | number: '1.0-4' }} LBP </span>
-                                </div>
-                            </div>
-
-                            <div class="extra-fees-list">
-                                @for (f of bill.extraFees ?? []; track $index) {
-                                    <div class="extra-fee-row">
-                                        <div class="fee-name">{{ f.extraFeeName || '—' }}</div>
-
-                                        <div class="fee-amount">{{ f.amount ?? 0 | number: '1.0-4' }} {{ bill.currencyCode }}</div>
-
-                                        <div class="fee-amount-lbp">{{ f.amountLBP }} LBP</div>
+                                    <div class="rounded-xl border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 p-3">
+                                        <div class="text-xs text-color-secondary">Consumed</div>
+                                        <div class="mt-1 font-semibold text-color">
+                                            {{ bill.currentKva - bill.previousKva | number: '1.0-4' }}
+                                        </div>
+                                        <div class="text-xs text-muted-color">KWH</div>
                                     </div>
                                 }
+
+                                <div class="rounded-xl border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 p-3">
+                                    <div class="text-xs text-color-secondary">Subscription</div>
+                                    <div class="mt-1 font-semibold text-color">
+                                        {{ bill.billingModel }} {{ bill.subscriptionAmps | number: '1.0-4' }}
+                                    </div>
+                                    <div class="text-xs text-muted-color">(A)</div>
+                                </div>
                             </div>
 
-                            <div class="extra-fees-grand">
-                                <span class="label">Grand Total (USD)</span>
-                                <span class="value"> {{ bill.amount + getExtraFeesTotalUsd(bill) | number: '1.0-4' }} USD </span>
-                            </div>
+                            <!-- Fees -->
+                            @if (bill.subscriptionFeeFixed > 0 || bill.kvaFee > 0) {
+                                <p-divider></p-divider>
 
-                            <!-- Optional: Grand total LBP -->
-                            @if (bill.exchangeRate != null) {
-                                <div class="extra-fees-grand">
-                                    <span class="label">Grand Total (LBP)</span>
-                                    <span class="value"> {{ convertFormattedLbpAmount(bill.amountLBP) + getExtraFeesTotalLbp(bill) | number: '1.0-4' }} LBP </span>
+                                <div class="space-y-2 text-sm">
+                                    @if (bill.subscriptionFeeFixed > 0) {
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-color-secondary">Fixed subscription fee</span>
+                                            <span class="font-semibold text-color">
+                                                {{ bill.subscriptionFeeFixed | number: '1.0-4' }} {{ bill.currencyCode }}
+                                            </span>
+                                        </div>
+                                    }
+
+                                    @if (bill.kvaFee > 0) {
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-color-secondary">Total KWH fee</span>
+                                            <span class="font-semibold text-color">
+                                                {{ bill.kvaFee | number: '1.0-4' }} {{ bill.currencyCode }}
+                                            </span>
+                                        </div>
+                                    }
                                 </div>
                             }
-                        </section>
-                    }
 
-                    <!-- Notes -->
-                    @if (bill.notes) {
-                        <div class="divider"></div>
-                        <section class="notes">
-                            <div class="label">Notes</div>
-                            <p class="notes-text">
-                                {{ bill.notes }}
-                            </p>
-                        </section>
-                    }
-                </article>
-            }
-        </div>
-    }
+                            <!-- Extra Fees -->
+                            @if ((bill.extraFees?.length ?? 0) > 0) {
+                                <p-divider></p-divider>
+
+                                <section class="space-y-3">
+                                    <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                                        <div class="text-sm font-medium text-color-secondary">Extra Fees</div>
+
+                                        <div class="flex flex-wrap gap-3 text-sm font-semibold text-color-secondary">
+                                            <span>
+                                                USD: {{ getExtraFeesTotalUsd(bill) | number: '1.0-4' }} {{ bill.currencyCode }}
+                                            </span>
+                                            <span>
+                                                LBP: {{ getExtraFeesTotalLbp(bill) | number: '1.0-4' }} LBP
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        @for (f of bill.extraFees ?? []; track $index) {
+                                            <div
+                                                class="grid grid-cols-1 gap-2 rounded-xl border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 px-3 py-3 md:grid-cols-[1fr_auto_auto] md:items-center md:gap-3"
+                                            >
+                                                <div class="min-w-0 truncate font-semibold text-color">
+                                                    {{ f.extraFeeName || '—' }}
+                                                </div>
+
+                                                <div class="text-left font-semibold text-color md:text-right">
+                                                    {{ f.amount ?? 0 | number: '1.0-4' }} {{ bill.currencyCode }}
+                                                </div>
+
+                                                <div class="text-left font-semibold text-color-secondary md:text-right">
+                                                    {{ f.amountLBP }} LBP
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div class="flex items-center justify-between gap-3 border-t border-surface-200 dark:border-surface-600 pt-3">
+                                        <span class="font-semibold text-color-secondary">Grand Total (USD)</span>
+                                        <span class="text-lg font-extrabold text-color">
+                                            {{ bill.amount + getExtraFeesTotalUsd(bill) | number: '1.0-4' }} USD
+                                        </span>
+                                    </div>
+
+                                    @if (bill.exchangeRate != null) {
+                                        <div class="flex items-center justify-between gap-3 border-t border-surface-200 dark:border-surface-600 pt-3">
+                                            <span class="font-semibold text-color-secondary">Grand Total (LBP)</span>
+                                            <span class="text-lg font-extrabold text-color">
+                                                {{ convertFormattedLbpAmount(bill.amountLBP) + getExtraFeesTotalLbp(bill) | number: '1.0-4' }} LBP
+                                            </span>
+                                        </div>
+                                    }
+                                </section>
+                            }
+
+                            <!-- Notes -->
+                            @if (bill.notes) {
+                                <p-divider></p-divider>
+
+                                <section class="space-y-1">
+                                    <div class="text-sm font-medium text-color-secondary">Notes</div>
+                                    <p class="m-0 whitespace-pre-line text-sm leading-6 text-color-secondary">
+                                        {{ bill.notes }}
+                                    </p>
+                                </section>
+                            }
+                        </div>
+                    </p-card>
+                }
+            </div>
+        }
+    </div>
 </div>
 
 @if (!loading) {
-    <footer class="bills-footer">
+    <footer class="fixed inset-x-0 bottom-0 border-t border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 px-4 py-3 text-center text-sm text-color-secondary">
         <span>Powered by</span>
-        <span class="footer-brand">Echtirak</span>
+        <span class="ml-1 font-extrabold text-color">Echtirak</span>
     </footer>
 }

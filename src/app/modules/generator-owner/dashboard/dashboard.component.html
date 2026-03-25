@@ -7,8 +7,8 @@
     </div>
 
     <!-- Stats Cards Row 1 -->
-    <div class="col-span-12 md:col-span-6 lg:col-span-3">
-        <p-card header="Subscribers">
+    <div class="col-span-12 md:col-span-6 lg:col-span-3 h-full">
+        <p-card header="Subscribers" class="h-full">
             <div class="flex justify-between items-center">
                 <div>
                     <div class="text-2xl font-bold">{{dashboard.subscribers.total}}</div>
@@ -29,8 +29,8 @@
         </p-card>
     </div>
 
-    <div class="col-span-12 md:col-span-6 lg:col-span-3">
-        <p-card header="Revenue (This Month)">
+    <div class="col-span-12 md:col-span-6 lg:col-span-3 h-full">
+        <p-card header="Revenue (This Month)" class="h-full">
             <div class="flex justify-between items-center">
                 <div>
                     <div class="text-2xl font-bold">{{dashboard.bills.thisMonth.revenue | currency:'USD':'symbol':'1.0-4'}}</div>
@@ -46,8 +46,8 @@
         </p-card>
     </div>
 
-    <div class="col-span-12 md:col-span-6 lg:col-span-3">
-        <p-card header="Bills Status">
+    <div class="col-span-12 md:col-span-6 lg:col-span-3 h-full">
+        <p-card header="Bills Status" class="h-full">
             <div class="flex justify-between items-center">
                 <div>
                     <div class="text-2xl font-bold">{{dashboard.bills.total}}</div>
@@ -64,8 +64,8 @@
         </p-card>
     </div>
 
-    <div class="col-span-12 md:col-span-6 lg:col-span-3">
-        <p-card header="Wallet Balance">
+    <div class="col-span-12 md:col-span-6 lg:col-span-3 h-full">
+        <p-card header="Wallet Balance" class="h-full">
             <div class="flex justify-between items-center">
                 <div>
                     <div class="text-2xl font-bold">{{dashboard.wallet.balance | currency:'USD':'symbol':'1.0-4'}}</div>
@@ -109,8 +109,8 @@
     </div>
 
     <!-- Row 3: Consumption & Wallet Stats -->
-    <div class="col-span-12 md:col-span-6">
-        <p-card header="Consumption Overview">
+    <div class="col-span-12 md:col-span-6 h-full">
+        <p-card header="Consumption Overview" class="h-full">
             <div class="grid grid-cols-2 gap-4">
                 <div class="p-4 rounded">
                     <div class="text-lg font-semibold">{{dashboard.consumption.totalKva}}</div>
@@ -130,8 +130,8 @@
         </p-card>
     </div>
 
-    <div class="col-span-12 md:col-span-6">
-        <p-card header="Wallet Statistics">
+    <div class="col-span-12 md:col-span-6 h-full">
+        <p-card header="Wallet Statistics" class="h-full">
             <div class="grid grid-cols-2 gap-4">
                 <div class="p-3">
                     <div class="text-sm text-gray-500">Top Ups (This Month)</div>
@@ -168,39 +168,16 @@
         </p-card>
     </div>
 
-    <!-- Row 4: All Time Stats -->
-    <div class="col-span-12">
-        <p-card header="All Time Statistics">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="p-4 text-center">
-                    <div class="text-2xl font-bold text-blue-600">{{dashboard.walletStatistics.totalTopUpsAllTime |
-                        currency}}</div>
-                    <div class="text-sm text-gray-600">Total Top Ups</div>
-                </div>
-                <div class="p-4 text-center">
-                    <div class="text-2xl font-bold text-red-600">{{dashboard.walletStatistics.totalSpentAllTime |
-                        currency}}</div>
-                    <div class="text-sm text-gray-600">Total Spent</div>
-                </div>
-                <div class="p-4 text-center">
-                    <div class="text-2xl font-bold text-purple-600">
-                        {{dashboard.walletStatistics.totalTransactionsAllTime}}</div>
-                    <div class="text-sm text-gray-600">Total Transactions</div>
-                </div>
-            </div>
-        </p-card>
-    </div>
-
 </div>
 } @else {
 <div class="grid grid-cols-12 gap-4">
     <div class="col-span-12">
-        <p-skeleton width="10rem" height="2rem" styleClass="mb-4"></p-skeleton>
+        <p-skeleton width="10rem" height="2rem" class="mb-4"></p-skeleton>
     </div>
     @for (i of [1, 2, 3, 4]; track i) {
-    <div class="col-span-12 md:col-span-6 lg:col-span-3">
-        <p-skeleton height="150px"></p-skeleton>
-    </div>
+        <div class="col-span-12 md:col-span-6 lg:col-span-3 h-full">
+            <p-skeleton height="150px"></p-skeleton>
+        </div>
     }
     @for (i of [1, 2, 3]; track i) {
     <div class="col-span-12 md:col-span-4">

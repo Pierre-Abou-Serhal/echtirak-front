@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Generator, Lookup } from '@/core/models/model';
+import { Generator } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { NotificationService } from '@/core/services/notification.service';
 import { Button, ButtonDirective } from 'primeng/button';
@@ -9,18 +9,15 @@ import { IconField } from 'primeng/iconfield';
 import { InputText } from 'primeng/inputtext';
 import { InputIcon } from 'primeng/inputicon';
 import { Dialog } from 'primeng/dialog';
-import { GetGeneratorsResponse, GetLookupResponse, UpsertGeneratorResponse } from '@/core/services/api/response';
+import { GetGeneratorsResponse, UpsertGeneratorResponse } from '@/core/services/api/response';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { UpsertGeneratorRequest } from '@/core/services/api/request';
 import { firstValueFrom } from 'rxjs';
-import { SelectOptionStrValue } from '@/core/dtos/dto';
-import { LookupDomain } from '@/core/enums/enum';
-import { Select } from 'primeng/select';
 import { InputNumber } from 'primeng/inputnumber';
 
 @Component({
     selector: 'app-generators.component',
-    imports: [Button, TableModule, IconField, InputText, InputIcon, ButtonDirective, Dialog, ReactiveFormsModule, Select, InputNumber],
+    imports: [Button, TableModule, IconField, InputText, InputIcon, ButtonDirective, Dialog, ReactiveFormsModule, InputNumber],
     templateUrl: './generators.component.html',
     styleUrl: './generators.component.scss',
     standalone: true
@@ -41,8 +38,7 @@ export class GeneratorsComponent implements OnInit {
     generatorForm: FormGroup;
     selectedGeneratorId: number = -1;
 
-    generatorStatusCodes: SelectOptionStrValue[] = [];
-    isGeneratorStatusCodesLoading: boolean = false;
+    expandedRows: Record<string, boolean> = {};
 
     constructor(private fb: FormBuilder) {
         this.generatorForm = this.fb.group(
@@ -62,9 +58,7 @@ export class GeneratorsComponent implements OnInit {
                 voltage: [null],
                 phase: [null],
                 frequency: [null],
-                amperage: [null, [Validators.min(0)]],
-
-                statusCode: [null, Validators.required]
+                amperage: [null, [Validators.min(0)]]
             },
             {
                 validators: [this.capacityUnitRequiredWhenCapacityProvided()]
@@ -81,21 +75,6 @@ export class GeneratorsComponent implements OnInit {
             error: (err) => {
                 console.log(err);
                 this.loading = false;
-            }
-        });
-
-        this.generatorOwnerService.getLookup({ domain: LookupDomain.GENERATOR_STATUS }).subscribe({
-            next: (response: GetLookupResponse) => {
-                this.generatorStatusCodes = response.items.map((lookup: Lookup) => ({
-                    value: lookup.code,
-                    label: lookup.description
-                }));
-                this.isGeneratorStatusCodesLoading = false;
-            },
-            error: (err) => {
-                console.log(err);
-                this.generatorStatusCodes = [];
-                this.isGeneratorStatusCodesLoading = false;
             }
         });
     }
@@ -174,9 +153,7 @@ export class GeneratorsComponent implements OnInit {
             voltage: null,
             phase: null,
             frequency: null,
-            amperage: null,
-            statusCode: null,
-            statusDescription: null
+            amperage: null
         });
 
         this.isGeneratorDialogOpen = true;
@@ -198,9 +175,7 @@ export class GeneratorsComponent implements OnInit {
             voltage: generator.voltage ?? null,
             phase: generator.phase ?? null,
             frequency: generator.frequency ?? null,
-            amperage: generator.amperage ?? null,
-            statusCode: generator.statusCode ?? null,
-            statusDescription: generator.statusDescription ?? null
+            amperage: generator.amperage ?? null
         });
 
         this.isGeneratorDialogOpen = true;
@@ -248,9 +223,7 @@ export class GeneratorsComponent implements OnInit {
             voltage: this.toOptionalString(this.generatorForm.get('voltage')?.value),
             phase: this.toOptionalString(this.generatorForm.get('phase')?.value),
             frequency: this.toOptionalString(this.generatorForm.get('frequency')?.value),
-            amperage: this.toOptionalNumber(this.generatorForm.get('amperage')?.value),
-
-            statusCode: this.toOptionalString(this.generatorForm.get('statusCode')?.value)
+            amperage: this.toOptionalNumber(this.generatorForm.get('amperage')?.value)
         };
 
         try {
@@ -332,5 +305,23 @@ export class GeneratorsComponent implements OnInit {
 
         const parsed = Number(value);
         return Number.isNaN(parsed) ? undefined : parsed;
+    }
+
+    onRowExpand(event: any) {
+        const id = event.data?.id;
+        if (id != null) this.expandedRows[id] = true;
+    }
+
+    onRowCollapse(event: any) {
+        const id = event.data?.id;
+        if (id != null) delete this.expandedRows[id];
+    }
+
+    expandAll() {
+        this.expandedRows = Object.fromEntries(this.generators.filter((g) => g?.id != null).map((g) => [String(g.id), true]));
+    }
+
+    collapseAll() {
+        this.expandedRows = {};
     }
 }

@@ -1,7 +1,6 @@
-import { Component, EventEmitter, Inject, Input, LOCALE_ID, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, LOCALE_ID, OnChanges, OnInit, Output, SimpleChanges, inject, DestroyRef } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -11,10 +10,11 @@ import { InputText } from 'primeng/inputtext';
 import { DatePicker } from 'primeng/datepicker';
 import { Select } from 'primeng/select';
 
-import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { ExtraFee } from '@/core/models/model';
 import { getBillYearMonth } from '@/core/utils/utils';
 import { OverlayListenerOptions, OverlayOptions } from 'primeng/api';
+import { UserContextService } from '@/core/services/user-context.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type EditableExtraFee = {
     id?: number | null; // existing row id (if your backend uses it)
@@ -33,7 +33,8 @@ type EditableExtraFee = {
     styleUrl: './bill-edit-modal.component.scss'
 })
 export class BillEditModalComponent implements OnInit, OnChanges {
-    private readonly generatorOwnerService = inject(GeneratorOwnerService);
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly userContext = inject(UserContextService);
 
     @Input() visible = false;
     @Output() visibleChange = new EventEmitter<boolean>();
@@ -62,10 +63,19 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     constructor(@Inject(LOCALE_ID) private locale: string) {}
 
     ngOnInit(): void {
-        // optional pre-load if the modal instance is used in editable mode
-        if (this.extraFeesEditable) {
-            this.loadExtraFeesCatalog();
-        }
+        this.userContext.generatorOwnerExtraFees$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((fees) => {
+            this.availableExtraFees = fees;
+
+            this.extraFeeOptions = fees
+                .filter((x) => x?.id != null && (x.isActive ?? true))
+                .map((x) => ({
+                    value: x.id!,
+                    label: (x.name ?? x.extraFeeName ?? `Fee #${x.id}`).toString()
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+
+            this.hydrateExtraFeesFromCatalog();
+        });
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -105,13 +115,7 @@ export class BillEditModalComponent implements OnInit, OnChanges {
                     } as EditableExtraFee;
                 });
 
-                // load catalog on demand (when editable)
-                if (this.extraFeesEditable && this.extraFeeOptions.length === 0 && !this.isExtraFeesLoading) {
-                    this.loadExtraFeesCatalog();
-                } else {
-                    // if already loaded, hydrate names/ids
-                    this.hydrateExtraFeesFromCatalog();
-                }
+                this.hydrateExtraFeesFromCatalog();
             }
         }
     }
@@ -202,37 +206,6 @@ export class BillEditModalComponent implements OnInit, OnChanges {
 
         const amt = this.toNumberOrNull(this.editableBill.amount);
         return amt == null || amt < 0;
-    }
-
-    // =============================
-    // Extra fees catalog
-    // =============================
-    private loadExtraFeesCatalog(): void {
-        this.isExtraFeesLoading = true;
-
-        this.generatorOwnerService
-            .getExtraFees()
-            .pipe(finalize(() => (this.isExtraFeesLoading = false)))
-            .subscribe({
-                next: (res: any) => {
-                    const list: ExtraFee[] = res?.extraFees ?? [];
-                    this.availableExtraFees = list;
-
-                    this.extraFeeOptions = list
-                        .filter((x) => x?.id != null && (x.isActive ?? true))
-                        .map((x) => ({
-                            value: x.id!,
-                            label: (x.name ?? x.extraFeeName ?? `Fee #${x.id}`).toString()
-                        }))
-                        .sort((a, b) => a.label.localeCompare(b.label));
-
-                    this.hydrateExtraFeesFromCatalog();
-                },
-                error: () => {
-                    this.availableExtraFees = [];
-                    this.extraFeeOptions = [];
-                }
-            });
     }
 
     private hydrateExtraFeesFromCatalog(): void {

@@ -79,7 +79,7 @@
 
         <!-- Old value -->
         <div>
-            <label class="block text-sm font-semibold mb-2">Old value</label>
+            <label class="block text-sm font-semibold mb-2">Old {{bulk.fieldName}}</label>
             <p-autoComplete
                 [(ngModel)]="bulk.oldValue"
                 [suggestions]="oldValueSuggestions"
@@ -103,7 +103,7 @@
 
         <!-- New value -->
         <div>
-            <label class="block text-sm font-semibold mb-2">New value</label>
+            <label class="block text-sm font-semibold mb-2">New {{bulk.fieldName}}</label>
             <input
                 pInputText
                 [(ngModel)]="bulk.newValue"

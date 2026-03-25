@@ -28,6 +28,24 @@ export class AuthService {
                 localStorage.removeItem(this.sessionKey);
             }
         });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key !== this.sessionKey) return;
+
+            if (!event.newValue) {
+                this.sessionState.set(null);
+                this.router.navigateByUrl('/auth/sign-in');
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(event.newValue) as AuthSession;
+                this.sessionState.set(parsed);
+            } catch {
+                this.sessionState.set(null);
+                this.router.navigateByUrl('/auth/sign-in');
+            }
+        });
     }
 
     public signIn(request: SignInRequest): Observable<SignInResponse> {

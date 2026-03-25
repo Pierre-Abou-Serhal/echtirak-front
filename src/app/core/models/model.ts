@@ -141,7 +141,7 @@ export interface Bill {
     hasRecentPayment: boolean;
     billingModel: string;
     paidAt?: string;
-    extraFees?: ExtraFee[];
+    extraFees?: ExtraFee[] | null;
 }
 
 
