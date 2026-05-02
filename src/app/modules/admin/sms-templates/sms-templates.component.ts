@@ -80,7 +80,6 @@ export class SmsTemplatesComponent implements OnInit {
 
     readonly languageOptions: SelectOptionStrValue[] = [
         { label: 'English', value: 'EN' },
-        { label: 'Arabic', value: 'AR' }
     ];
 
     readonly activeOptions = [
@@ -319,7 +318,6 @@ export class SmsTemplatesComponent implements OnInit {
 
     languageSeverity(lang: string) {
         const v = (lang ?? '').toUpperCase();
-        if (v === 'AR') return 'warn';
         if (v === 'EN') return 'info';
         return 'secondary';
     }

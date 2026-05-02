@@ -19,7 +19,7 @@ import {
     Announcement,
     AdminGeneratorOwnerProfile,
     AdminAnnouncement,
-    ExtraFee
+    ExtraFee, BillCollection
 } from '@/core/models/model';
 import {
     SubscriberAddress,
@@ -33,7 +33,12 @@ import {
     SmsCampaignDetail,
     SmsCampaignDetailsMessage,
     SmsCampaignStatistics,
-    TokenPair
+    TokenPair,
+    DashboardCollectionsSummary,
+    DashboardBillCollectorBreakdown,
+    DashboardCollectionChannelSplit,
+    DashboardTopDebtor,
+    DashboardAccounting
 } from '@/core/dtos/dto';
 
 // Auth Response
@@ -135,7 +140,12 @@ export interface GetGeneratorOwnerDashboardResponse {
     subscribers: DashboardSubscribers;
     bills: DashboardBills;
     consumption: DashboardConsumption;
+    accounting: DashboardAccounting;
     recentActivity: DashboardRecentActivity;
+    collectionsSummary: DashboardCollectionsSummary;
+    billCollectorBreakdown: DashboardBillCollectorBreakdown[];
+    collectionChannelSplit: DashboardCollectionChannelSplit;
+    topDebtors: DashboardTopDebtor[];
     wallet: DashboardWallet;
     walletStatistics: DashboardWalletStatistics;
 }
@@ -435,4 +445,116 @@ export interface GetExtraFeesResponse {
 
 export interface UpsertExtraFeeResponse {
     extraFee: ExtraFee;
+}
+
+export interface ScanBillBarcodeResponse {
+    item: BillCollection;
+}
+
+export interface BCGetBillCollectionsResponse {
+    items: BCGetBillCollectionsItem[];
+    page: BCGetBillCollectionsPage;
+    summary: BCGetBillCollectionsSummary;
+}
+
+export interface BCGetBillCollectionsItem {
+    billCollectorId: number;
+    billCollectorName: string;
+    bcCollections: BillCollection[];
+    bcStats: BCGetBillCollectionsBcStats;
+}
+
+export interface BCGetBillCollectionsBcStats {
+    collectionsCount: number;
+    collectionsAmount: number;
+    amountSharePct: number;
+
+    pendingApprovalCount: number;
+    pendingApprovalAmount: number;
+
+    approvedCount: number;
+    approvedAmount: number;
+
+    rejectedCount: number;
+    rejectedAmount: number;
+}
+
+export interface BCGetBillCollectionsPage {
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface BCGetBillCollectionsSummary {
+    collectionsCount: number;
+    collectionsAmount: number;
+
+    pendingApprovalCount: number;
+    pendingApprovalAmount: number;
+
+    approvedCount: number;
+    approvedAmount: number;
+
+    rejectedCount: number;
+    rejectedAmount: number;
+}
+
+export interface GoGetBillCollectionsResponse {
+    items: GOGetBillCollectionsItem[];
+    page: GOGetBillCollectionsPage;
+    summary: GOGetBillCollectionsSummary;
+}
+
+export interface GOGetBillCollectionsItem {
+    billCollectorId: number;
+    billCollectorName: string;
+    bcCollections: BillCollection[];
+    bcStats: GOGetBillCollectionsBcStats;
+}
+
+export interface GOGetBillCollectionsBcStats {
+    collectionsCount: number;
+    collectionsAmount: number;
+    amountSharePct: number;
+    pendingApprovalCount: number;
+    pendingApprovalAmount: number;
+    approvedCount: number;
+    approvedAmount: number;
+    rejectedCount: number;
+    rejectedAmount: number;
+}
+
+export interface GOGetBillCollectionsPage {
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface GOGetBillCollectionsSummary {
+    collectionsCount: number;
+    collectionsAmount: number;
+    pendingApprovalCount: number;
+    pendingApprovalAmount: number;
+    approvedCount: number;
+    approvedAmount: number;
+    rejectedCount: number;
+    rejectedAmount: number;
+}
+
+export interface ApproveOrRejectBillCollectionResponse {
+    updatedCount: number;
+}
+
+export interface PayBillsInBulkResponse {
+    updatedCount: number;
+}
+
+export interface GetBillsByPeriodStatusResponse {
+    bills: Bill[];
 }

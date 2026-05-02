@@ -7,11 +7,12 @@ import { providePrimeNG } from 'primeng/config';
 import { appRoutes } from './app.routes';
 import { apiInterceptor } from '@/core/interceptors/api.interceptor';
 import { MessageService } from 'primeng/api';
+import { screenNameInterceptor } from '@/core/interceptors/screen-name.interceptor';
 
 export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(appRoutes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }), withEnabledBlockingInitialNavigation(), withComponentInputBinding()),
-        provideHttpClient(withFetch(), withInterceptors([apiInterceptor])),
+        provideHttpClient(withFetch(), withInterceptors([screenNameInterceptor, apiInterceptor])),
         provideAnimationsAsync(),
         providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } } }),
         MessageService

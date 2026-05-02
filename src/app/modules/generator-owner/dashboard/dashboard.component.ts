@@ -8,19 +8,19 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
+import { LbPhonePipe } from '@/core/pipes/pipes';
 
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, CardModule, TableModule, ButtonModule, ChartModule, SkeletonModule],
+    imports: [CommonModule, CardModule, TableModule, ButtonModule, ChartModule, SkeletonModule, LbPhonePipe],
     templateUrl: './dashboard.component.html',
-    styleUrl: './dashboard.component.scss',
+    styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
 
-    public dashboardResponse: Signal<GetGeneratorOwnerDashboardResponse | undefined> =
-        toSignal(this.generatorOwnerService.getDashboard());
+    public dashboardResponse: Signal<GetGeneratorOwnerDashboardResponse | undefined> = toSignal(this.generatorOwnerService.getDashboard());
 
     public recentActivityChartData: any;
     public recentActivityChartOptions: any;
@@ -31,21 +31,24 @@ export class DashboardComponent {
     public revenueChartData: any;
     public revenueChartOptions: any;
 
+    public collectionChannelChartData: any;
+    public collectionChannelChartOptions: any;
+
     constructor() {
         this.initChartOptions();
 
         effect(() => {
             const dashboard = this.dashboardResponse();
+
             if (dashboard) {
                 this.initChartData(dashboard);
             }
         });
     }
 
-    private initChartData(dashboard: GetGeneratorOwnerDashboardResponse) {
+    private initChartData(dashboard: GetGeneratorOwnerDashboardResponse): void {
         const documentStyle = getComputedStyle(document.documentElement);
 
-        // Recent Activity Chart
         this.recentActivityChartData = {
             labels: ['New Subscribers', 'Bills Generated', 'Bills Paid'],
             datasets: [
@@ -53,69 +56,52 @@ export class DashboardComponent {
                     label: 'Last 7 Days Activity',
                     backgroundColor: documentStyle.getPropertyValue('--color-blue-500').trim(),
                     borderColor: documentStyle.getPropertyValue('--color-blue-500').trim(),
-                    data: [
-                        dashboard.recentActivity.newSubscribersLast7Days,
-                        dashboard.recentActivity.billsGeneratedLast7Days,
-                        dashboard.recentActivity.billsPaidLast7Days
-                    ]
+                    data: [dashboard.recentActivity.newSubscribersLast7Days, dashboard.recentActivity.billsGeneratedLast7Days, dashboard.recentActivity.billsPaidLast7Days]
                 }
             ]
         };
 
-        // Bills Status Chart
         this.billsChartData = {
             labels: ['Pending', 'Paid', 'Overdue'],
             datasets: [
                 {
-                    data: [
-                        dashboard.bills.pending,
-                        dashboard.bills.paid,
-                        dashboard.bills.overdue
-                    ],
-                    backgroundColor: [
-                        documentStyle.getPropertyValue('--color-yellow-500').trim(),
-                        documentStyle.getPropertyValue('--color-green-500').trim(),
-                        documentStyle.getPropertyValue('--color-red-500').trim()
-                    ],
-                    hoverBackgroundColor: [
-                        documentStyle.getPropertyValue('--color-yellow-400').trim(),
-                        documentStyle.getPropertyValue('--color-green-400').trim(),
-                        documentStyle.getPropertyValue('--color-red-400').trim()
-                    ]
+                    data: [dashboard.bills.pending, dashboard.bills.paid, dashboard.bills.overdue],
+                    backgroundColor: [documentStyle.getPropertyValue('--color-yellow-500').trim(), documentStyle.getPropertyValue('--color-green-500').trim(), documentStyle.getPropertyValue('--color-red-500').trim()],
+                    hoverBackgroundColor: [documentStyle.getPropertyValue('--color-yellow-400').trim(), documentStyle.getPropertyValue('--color-green-400').trim(), documentStyle.getPropertyValue('--color-red-400').trim()]
                 }
             ]
         };
 
-        // Revenue Comparison Chart
         this.revenueChartData = {
             labels: ['Last Month', 'This Month'],
             datasets: [
                 {
                     label: 'Revenue',
-                    data: [
-                        dashboard.bills.lastMonth.revenue,
-                        dashboard.bills.thisMonth.revenue
-                    ],
-                    backgroundColor: [
-                        documentStyle.getPropertyValue('--color-gray-500').trim(),
-                        documentStyle.getPropertyValue('--color-primary-500').trim()
-                    ],
-                    borderColor: [
-                        documentStyle.getPropertyValue('--color-gray-500').trim(),
-                        documentStyle.getPropertyValue('--color-primary-500').trim()
-                    ],
+                    data: [dashboard.bills.lastMonth.revenue, dashboard.bills.thisMonth.revenue],
+                    backgroundColor: [documentStyle.getPropertyValue('--color-gray-500').trim(), documentStyle.getPropertyValue('--color-primary-500').trim()],
+                    borderColor: [documentStyle.getPropertyValue('--color-gray-500').trim(), documentStyle.getPropertyValue('--color-primary-500').trim()],
                     borderWidth: 1
+                }
+            ]
+        };
+
+        this.collectionChannelChartData = {
+            labels: ['GO Direct', 'Via Bill Collectors'],
+            datasets: [
+                {
+                    data: [dashboard.collectionChannelSplit.collectedByGoDirectUsd, dashboard.collectionChannelSplit.collectedViaBcUsd],
+                    backgroundColor: [documentStyle.getPropertyValue('--color-primary-500').trim(), documentStyle.getPropertyValue('--color-blue-500').trim()],
+                    hoverBackgroundColor: [documentStyle.getPropertyValue('--color-primary-400').trim(), documentStyle.getPropertyValue('--color-blue-400').trim()]
                 }
             ]
         };
     }
 
-    private initChartOptions() {
+    private initChartOptions(): void {
         const documentStyle = getComputedStyle(document.documentElement);
         const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary').trim();
         const surfaceBorder = documentStyle.getPropertyValue('--surface-border').trim();
 
-        // Common Options
         const commonOptions = {
             maintainAspectRatio: false,
             aspectRatio: 0.8,
@@ -151,10 +137,7 @@ export class DashboardComponent {
             }
         };
 
-        this.recentActivityChartOptions = commonOptions;
-        this.revenueChartOptions = commonOptions;
-
-        this.billsChartOptions = {
+        const doughnutOptions = {
             maintainAspectRatio: false,
             aspectRatio: 0.8,
             plugins: {
@@ -165,5 +148,11 @@ export class DashboardComponent {
                 }
             }
         };
+
+        this.recentActivityChartOptions = commonOptions;
+        this.revenueChartOptions = commonOptions;
+
+        this.billsChartOptions = doughnutOptions;
+        this.collectionChannelChartOptions = doughnutOptions;
     }
 }

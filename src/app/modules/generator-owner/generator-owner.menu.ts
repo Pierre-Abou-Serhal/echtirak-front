@@ -9,6 +9,7 @@ export const GENERATOR_OWNER_MENU: MenuItem[] = [
             { label: 'Subscriber Addresses', icon: 'pi pi-address-book', routerLink: ['/app/generator-owner/subscriber-addresses'], badge: undefined },
             { label: 'Generators', icon: 'pi pi-bolt', routerLink: ['/app/generator-owner/generators'], badge: undefined },
             { label: 'Bill Collectors', icon: 'pi pi-user-edit', routerLink: ['/app/generator-owner/bill-collectors'], badge: undefined },
+            { label: 'Bill Collections', icon: 'pi pi-list-check', routerLink: ['/app/generator-owner/bill-collections'], badge: undefined },
             { label: 'KWH Readings', icon: 'pi pi-book', routerLink: ['/app/generator-owner/kva-reading-history'], badge: undefined },
             { label: 'SMS Templates', icon: 'pi pi-envelope', routerLink: ['/app/generator-owner/sms-templates'], badge: undefined },
             { label: 'SMS Campaigns', icon: 'pi pi-send', routerLink: ['/app/generator-owner/sms-campaigns'], badge: undefined },

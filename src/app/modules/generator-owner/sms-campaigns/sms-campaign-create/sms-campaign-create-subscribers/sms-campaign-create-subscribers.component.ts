@@ -85,7 +85,7 @@ export class SmsCampaignCreateSubscribersComponent implements OnInit {
     // Preview
     showTemplatePreviewDialog = false;
     previewTemplate: SmsTemplate | null = null;
-    previewLang: 'en' | 'ar' = 'en';
+    previewLang: string = 'en';
 
     // Wallet forecast
     isCreatingSmsCampaign = false;

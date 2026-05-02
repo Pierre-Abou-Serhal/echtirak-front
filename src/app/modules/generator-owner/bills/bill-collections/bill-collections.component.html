@@ -1,0 +1,501 @@
+<p-confirmDialog></p-confirmDialog>
+
+<h1 class="text-3xl font-bold mb-4">Bill Collections</h1>
+
+<div class="card">
+    <div class="flex flex-col gap-4">
+
+        <!-- Filters -->
+        <div class="rounded-2xl border border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2">
+                        Bill Reference
+                    </label>
+
+                    <p-inputNumber
+                        [(ngModel)]="billId"
+                        inputId="billId"
+                        placeholder="Search by bill Reference"
+                        [useGrouping]="false"
+                        class="w-full"
+                        inputStyleClass="w-full"
+                    ></p-inputNumber>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2">
+                        Bill Collector
+                    </label>
+
+                    <p-select
+                        [(ngModel)]="selectedBillCollectorId"
+                        [options]="billCollectors"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="All collectors"
+                        [showClear]="true"
+                        [loading]="isBillCollectorsLoading"
+                        class="w-full"
+                    ></p-select>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2">
+                        Collection Status
+                    </label>
+
+                    <p-select
+                        [(ngModel)]="selectedCollectionStatus"
+                        [options]="collectionStatuses"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="All statuses"
+                        [showClear]="true"
+                        [loading]="isCollectionStatusesLoading"
+                        class="w-full"
+                    ></p-select>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2">
+                        Record Status
+                    </label>
+
+                    <p-select
+                        [(ngModel)]="selectedRecordStatus"
+                        [options]="recordStatuses"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="All record statuses"
+                        [showClear]="true"
+                        [loading]="isRecordStatusesLoading"
+                        class="w-full"
+                    ></p-select>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2">
+                        Created From
+                    </label>
+
+                    <p-datepicker
+                        [(ngModel)]="createdFrom"
+                        dateFormat="yy-mm-dd"
+                        placeholder="Created From"
+                        [showIcon]="true"
+                        [maxDate]="createdTo || undefined"
+                        appendTo="body"
+                        class="w-full"
+                        inputStyleClass="w-full"
+                    ></p-datepicker>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="block text-sm font-semibold mb-2">
+                        Created To
+                    </label>
+
+                    <p-datepicker
+                        [(ngModel)]="createdTo"
+                        dateFormat="yy-mm-dd"
+                        placeholder="Created To"
+                        [showIcon]="true"
+                        [minDate]="createdFrom || undefined"
+                        appendTo="body"
+                        class="w-full"
+                        inputStyleClass="w-full"
+                    ></p-datepicker>
+                </div>
+            </div>
+
+            @if (dateRangeInvalid()) {
+                <small class="block text-red-500 mt-3">
+                    Created From cannot be after Created To.
+                </small>
+            }
+
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 mt-4">
+                <div class="flex flex-wrap gap-2 justify-end">
+                    <p-button
+                        label="Apply"
+                        icon="pi pi-filter"
+                        [loading]="loading"
+                        [disabled]="dateRangeInvalid()"
+                        (click)="applyFilters()"
+                    ></p-button>
+
+                    <p-button
+                        label="Reset"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        text
+                        [disabled]="loading || !hasActiveFilters"
+                        (click)="resetFilters()"
+                    ></p-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="rounded-2xl border border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 p-4">
+                <div class="text-sm text-color-secondary">Total Collections</div>
+                <div class="text-2xl font-bold mt-1">{{ summary.collectionsCount }}</div>
+                <div class="text-sm font-semibold text-primary mt-1">
+                    {{ summary.collectionsAmount | currency:'USD':'symbol':'1.0-4' }}
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 p-4">
+                <div class="text-sm text-color-secondary">Pending GO Approval</div>
+                <div class="text-2xl font-bold mt-1 text-blue-500">{{ summary.pendingApprovalCount }}</div>
+                <div class="text-sm font-semibold text-blue-500 mt-1">
+                    {{ summary.pendingApprovalAmount | currency:'USD':'symbol':'1.0-4' }}
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 p-4">
+                <div class="text-sm text-color-secondary">Approved</div>
+                <div class="text-2xl font-bold mt-1 text-green-500">{{ summary.approvedCount }}</div>
+                <div class="text-sm font-semibold text-green-500 mt-1">
+                    {{ summary.approvedAmount | currency:'USD':'symbol':'1.0-4' }}
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 p-4">
+                <div class="text-sm text-color-secondary">Rejected</div>
+                <div class="text-2xl font-bold mt-1 text-red-500">{{ summary.rejectedCount }}</div>
+                <div class="text-sm font-semibold text-red-500 mt-1">
+                    {{ summary.rejectedAmount | currency:'USD':'symbol':'1.0-4' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill Collector Stats -->
+        <div class="rounded-2xl border border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 p-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                <div>
+                    <div class="text-lg font-semibold">
+                        Bill Collector Stats
+                    </div>
+
+                    <div class="text-sm text-color-secondary">
+                        Collection amount, approval status, and amount share by bill collector.
+                    </div>
+                </div>
+            </div>
+
+            <p-table
+                [value]="billCollectorGroups"
+                responsiveLayout="scroll"
+                rowHover
+                stripedRows
+                showGridlines
+            >
+                <ng-template #header>
+                    <tr>
+                        <th class="whitespace-nowrap">Bill Collector</th>
+                        <th class="whitespace-nowrap">Total</th>
+                        <th class="whitespace-nowrap">Pending Approval</th>
+                        <th class="whitespace-nowrap">Approved</th>
+                        <th class="whitespace-nowrap">Rejected</th>
+                        <th class="whitespace-nowrap">Share</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template #body let-group>
+                    <tr>
+                        <td>
+                            <div class="font-semibold whitespace-nowrap">
+                                {{ group.billCollectorName || '—' }}
+                            </div>
+
+                            <div class="text-xs text-color-secondary whitespace-nowrap">
+                                ID: {{ group.billCollectorId }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="font-semibold">
+                                {{ group.bcStats.collectionsCount }}
+                            </div>
+
+                            <div class="text-xs text-color-secondary whitespace-nowrap">
+                                {{ group.bcStats.collectionsAmount | currency:'USD':'symbol':'1.0-4' }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="font-semibold text-blue-500">
+                                {{ group.bcStats.pendingApprovalCount }}
+                            </div>
+
+                            <div class="text-xs text-blue-500 whitespace-nowrap">
+                                {{ group.bcStats.pendingApprovalAmount | currency:'USD':'symbol':'1.0-4' }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="font-semibold text-green-500">
+                                {{ group.bcStats.approvedCount }}
+                            </div>
+
+                            <div class="text-xs text-green-500 whitespace-nowrap">
+                                {{ group.bcStats.approvedAmount | currency:'USD':'symbol':'1.0-4' }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="font-semibold text-red-500">
+                                {{ group.bcStats.rejectedCount }}
+                            </div>
+
+                            <div class="text-xs text-red-500 whitespace-nowrap">
+                                {{ group.bcStats.rejectedAmount | currency:'USD':'symbol':'1.0-4' }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <p-tag
+                                severity="info"
+                                [value]="(group.bcStats.amountSharePct | number:'1.0-2') + '%'"
+                            ></p-tag>
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template #emptymessage>
+                    <tr>
+                        <td colspan="6">
+                            No bill collector statistics found.
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <!-- Bill Collections Table -->
+        <p-table
+            [value]="billCollections"
+            dataKey="id"
+            [lazy]="true"
+            [lazyLoadOnInit]="true"
+            [paginator]="true"
+            [rows]="rows"
+            [first]="first"
+            [totalRecords]="totalRecords"
+            [rowsPerPageOptions]="rowsPerPageOptions"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+            [loading]="loading"
+            responsiveLayout="scroll"
+            rowHover
+            showGridlines
+            stripedRows
+            [selection]="selectedCollections"
+            (selectionChange)="onSelectionChange($event)"
+            (onLazyLoad)="loadBillCollections($event)"
+        >
+            <ng-template #caption>
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="text-sm text-color-secondary">
+                            {{ selectedCollections.length }} selected.
+                            @if (approvableSelectedCollections.length > 0) {
+                                {{ approvableSelectedCollections.length }} pending GO approval.
+                            }
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <p-button
+                                label="Export"
+                                icon="pi pi-external-link"
+                                severity="secondary"
+                                outlined
+                                [disabled]="billCollections.length === 0"
+                                (click)="exportToCsv()"
+                            ></p-button>
+
+                            <p-button
+                                label="Clear Selection"
+                                icon="pi pi-filter-slash"
+                                severity="secondary"
+                                outlined
+                                [disabled]="selectedCollections.length === 0"
+                                (click)="clearSelection()"
+                            ></p-button>
+
+                            <p-button
+                                label="Approve"
+                                icon="pi pi-check"
+                                severity="success"
+                                [loading]="approving"
+                                [disabled]="!canApproveReject"
+                                (click)="approveSelected()"
+                            ></p-button>
+
+                            <p-button
+                                label="Reject"
+                                icon="pi pi-times"
+                                severity="danger"
+                                [loading]="rejecting"
+                                [disabled]="!canApproveReject"
+                                (click)="rejectSelected()"
+                            ></p-button>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 p-3">
+                        <div class="text-sm font-semibold mb-1">
+                            Total selected amount to collect
+                        </div>
+
+                        <div class="text-xs text-color-secondary mb-2">
+                            Only selected collections pending GO approval are counted.
+                        </div>
+
+                        @if (selectedAmountTotals.length > 0) {
+                            <div class="flex flex-wrap gap-2">
+                                @for (total of selectedAmountTotals; track total.currencyCode) {
+                                    <p-tag
+                                        severity="info"
+                                        [value]="(total.amount | number:'1.0-4') + ' ' + total.currencyCode"
+                                    ></p-tag>
+                                }
+                            </div>
+                        } @else {
+                            <div class="text-sm text-color-secondary">
+                                No eligible selected collections.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </ng-template>
+
+            <ng-template #header>
+                <tr>
+                    <th style="width: 4rem">
+                        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                    </th>
+
+                    <th class="no-wrap-text" pSortableColumn="id">
+                        <div class="flex justify-between items-center gap-2">
+                            Collection ID
+                            <p-sortIcon field="id"></p-sortIcon>
+                        </div>
+                    </th>
+
+                    <th class="no-wrap-text" pSortableColumn="billId">
+                        <div class="flex justify-between items-center gap-2">
+                            Bill Reference
+                            <p-sortIcon field="billId"></p-sortIcon>
+                        </div>
+                    </th>
+
+                    <th class="no-wrap-text" pSortableColumn="billCollectorName">
+                        <div class="flex justify-between items-center gap-2">
+                            Collector
+                            <p-sortIcon field="billCollectorName"></p-sortIcon>
+                        </div>
+                    </th>
+
+                    <th class="no-wrap-text" pSortableColumn="amount">
+                        <div class="flex justify-between items-center gap-2">
+                            Amount
+                            <p-sortIcon field="amount"></p-sortIcon>
+                        </div>
+                    </th>
+
+                    <th class="no-wrap-text" pSortableColumn="statusCode">
+                        <div class="flex justify-between items-center gap-2">
+                            Record Status
+                            <p-sortIcon field="statusCode"></p-sortIcon>
+                        </div>
+                    </th>
+
+                    <th class="no-wrap-text" pSortableColumn="collectionStatus">
+                        <div class="flex justify-between items-center gap-2">
+                            Collection Status
+                            <p-sortIcon field="collectionStatus"></p-sortIcon>
+                        </div>
+                    </th>
+
+                    <th class="no-wrap-text" pSortableColumn="createdAt">
+                        <div class="flex justify-between items-center gap-2">
+                            Created At
+                            <p-sortIcon field="createdAt"></p-sortIcon>
+                        </div>
+                    </th>
+                </tr>
+            </ng-template>
+
+            <ng-template #body let-collection>
+                <tr [pSelectableRow]="collection">
+                    <td>
+                        <p-tableCheckbox [value]="collection"></p-tableCheckbox>
+                    </td>
+
+                    <td class="whitespace-nowrap">
+                        #{{ collection.id }}
+                    </td>
+
+                    <td class="whitespace-nowrap">
+                        #{{ collection.billId }}
+                    </td>
+
+                    <td>
+                        <div class="font-semibold whitespace-nowrap">
+                            {{ collection.billCollectorName || '—' }}
+                        </div>
+
+                        <div class="text-xs text-color-secondary whitespace-nowrap">
+                            User ID: {{ collection.billCollectorUserId }}
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="font-semibold whitespace-nowrap">
+                            {{ collection.amount | number:'1.0-4' }}
+                            {{ collection.currencyCode }}
+                        </div>
+                    </td>
+
+                    <td>
+                        <p-tag
+                            [value]="collection.statusCode"
+                            [severity]="getRecordSeverity(collection.statusCode)"
+                        ></p-tag>
+                    </td>
+
+                    <td>
+                        <p-tag
+                            [value]="collection.collectionStatus"
+                            [severity]="getCollectionSeverity(collection.collectionStatus)"
+                        ></p-tag>
+                    </td>
+
+                    <td class="whitespace-nowrap">
+                        {{ collection.createdAt | date:'yyyy-MM-dd HH:mm:ss' }}
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template #emptymessage>
+                <tr>
+                    <td colspan="8">
+                        No bill collections found.
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template #loadingbody>
+                <tr>
+                    <td colspan="8">
+                        Loading bill collections. Please wait.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

@@ -16,6 +16,7 @@ import { LbPhonePipe } from '@/core/pipes/pipes';
 import { provideNgxMask } from 'ngx-mask';
 import { Panel } from 'primeng/panel';
 import { PrimeTemplate } from 'primeng/api';
+import { formatSubscriberAddress } from '@/core/utils/utils';
 
 @Component({
     selector: 'app-add-kva-reading.component',
@@ -29,7 +30,7 @@ export class AddKvaReadingComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
-    private location = inject(Location);
+    private readonly location = inject(Location);
 
     private readonly billCollectorService = inject(BillCollectorService);
     private readonly notificationService = inject(NotificationService);
@@ -43,9 +44,10 @@ export class AddKvaReadingComponent implements OnInit {
 
     submitted = false;
     saving = false;
+    compressingImage = false;
 
     subscriber?: Subscriber;
-    isSubscriberDataLoading: boolean = true;
+    isSubscriberDataLoading = true;
     subscriberPanelCollapsed = true;
 
     async ngOnInit(): Promise<void> {
@@ -53,11 +55,10 @@ export class AddKvaReadingComponent implements OnInit {
         this.subscriberId = Number(idParam);
 
         if (!Number.isFinite(this.subscriberId) || this.subscriberId <= 0) {
-            // fallback if route param is wrong
             this.goBack();
+            return;
         }
 
-        // Call API to get subscriber info by id
         try {
             const res: GetSubscribersResponse = await firstValueFrom(
                 this.billCollectorService.getSubs({
@@ -67,7 +68,6 @@ export class AddKvaReadingComponent implements OnInit {
                 })
             );
 
-            // Subscriber ID matched QR Code ID
             const items = res?.page?.items ?? [];
 
             if (!items || items.length === 0) {
@@ -84,26 +84,170 @@ export class AddKvaReadingComponent implements OnInit {
         }
     }
 
-    onFileSelected(event: Event) {
+    async onFileSelected(event: Event): Promise<void> {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0];
 
         if (!file) return;
 
-        // basic guard (optional)
         if (!file.type.startsWith('image/')) {
             this.notificationService.error('Invalid file', 'Please select an image.');
+            input.value = '';
             return;
         }
 
-        this.imageFile = file;
+        this.compressingImage = true;
 
-        // preview
-        if (this.imagePreviewUrl) URL.revokeObjectURL(this.imagePreviewUrl);
-        this.imagePreviewUrl = URL.createObjectURL(file);
+        try {
+            const compressedFile = await this.compressImageToTargetSize(file, 400);
+
+            this.imageFile = compressedFile;
+
+            if (this.imagePreviewUrl) {
+                URL.revokeObjectURL(this.imagePreviewUrl);
+            }
+
+            this.imagePreviewUrl = URL.createObjectURL(compressedFile);
+        } catch (error) {
+            this.notificationService.error('Compression Failed', 'Failed to compress the image. Please try another image.');
+
+            input.value = '';
+            this.imageFile = null;
+
+            if (this.imagePreviewUrl) {
+                URL.revokeObjectURL(this.imagePreviewUrl);
+                this.imagePreviewUrl = null;
+            }
+
+        } finally {
+            this.compressingImage = false;
+        }
     }
 
-    clearImage() {
+    private async compressImageToTargetSize(file: File, targetSizeKb = 400): Promise<File> {
+        const attempts = [
+            { maxWidth: 1200, maxHeight: 1200, quality: 0.7 },
+            { maxWidth: 1000, maxHeight: 1000, quality: 0.65 },
+            { maxWidth: 900, maxHeight: 900, quality: 0.6 },
+            { maxWidth: 800, maxHeight: 800, quality: 0.55 },
+            { maxWidth: 700, maxHeight: 700, quality: 0.5 },
+            { maxWidth: 600, maxHeight: 600, quality: 0.45 }
+        ];
+
+        let bestFile = file;
+
+        for (const attempt of attempts) {
+            const compressed = await this.compressImage(file, {
+                maxWidth: attempt.maxWidth,
+                maxHeight: attempt.maxHeight,
+                quality: attempt.quality,
+                outputType: 'image/jpeg'
+            });
+
+            bestFile = compressed;
+
+            const sizeKb = compressed.size / 1024;
+
+            if (sizeKb <= targetSizeKb) {
+                return compressed;
+            }
+        }
+
+        return bestFile;
+    }
+
+    private compressImage(
+        file: File,
+        options: {
+            maxWidth: number;
+            maxHeight: number;
+            quality: number;
+            outputType: 'image/jpeg' | 'image/webp';
+        }
+    ): Promise<File> {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            const objectUrl = URL.createObjectURL(file);
+
+            image.onload = () => {
+                URL.revokeObjectURL(objectUrl);
+
+                const { width, height } = this.calculateImageSize(image.width, image.height, options.maxWidth, options.maxHeight);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+
+                if (!ctx) {
+                    reject(new Error('Could not create canvas context.'));
+                    return;
+                }
+
+                if (options.outputType === 'image/jpeg') {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                }
+
+                ctx.drawImage(image, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) {
+                            reject(new Error('Image compression failed.'));
+                            return;
+                        }
+
+                        const extension = options.outputType === 'image/webp' ? 'webp' : 'jpg';
+                        const fileName = this.replaceFileExtension(file.name, extension);
+
+                        const compressedFile = new File([blob], fileName, {
+                            type: options.outputType,
+                            lastModified: Date.now()
+                        });
+
+                        resolve(compressedFile);
+                    },
+                    options.outputType,
+                    options.quality
+                );
+            };
+
+            image.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                reject(new Error('Could not load image.'));
+            };
+
+            image.src = objectUrl;
+        });
+    }
+
+    private calculateImageSize(originalWidth: number, originalHeight: number, maxWidth: number, maxHeight: number): { width: number; height: number } {
+        let width = originalWidth;
+        let height = originalHeight;
+
+        if (width <= maxWidth && height <= maxHeight) {
+            return { width, height };
+        }
+
+        const widthRatio = maxWidth / width;
+        const heightRatio = maxHeight / height;
+        const ratio = Math.min(widthRatio, heightRatio);
+
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+
+        return { width, height };
+    }
+
+    private replaceFileExtension(fileName: string, extension: string): string {
+        const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, '');
+
+        return `${nameWithoutExtension}.${extension}`;
+    }
+
+    clearImage(): void {
         this.imageFile = null;
 
         if (this.imagePreviewUrl) {
@@ -113,7 +257,6 @@ export class AddKvaReadingComponent implements OnInit {
     }
 
     isKvaReadingValid(): boolean {
-        // allow 0 if you want; if not, use > 0
         return this.kvaReading !== null && this.kvaReading !== undefined && this.kvaReading >= (this.subscriber?.currentKva ?? 0);
     }
 
@@ -121,9 +264,10 @@ export class AddKvaReadingComponent implements OnInit {
         return this.isKvaReadingValid() && !!this.imageFile;
     }
 
-    submit() {
+    submit(): void {
         this.submitted = true;
-        if (!this.isFormValid() || this.saving) return;
+
+        if (!this.isFormValid() || this.saving || this.compressingImage) return;
 
         this.saving = true;
 
@@ -136,13 +280,15 @@ export class AddKvaReadingComponent implements OnInit {
                 imageFile: this.imageFile!
             })
             .pipe(
-                finalize(() => (this.saving = false)),
+                finalize(() => {
+                    this.saving = false;
+                }),
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe({
                 next: () => {
-                    this.notificationService.success('Success', 'KVA reading submitted.');
-                    this.goBack(); // go back after success
+                    this.notificationService.success('Success', 'KWH reading submitted.');
+                    this.goBack();
                 },
                 error: (err) => {
                     console.error(err);
@@ -150,8 +296,9 @@ export class AddKvaReadingComponent implements OnInit {
             });
     }
 
-    goBack() {
+    goBack(): void {
         const before = window.history.length;
+
         this.location.back();
 
         setTimeout(() => {
@@ -160,4 +307,6 @@ export class AddKvaReadingComponent implements OnInit {
             }
         }, 0);
     }
+
+    protected readonly formatSubscriberAddress = formatSubscriberAddress;
 }

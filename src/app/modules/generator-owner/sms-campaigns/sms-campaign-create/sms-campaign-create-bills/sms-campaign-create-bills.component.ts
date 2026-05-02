@@ -61,7 +61,7 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
     // Preview SMS Template variables
     showTemplatePreviewDialog = false;
     previewTemplate: SmsTemplate | null = null;
-    previewLang: 'en' | 'ar' = 'en';
+    previewLang: string = 'en';
 
     // Wallet Forecast variables
     displayWarning: boolean = false;

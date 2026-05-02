@@ -53,12 +53,57 @@ export interface DashboardConsumption {
     totalKva: number;
     averageKvaPerSubscriber: number;
     totalKvaThisMonth: number;
+    totalKwFixed: number;
+    totalKwMetered: number;
+    totalKwCombined: number;
+    totalCostUsd: number;
+}
+
+export interface DashboardAccounting {
+    invoicedUsd: number;
+    collectedUsd: number;
+    outstandingUsd: number;
+    overdueUsd: number;
 }
 
 export interface DashboardRecentActivity {
     newSubscribersLast7Days: number;
     billsGeneratedLast7Days: number;
     billsPaidLast7Days: number;
+}
+
+export interface DashboardCollectionsSummary {
+    pendingWithBcUsd: number;
+    pendingWithBcBillsCount: number;
+    approvedTodayUsd: number;
+    approvedTodayBillsCount: number;
+}
+
+export interface DashboardBillCollectorBreakdown {
+    billCollectorUserId: number;
+    billCollectorName: string;
+    pendingBillsCount: number;
+    pendingAmountUsd: number;
+    oldestPendingAt: string;
+    approvedThisWeekAmountUsd: number;
+    approvedThisWeekBillsCount: number;
+}
+
+export interface DashboardCollectionChannelSplit {
+    collectedByGoDirectUsd: number;
+    collectedViaBcUsd: number;
+    collectedByGoDirectPct: number;
+    collectedViaBcPct: number;
+}
+
+export interface DashboardTopDebtor {
+    subscriberId: number;
+    subscriberName: string;
+    phoneNumber: string;
+    outstandingUsd: number;
+    pendingBillsCount: number;
+    overdueBillsCount: number;
+    lastDueDate: string;
 }
 
 export interface DashboardWallet {
@@ -71,6 +116,18 @@ export interface DashboardWallet {
     daysUntilNextBilling: number;
     nextBillingDate: string;
     warningMessage: string;
+
+    fixedPlatformFeeMonthly: number;
+    pricePerSubscriberMonthly: number;
+    pricePerSms: number;
+    isYearlyPayment: boolean;
+    yearlyDiscountFixedFee: number;
+    yearlyDiscountPerSubscriber: number;
+    yearlyDiscountPerSms: number;
+    freeTrialMonths: number;
+    freeTrialEnabled: boolean;
+    billingCycleDays: number;
+    billingStartDate: string;
 }
 
 export interface DashboardWalletStatistics {

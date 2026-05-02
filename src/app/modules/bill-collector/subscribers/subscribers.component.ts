@@ -1,5 +1,6 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { QrScannerComponent } from '@/modules/bill-collector/qr-scanner/qr-scanner.component';
+import { DecimalPipe } from '@angular/common';
+import { BarcodeScannedEvent, QrScannerComponent } from '@/modules/bill-collector/qr-scanner/qr-scanner.component';
 import { BillCollectorService } from '@/core/services/bill-collector.service';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
@@ -19,10 +20,11 @@ import { NotificationService } from '@/core/services/notification.service';
 import { GetSubscribersResponse } from '@/core/services/api/response';
 import { LbPhonePipe } from '@/core/pipes/pipes';
 import { provideNgxMask } from 'ngx-mask';
+import { formatSubscriberAddress } from '@/core/utils/utils';
 
 @Component({
     selector: 'app-subscribers.component',
-    imports: [IconField, InputIcon, Skeleton, DataView, Tag, FormsModule, InputText, Button, QrScannerComponent, Dialog, LbPhonePipe],
+    imports: [IconField, InputIcon, Skeleton, DataView, Tag, FormsModule, InputText, Button, QrScannerComponent, Dialog, LbPhonePipe, DecimalPipe],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
     standalone: true,
@@ -41,7 +43,6 @@ export class SubscribersComponent implements OnInit {
     keyword = '';
     private search$ = new Subject<string>();
 
-    // paging
     private pageNumber = 1;
     private readonly pageSize = 20;
     hasMore = true;
@@ -49,8 +50,10 @@ export class SubscribersComponent implements OnInit {
     loading = false;
     loadingMore = false;
 
-    // Qr Code vars
+    skeletonItems = [1, 2, 3];
+
     isQrDialogOpen = false;
+    scanningBillBarcode = false;
 
     ngOnInit(): void {
         this.search$
@@ -67,7 +70,6 @@ export class SubscribersComponent implements OnInit {
             )
             .subscribe();
 
-        // initial load
         this.search$.next('');
     }
 
@@ -82,8 +84,13 @@ export class SubscribersComponent implements OnInit {
 
     private fetchFirstPage() {
         this.pageNumber = 1;
+
         this.billCollectorService
-            .getSubs({ pageNumber: this.pageNumber, pageSize: this.pageSize, keyword: this.keyword || undefined })
+            .getSubs({
+                pageNumber: this.pageNumber,
+                pageSize: this.pageSize,
+                keyword: this.keyword || undefined
+            })
             .pipe(finalize(() => (this.loading = false)))
             .subscribe({
                 next: (res) => {
@@ -91,7 +98,7 @@ export class SubscribersComponent implements OnInit {
                     const items = page?.items ?? [];
 
                     this.subs = items;
-                    this.hasMore = !!page?.hasNext; // or compute using totalCount if your API uses that
+                    this.hasMore = !!page?.hasNext;
                 },
                 error: () => {
                     this.subs = [];
@@ -105,7 +112,11 @@ export class SubscribersComponent implements OnInit {
         const nextPage = this.pageNumber + 1;
 
         this.billCollectorService
-            .getSubs({ pageNumber: nextPage, pageSize: this.pageSize, keyword: this.keyword || undefined })
+            .getSubs({
+                pageNumber: nextPage,
+                pageSize: this.pageSize,
+                keyword: this.keyword || undefined
+            })
             .pipe(finalize(() => (this.loadingMore = false)))
             .subscribe({
                 next: (res) => {
@@ -145,15 +156,15 @@ export class SubscribersComponent implements OnInit {
         this.router.navigate(['add-kva-reading', subscriberId], { relativeTo: this.route });
     }
 
-    // Qr Code functions
     openQr() {
         this.isQrDialogOpen = true;
     }
+
     closeQr() {
         this.isQrDialogOpen = false;
     }
 
-    onQrScanned(value: string) {
+    async onQrScanned(value: string): Promise<void> {
         this.isQrDialogOpen = false;
 
         const id = this.extractSubscriberIdFromQr(value);
@@ -163,7 +174,9 @@ export class SubscribersComponent implements OnInit {
             return;
         }
 
-        if (!this.isParsedSubIdValid(id)) {
+        const isValid = await this.isParsedSubIdValid(id);
+
+        if (!isValid) {
             this.notificationService.warn('Failure', 'Something went wrong reading the QR code. Try to search for subscriber manually.');
             return;
         }
@@ -171,19 +184,58 @@ export class SubscribersComponent implements OnInit {
         this.router.navigate(['add-kva-reading', id], { relativeTo: this.route });
     }
 
+    onBarcodeScanned(event: BarcodeScannedEvent): void {
+        if (this.scanningBillBarcode) return;
+
+        const readBarcode: string = event.value;
+        const billId = Number(readBarcode.replace('BILL-', ''));
+
+        if (!Number.isInteger(billId) || billId <= 0) {
+            this.isQrDialogOpen = false;
+
+            this.notificationService.warn('Failure', 'Invalid bill barcode. Try to search for the bill manually.');
+
+            return;
+        }
+
+        this.scanningBillBarcode = true;
+
+        this.billCollectorService
+            .ScanBillBarcode({
+                billId
+            })
+            .pipe(finalize(() => (this.scanningBillBarcode = false)))
+            .subscribe({
+                next: (res) => {
+                    this.isQrDialogOpen = false;
+
+                    const collection = res?.item;
+
+                    this.notificationService.success('Bill Collected', collection ? `Bill #${collection.billId} was collected successfully. Amount: ${collection.amount} ${collection.currencyCode}.` : 'Bill was collected successfully.');
+                },
+                error: (err) => {
+                    console.error(err);
+
+                    this.isQrDialogOpen = false;
+
+                    this.notificationService.warn('Failure', 'Failed to collect bill. Please try again or search manually.');
+                }
+            });
+    }
+
     private extractSubscriberIdFromQr(qr: string): number | null {
         try {
-            const url = new URL(qr.trim()); // works for http/https
+            const url = new URL(qr.trim());
             const segments = url.pathname.split('/').filter(Boolean);
             const last = segments.at(-1);
             const id = Number(last);
 
             return Number.isFinite(id) && id > 0 ? id : null;
         } catch {
-            // fallback if the QR is not a valid absolute URL (rare in your case)
             const s = qr.trim().replace(/\/+$/, '');
             const last = s.split('/').at(-1);
             const id = Number(last);
+
             return Number.isFinite(id) && id > 0 ? id : null;
         }
     }
@@ -198,7 +250,6 @@ export class SubscribersComponent implements OnInit {
                 })
             );
 
-            // Subscriber ID matched QR Code ID
             const items = res?.page?.items ?? [];
             return items.length === 1 && items[0].id === parsedSubId;
         } catch (error) {
@@ -206,4 +257,6 @@ export class SubscribersComponent implements OnInit {
             return false;
         }
     }
+
+    protected readonly formatSubscriberAddress = formatSubscriberAddress;
 }

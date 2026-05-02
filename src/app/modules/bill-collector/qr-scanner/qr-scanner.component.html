@@ -21,7 +21,7 @@
         [autofocusEnabled]="true"
         [formats]="allowedFormats"
         [device]="currentDevice"
-        (scanSuccess)="onScanSuccess($event)"
+        (scanComplete)="onScanComplete($event)"
         (camerasFound)="onCamerasFound($event)"
         (permissionResponse)="onPermissionResponse($event)"
     ></zxing-scanner>
@@ -47,15 +47,15 @@
             icon="pi pi-refresh"
             severity="secondary"
             class="flex-1"
-            [disabled]="!qrResult"
+            [disabled]="!scanResult"
             (click)="clearResult()"
         ></p-button>
     </div>
 
-    @if(qrResult) {
+    @if(scanResult) {
         <div class="result text-sm">
             <div class="font-semibold mb-1">Scanned:</div>
-            <code>{{ qrResult }}</code>
+            <code>{{ scanResult }}</code>
         </div>
     }
 </div>

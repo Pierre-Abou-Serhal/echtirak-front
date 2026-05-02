@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { Select } from 'primeng/select';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { Bill, Generator } from '@/core/models/model';
@@ -33,6 +33,9 @@ export class BillGenerationComponent implements OnInit {
     activeTab: string = '0';
     acceptBills$ = new Subject<void>();
 
+    @ViewChild('billsPreviewSection')
+    private billsPreviewSection?: ElementRef<HTMLElement>;
+
     ngOnInit(): void {
         // Fetch generators drop down items
         this.generatorOwnerService.getGenerators().subscribe({
@@ -55,9 +58,23 @@ export class BillGenerationComponent implements OnInit {
     // Listens to the output to any child component outputting a bill list
     generateBills(bills: Bill[]) {
         this.billsPreview = bills;
+        const noDuplicatedBills: Bill[] = this.billsPreview.filter((bill: Bill) => !bill.hasDuplicateBill);
+
+        if (noDuplicatedBills.length > 0) {
+            this.scrollToBillsPreview();
+        }
     }
 
     billAcceptedSuccess() {
         this.acceptBills$.next();
+    }
+
+    private scrollToBillsPreview(): void {
+        setTimeout(() => {
+            this.billsPreviewSection?.nativeElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
     }
 }

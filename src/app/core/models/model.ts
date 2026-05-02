@@ -69,10 +69,11 @@ export interface GeneratorOwnerProfile {
 
 export interface BillCollectorProfile {
     id: number;
-    username: string,
-    firstName: string,
-    lastName: string,
-    phoneNumber: string
+    userId?: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
 }
 
 export interface SmsTemplate {
@@ -97,6 +98,7 @@ export interface SubscriptionBillingModel {
     subscriptionAmps: number;
     amountFixed: number;
     amountPerKva: number;
+    name: string;
 }
 
 export interface Lookup {
@@ -334,4 +336,16 @@ export interface ExtraFee {
     amountLBP?: string;
     isActive?: boolean;
     createdAt?: string;
+}
+
+export interface BillCollection {
+    id: number;
+    billId: number;
+    billCollectorUserId: number;
+    billCollectorName: string;
+    amount: number;
+    currencyCode: string;
+    statusCode: string;
+    collectionStatus: string;
+    createdAt: string;
 }

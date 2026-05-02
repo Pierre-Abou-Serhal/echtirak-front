@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { NotificationService } from '@/core/services/notification.service';
 import { Bill, Generator, Subscriber } from '@/core/models/model';
@@ -68,6 +68,9 @@ export class CustomBillGenerationComponent implements OnInit {
     expandedRows: Record<string, boolean> = {};
 
     billPeriod: Date | null = null;
+
+    @ViewChild('billsPreviewSection')
+    private billsPreviewSection?: ElementRef<HTMLElement>;
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -304,6 +307,12 @@ export class CustomBillGenerationComponent implements OnInit {
                         id: index + 1
                     }));
                     this.isGeneratingBills = false;
+
+                    const noDuplicatedBills: Bill[] = this.billsPreview.filter((bill: Bill) => !bill.hasDuplicateBill);
+
+                    if (noDuplicatedBills.length > 0) {
+                        this.scrollToBillsPreview();
+                    }
                 },
                 error: (err) => {
                     console.log(err);
@@ -330,6 +339,15 @@ export class CustomBillGenerationComponent implements OnInit {
 
     collapseAll() {
         this.expandedRows = {};
+    }
+
+    private scrollToBillsPreview(): void {
+        setTimeout(() => {
+            this.billsPreviewSection?.nativeElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
     }
 
     protected readonly formatSubscriberAddress = formatSubscriberAddress;

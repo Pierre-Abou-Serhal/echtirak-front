@@ -37,7 +37,9 @@
     </p-tabs>
 </div>
 
-<app-bills-preview-component
-    [billsPreview]="billsPreview"
-    (billAcceptedSuccess)="billAcceptedSuccess()"
-></app-bills-preview-component>
+<div #billsPreviewSection class="scroll-mt-24">
+    <app-bills-preview-component
+        [billsPreview]="billsPreview"
+        (billAcceptedSuccess)="billAcceptedSuccess()"
+    ></app-bills-preview-component>
+</div>

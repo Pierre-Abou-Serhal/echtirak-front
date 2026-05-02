@@ -108,8 +108,7 @@
                     label="Generate"
                     severity="primary"
                     (click)="generateBills()"
-                    [loading]="isBillsGenerating"
-                    [disabled]="!billPeriod || selectedKvaReadings.length === 0"/>
+                    [loading]="isBillsGenerating"/>
             </div>
 
             <div class="flex flex-col">

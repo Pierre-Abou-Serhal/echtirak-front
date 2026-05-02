@@ -4,20 +4,24 @@ import { NotFoundComponent } from '@/static/not-found/not-found.component';
 import { anonymousOnlyGuard, roleMatchGuard } from '@/core/guards/guard';
 import { UserRole } from '@/core/enums/enum';
 import { AccessDeniedComponent } from '@/static/access-denied/access-denied.component';
-import {
-    GetBillsByCodeComponent
-} from '@/static/get-bills-by-code/get-bills-by-code.component/get-bills-by-code.component';
+import { GetBillsByCodeComponent } from '@/static/get-bills-by-code/get-bills-by-code.component/get-bills-by-code.component';
 import { LandingComponent } from '@/static/landing/landing.component';
 
 export const appRoutes: Routes = [
     {
         path: '',
-        component: LandingComponent
+        component: LandingComponent,
+        data: {
+            screenName: 'Landing'
+        }
     },
     {
         path: 'auth',
         loadChildren: () => import('./app/modules/auth/auth.routes'),
-        canMatch: [anonymousOnlyGuard]
+        canMatch: [anonymousOnlyGuard],
+        data: {
+            screenName: 'Authentication'
+        }
     },
     {
         path: 'app',
@@ -51,11 +55,23 @@ export const appRoutes: Routes = [
     },
     {
         path: 'gbc/:code',
-        component: GetBillsByCodeComponent
+        component: GetBillsByCodeComponent,
+        data: {
+            screenName: 'Get Bills By Code'
+        }
     },
     {
         path: 'access-denied',
-        component: AccessDeniedComponent
+        component: AccessDeniedComponent,
+        data: {
+            screenName: 'Access Denied'
+        }
     },
-    { path: '**', component: NotFoundComponent }
+    {
+        path: '**',
+        component: NotFoundComponent,
+        data: {
+            screenName: 'Not Found'
+        }
+    }
 ];

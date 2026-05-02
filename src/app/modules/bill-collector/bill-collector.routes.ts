@@ -4,6 +4,7 @@ import { BILL_COLLECTOR_MENU } from '@/modules/bill-collector/bill-collector.men
 import { BILL_COLLECTOR_PROFILE_MENU } from '@/modules/bill-collector/bill-collector-profile.menu';
 import { AddKvaReadingComponent } from '@/modules/bill-collector/subscribers/add-kva-reading/add-kva-reading.component';
 import { KvaReadingsComponent } from '@/modules/bill-collector/kva-readings/kva-readings.component';
+import { BillCollectionsComponent } from '@/modules/bill-collector/bill-collections/bill-collections.component';
 
 export const BILL_COLLECTOR_ROUTES: Routes = [
     {
@@ -13,9 +14,10 @@ export const BILL_COLLECTOR_ROUTES: Routes = [
             profileMenu: BILL_COLLECTOR_PROFILE_MENU
         },
         children: [
-            { path: 'subscribers', component: SubscribersComponent },
-            { path: 'subscribers/add-kva-reading/:id', component: AddKvaReadingComponent },
-            { path: 'kva-readings', component: KvaReadingsComponent },
+            { path: 'subscribers', component: SubscribersComponent, data: { screenName: 'Bill Collector - Subscribers' } },
+            { path: 'subscribers/add-kva-reading/:id', component: AddKvaReadingComponent, data: { screenName: 'Bill Collector - Add KWH Reading' } },
+            { path: 'kva-readings', component: KvaReadingsComponent, data: { screenName: 'Bill Collector - KWH Readings' } },
+            { path: 'bill-collections', component: BillCollectionsComponent, data: { screenName: 'Bill Collector - Bill Collections' } }
         ]
     }
 ] as Routes;

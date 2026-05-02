@@ -66,7 +66,6 @@
                         label="Generate Bills"
                         icon="pi pi-file-plus"
                         severity="primary"
-                        [disabled]="selectedSubscribers.length === 0 || !billPeriod"
                         (click)="generateBills()"
                         [loading]="isGeneratingBills"
                     />
@@ -324,4 +323,6 @@
 
 </div>
 
-<app-bills-preview-component [billsPreview]="billsPreview"></app-bills-preview-component>
+<div #billsPreviewSection class="scroll-mt-24">
+    <app-bills-preview-component [billsPreview]="billsPreview"></app-bills-preview-component>
+</div>

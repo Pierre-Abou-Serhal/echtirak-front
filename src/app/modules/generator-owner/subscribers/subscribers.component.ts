@@ -145,10 +145,7 @@ export class SubscribersComponent implements OnInit {
     displayGeneratorsForQrCodesDownload: boolean = false;
 
     // SMS languages
-    readonly languageOptions: SelectOptionStrValue[] = [
-        { label: 'English', value: 'EN' },
-        { label: 'Arabic', value: 'AR' }
-    ];
+    readonly languageOptions: SelectOptionStrValue[] = [{ label: 'English', value: 'EN' }];
 
     // Subscriber Address Variables
     private readonly COUNTRY = 'Lebanon';
@@ -491,6 +488,51 @@ export class SubscribersComponent implements OnInit {
         this.isSubscriberDialogOpen = true;
         this.filterSubscriptionBillingModels(this.selectedSubscriber.generatorId);
         this.subscriptionBillingFee = this.getSubscriptionBillingFee(this.selectedSubscriber.subscriptionBillingModelId);
+        this.lastStreet = this.selectedSubscriber.address!.street ?? '';
+        this.lastCity = this.selectedSubscriber.address!.city ?? '';
+    }
+
+    duplicateSubscriber(subscriber: Subscriber) {
+        const clone = structuredClone(subscriber);
+
+        this.selectedSubscriber = {
+            ...clone,
+
+            // Important: make it a new subscriber
+            id: -1,
+
+            // Keep phone editable in the same format used by the edit modal
+            phoneNumber: stripLebanonPrefix(clone.phoneNumber),
+
+            // Keep same address but clone it safely
+            address: clone.address ? { ...clone.address } : null,
+
+            // Values that must be replaced by the GO
+            electricMeterNumber: '',
+            previousKva: 0,
+            currentKva: 0
+        };
+
+        this.selectedExtraFeeIds = (subscriber.extraFees ?? []).map((x) => x.extraFeeId!).filter((id) => id != null);
+
+        this.ensureAddressInitialized();
+
+        if (!this.selectedSubscriber.smsEnabled) {
+            this.selectedSubscriber.preferredLanguage = null;
+        }
+
+        this.submitted = false;
+        this.isSubscriberSaving = false;
+
+        this.isSubscriberDialogOpen = true;
+
+        this.filterSubscriptionBillingModels(this.selectedSubscriber.generatorId);
+
+        this.subscriptionBillingFee = this.getSubscriptionBillingFee(this.selectedSubscriber.subscriptionBillingModelId);
+
+        this.streetSuggestions = [];
+        this.buildingSuggestions = [];
+
         this.lastStreet = this.selectedSubscriber.address!.street ?? '';
         this.lastCity = this.selectedSubscriber.address!.city ?? '';
     }
@@ -1095,6 +1137,12 @@ export class SubscribersComponent implements OnInit {
                 icon: 'pi pi-pencil',
                 data: { severity: 'info', loading: this.isActionLoading(id, SubscriberAction.EDIT) },
                 command: () => this.editSubscriber(subscriber)
+            },
+            {
+                label: 'Duplicate',
+                icon: 'pi pi-copy',
+                data: { severity: 'help', loading: false },
+                command: () => this.duplicateSubscriber(subscriber)
             },
             {
                 label: 'Preview QR Code',

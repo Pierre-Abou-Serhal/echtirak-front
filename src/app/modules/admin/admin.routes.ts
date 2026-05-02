@@ -17,11 +17,11 @@ export const ADMIN_ROUTES: Routes = [
             profileMenu: ADMIN_PROFILE_MENU
         },
         children: [
-            { path: 'dashboard', component: DashboardComponent },
-            { path: 'generator-owners', component: GeneratorOwnersComponent },
-            { path: 'generator-owner-management', component: GeneratorOwnerManagementComponent },
-            { path: 'announcements', component: AnnouncementsComponent },
-            { path: 'sms-templates', component: SmsTemplatesComponent }
+            { path: 'dashboard', component: DashboardComponent, data: { screenName: 'Admin - Dashboard' } },
+            { path: 'generator-owners', component: GeneratorOwnersComponent, data: { screenName: 'Admin - Generator Owners' } },
+            { path: 'generator-owner-management', component: GeneratorOwnerManagementComponent, data: { screenName: 'Admin - Generator Owner Management' } },
+            { path: 'announcements', component: AnnouncementsComponent, data: { screenName: 'Admin - Announcements' } },
+            { path: 'sms-templates', component: SmsTemplatesComponent, data: { screenName: 'Admin - SMS Templates' } }
         ]
     }
 ] as Routes;

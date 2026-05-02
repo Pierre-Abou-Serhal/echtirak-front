@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { Skeleton } from 'primeng/skeleton';
 
 type SmsTemplateView = SmsTemplate & {
-    currentLang: 'en' | 'ar';
+    currentLang: string;
 };
 
 @Component({

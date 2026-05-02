@@ -204,6 +204,20 @@
                 <div class="flex flex-wrap items-center gap-2 ml-auto">
 
                     <p-button
+                        icon="pi pi-dollar"
+                        label="Pay In Bulk"
+                        (click)="payBillsInBulk()"
+                        [loading]="payBulkBillsLoading"
+                    />
+
+                    <p-button
+                        icon="pi pi-print"
+                        label="Print Bulk Bill Reports"
+                        (click)="openBulkReportBills()"
+                        severity="contrast"
+                    />
+
+                    <p-button
                         icon="pi pi-external-link"
                         label="Export CSV"
                         (click)="exportToCsv()"
@@ -245,6 +259,13 @@
                     <div class="flex justify-between items-center gap-2">
                         Generator
                         <p-sortIcon field="generatorCode" />
+                    </div>
+                </th>
+
+                <th class="no-wrap-text" pSortableColumn="currentKva">
+                    <div class="flex justify-between items-center gap-2">
+                        KWH
+                        <p-sortIcon field="currentKva" />
                     </div>
                 </th>
 
@@ -334,6 +355,26 @@
                     {{ bill.generatorCode }}
                 </td>
                 <td>
+                    <div class="flex flex-col gap-1 min-w-[13rem]">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between gap-2 text-xs">
+                                <span class="text-color-secondary font-bold">Previous</span>
+                                <span class="font-medium">{{ bill.previousKva | number:'1.0-4' }}</span>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-2 text-xs">
+                                <span class="text-color-secondary font-bold">Current</span>
+                                <span class="font-medium">{{ bill.currentKva | number:'1.0-4' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-surface-200 mt-1 pt-1 flex items-center justify-between gap-3">
+                            <span class="text-xs text-color-secondary font-bold">Consumed</span>
+                            <span class="font-semibold text-primary">{{ (bill.currentKva - bill.previousKva) | number:'1.0-4' }}</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
                     {{ bill.billDate | date:'yyyy-MM-dd' }}
                 </td>
                 <td>
@@ -355,7 +396,7 @@
         </ng-template>
         <ng-template #expandedrow let-bill>
             <tr>
-                <td colspan="9" class="p-0">
+                <td colspan="10" class="p-0">
                     <div class="p-2">
                         <div class="bill-cards">
 
@@ -368,23 +409,6 @@
                                 <div class="detail-value">
                                     {{ bill.notes || '—' }}
                                 </div>
-                            </div>
-
-                            <!-- Row 1: Previous / Current / Amps -->
-                            <div class="detail-card detail-card--third">
-                                <div class="detail-head">
-                                    <i class="pi pi-history"></i>
-                                    <span class="detail-label">Previous KWH</span>
-                                </div>
-                                <div class="detail-value">{{ bill.previousKva | number:'1.0-4' }}</div>
-                            </div>
-
-                            <div class="detail-card detail-card--third">
-                                <div class="detail-head">
-                                    <i class="pi pi-arrow-up"></i>
-                                    <span class="detail-label">Current KWH</span>
-                                </div>
-                                <div class="detail-value">{{ bill.currentKva == null ? '—' : (bill.currentKva | number:'1.0-4') }}</div>
                             </div>
 
                             <div class="detail-card detail-card--third">
@@ -539,12 +563,12 @@
         </ng-template>
         <ng-template #emptymessage>
             <tr>
-                <td colspan="9">No bills found.</td>
+                <td colspan="10">No bills found.</td>
             </tr>
         </ng-template>
         <ng-template #loadingbody>
             <tr>
-                <td colspan="9">Loading bills data. Please wait.</td>
+                <td colspan="10">Loading bills data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>
@@ -562,3 +586,8 @@
 />
 
 <p-confirmdialog [style]="{ width: '450px' }"></p-confirmdialog>
+
+<app-bulk-bill-report-modal
+    [(visible)]="bulkBillReportVisible"
+    [billStatuses]="billStatuses"
+></app-bulk-bill-report-modal>

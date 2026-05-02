@@ -6,12 +6,7 @@ import { InputIcon } from 'primeng/inputicon';
 import { Table, TableModule } from 'primeng/table';
 import { InputText } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
-import {
-    GetBillsResponse,
-    GetGeneratorsResponse,
-    GetLookupResponse,
-    UpdateBillResponse
-} from '@/core/services/api/response';
+import { GetBillsResponse, GetGeneratorsResponse, GetLookupResponse, PayBillsInBulkResponse, UpdateBillResponse } from '@/core/services/api/response';
 import { Bill, Generator, Lookup } from '@/core/models/model';
 import { BillAction, BillIssuedSmsStatus, BillStatus, LookupDomain } from '@/core/enums/enum';
 import { debounceTime, finalize, Subject, switchMap, tap } from 'rxjs';
@@ -33,6 +28,9 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
 import { Tooltip } from 'primeng/tooltip';
 import { mapBillToBillRow } from '@/core/utils/utils';
+import {
+    BulkBillReportModalComponent
+} from '@/modules/generator-owner/bills/bulk-bill-report-modal/bulk-bill-report-modal.component';
 
 @Component({
     selector: 'app-bills-list-component',
@@ -57,7 +55,8 @@ import { mapBillToBillRow } from '@/core/utils/utils';
         NgxMaskDirective,
         ContextMenuModule,
         Tooltip,
-        CurrencyPipe
+        CurrencyPipe,
+        BulkBillReportModalComponent
     ],
     templateUrl: './bills-list.component.html',
     styleUrl: './bills-list.component.scss',
@@ -117,6 +116,14 @@ export class BillsListComponent implements OnInit {
 
     // Extra Options
     extraFeesExpanded: Record<number, boolean> = {};
+
+    payBulkBillsLoading: boolean = false;
+
+    bulkBillReportVisible = false;
+
+    openBulkReportBills(): void {
+        this.bulkBillReportVisible = true;
+    }
 
     ngOnInit(): void {
         // Fetch subscriber statuses drop down items
@@ -462,7 +469,7 @@ export class BillsListComponent implements OnInit {
 
                 this.updateBill(updated, BillAction.PAY).subscribe({
                     next: () => {
-                        this.notificationService.success('Successful', 'Bill paid successfully')
+                        this.notificationService.success('Successful', 'Bill paid successfully');
                         this.getReceiptReport(bill);
                     },
                     error: (err) => {
@@ -683,6 +690,51 @@ export class BillsListComponent implements OnInit {
             error: (err) => {
                 console.error('report download failed', err);
                 this.setActionLoading(bill.id, BillAction.GET_RECEIPT_REPORT, false);
+            }
+        });
+    }
+
+    payBillsInBulk() {
+        const pendingBills: number[] = this.selectedBills.filter((bill: BillRow) => bill.statusCode === BillStatus.PENDING).map((bill: BillRow) => bill.id);
+
+        if (pendingBills.length == 0) {
+            this.notificationService.warn('Warning', `Please select pending bills for bulk payment`);
+            return;
+        }
+
+        this.confirmationService.confirm({
+            message: `Are you sure you want to pay the ${pendingBills.length} pending selected bills ?`,
+            header: 'Confirm',
+            icon: 'pi pi-exclamation-triangle',
+            acceptButtonStyleClass: 'p-button-success',
+            rejectButtonStyleClass: 'p-button-secondary p-button-outlined',
+            accept: () => {
+                this.payBulkBillsLoading = true;
+
+                this.generatorOwnerService
+                    .payBillsInBulk({
+                        billIds: pendingBills
+                    })
+                    .subscribe({
+                        next: (response: PayBillsInBulkResponse) => {
+                            pendingBills.forEach((billId: number, index: number) => {
+                                const bill: BillRow | undefined = this.selectedBills.find((bill: BillRow) => bill.id === billId);
+
+                                if (bill) {
+                                    bill.statusCode = BillStatus.PAID;
+                                    bill.paidAt = new Date().toISOString().split('T')[0];
+                                    this.bills[this.findIndexById(billId)] = bill;
+                                }
+                            });
+
+                            this.notificationService.success('Successful', `Successfully payed ${response.updatedCount} bill(s).`);
+                            this.payBulkBillsLoading = false;
+                        },
+                        error: (err) => {
+                            console.log(err);
+                            this.payBulkBillsLoading = false;
+                        }
+                    });
             }
         });
     }

@@ -389,3 +389,40 @@ export interface GetBillReportByCodeQueryParams {
     subscriberBillCode: string;
     billId: number;
 }
+
+export interface ScanBillBarcodeRequest {
+    billId: number;
+}
+
+export interface GetBillCollectionsQueryParam {
+    pageNumber: number;
+    pageSize: number;
+    billId?: number;
+    collectionStatus?: string;
+    collectionScope?: string;
+    createdFrom?: string;
+    createdTo?: string;
+    billCollectorId?: number;
+}
+
+export interface ApproveOrRejectBillCollectionRequest {
+    collectionIds: number[];
+    approve: boolean;
+}
+
+export interface PayBillsInBulkRequest {
+    billIds: number[];
+}
+
+export interface GetBillsByPeriodStatusQueryParam {
+    billMonth: string;
+    billYear: string;
+    status: string;
+    createdFrom?: string;
+    createdTo?: string;
+}
+
+export interface GetBulkBillReportRequest {
+    billIds: number[];
+    paperSize: string;
+}

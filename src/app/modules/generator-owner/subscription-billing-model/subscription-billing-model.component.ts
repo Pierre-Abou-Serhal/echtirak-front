@@ -56,6 +56,7 @@ export class SubscriptionBillingModelComponent implements OnInit {
         this.subscriptionBillingModelForm = this.fb.group({
             generatorId: [null, Validators.required],
             model: [null, Validators.required],
+            name: [null, Validators.required],
             subscriptionAmps: [null, [Validators.required]],
             amountFixed: [null, [Validators.required]],
             amountPerKva: [null, [Validators.required]]
@@ -165,24 +166,38 @@ export class SubscriptionBillingModelComponent implements OnInit {
     openNew() {
         this.selectedSubscriptionBillingModelId = -1;
 
-        this.subscriptionBillingModelForm.get('generatorId')?.reset();
-        this.subscriptionBillingModelForm.get('model')?.reset();
-        this.subscriptionBillingModelForm.get('subscriptionAmps')?.reset();
-        this.subscriptionBillingModelForm.get('amountFixed')?.reset();
-        this.subscriptionBillingModelForm.get('amountPerKva')?.reset();
+        this.subscriptionBillingModelForm.reset({
+            generatorId: null,
+            model: null,
+            name: null,
+            subscriptionAmps: null,
+            amountFixed: null,
+            amountPerKva: null
+        });
 
+        this.subscriptionBillingModelForm.markAsPristine();
+        this.subscriptionBillingModelForm.markAsUntouched();
+
+        this.isSubscriptionBillingModelSaving = false;
         this.isSubscriptionBillingModelDialogOpen = true;
     }
 
     editSubscriptionBillingModel(subscriptionBillingModel: SubscriptionBillingModel) {
         this.selectedSubscriptionBillingModelId = subscriptionBillingModel.id;
 
-        this.subscriptionBillingModelForm.get('generatorId')?.setValue(subscriptionBillingModel.generatorId);
-        this.subscriptionBillingModelForm.get('model')?.setValue(subscriptionBillingModel.model);
-        this.subscriptionBillingModelForm.get('subscriptionAmps')?.setValue(subscriptionBillingModel.subscriptionAmps);
-        this.subscriptionBillingModelForm.get('amountFixed')?.setValue(subscriptionBillingModel.amountFixed);
-        this.subscriptionBillingModelForm.get('amountPerKva')?.setValue(subscriptionBillingModel.amountPerKva);
+        this.subscriptionBillingModelForm.patchValue({
+            generatorId: subscriptionBillingModel.generatorId,
+            model: subscriptionBillingModel.model,
+            name: subscriptionBillingModel.name,
+            subscriptionAmps: subscriptionBillingModel.subscriptionAmps,
+            amountFixed: subscriptionBillingModel.amountFixed,
+            amountPerKva: subscriptionBillingModel.amountPerKva
+        });
 
+        this.subscriptionBillingModelForm.markAsPristine();
+        this.subscriptionBillingModelForm.markAsUntouched();
+
+        this.isSubscriptionBillingModelSaving = false;
         this.isSubscriptionBillingModelDialogOpen = true;
     }
 
@@ -214,6 +229,7 @@ export class SubscriptionBillingModelComponent implements OnInit {
         let upsertSubscriptionBillingModelRequest: UpsertSubscriptionBillingModelRequest = {
             id: this.selectedSubscriptionBillingModelId,
             model: this.subscriptionBillingModelForm.get('model')?.value,
+            name: this.subscriptionBillingModelForm.get('name')?.value,
             generatorId: this.subscriptionBillingModelForm.get('generatorId')?.value,
             subscriptionAmps: this.subscriptionBillingModelForm.get('subscriptionAmps')?.value,
             amountPerKva: this.subscriptionBillingModelForm.get('amountPerKva')?.value,

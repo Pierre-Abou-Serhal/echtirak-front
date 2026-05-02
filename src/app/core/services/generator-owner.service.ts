@@ -34,7 +34,12 @@ import {
     GetStreetsQueryParams,
     GetBuildingsQueryParams,
     BulkUpdateAddressesRequest,
-    UpsertExtraFeeRequest
+    UpsertExtraFeeRequest,
+    GetBillCollectionsQueryParam,
+    ApproveOrRejectBillCollectionRequest,
+    PayBillsInBulkRequest,
+    GetBillsByPeriodStatusQueryParam,
+    GetBulkBillReportRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -76,7 +81,11 @@ import {
     GetStreetsResponse,
     GetBuildingsResponse,
     GetExtraFeesResponse,
-    UpsertExtraFeeResponse
+    UpsertExtraFeeResponse,
+    ApproveOrRejectBillCollectionResponse,
+    PayBillsInBulkResponse,
+    GetBillsByPeriodStatusResponse,
+    GoGetBillCollectionsResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -331,5 +340,33 @@ export class GeneratorOwnerService {
 
     public getBillReceipt(billId: number): Observable<Blob> {
         return this.apiService.getBlob(`/GeneratorOwner/Bills/${billId}/Receipt`);
+    }
+
+    public getBillCollections(queryParams: GetBillCollectionsQueryParam): Observable<GoGetBillCollectionsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GoGetBillCollectionsResponse>(`/GeneratorOwner/BillCollections`, {
+            params: params
+        });
+    }
+
+    public approveOrRejectBillCollection(request: ApproveOrRejectBillCollectionRequest): Observable<ApproveOrRejectBillCollectionResponse> {
+        return this.apiService.post<ApproveOrRejectBillCollectionResponse>(`/GeneratorOwner/BillCollections/Approve`, request);
+    }
+
+    public payBillsInBulk(request: PayBillsInBulkRequest): Observable<PayBillsInBulkResponse> {
+        return this.apiService.post<PayBillsInBulkResponse>(`/GeneratorOwner/Bills/PayBulk`, request);
+    }
+
+    public getBillsByPeriodStatus(queryParams: GetBillsByPeriodStatusQueryParam): Observable<GetBillsByPeriodStatusResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetBillsByPeriodStatusResponse>(`/GeneratorOwner/GetBillsByPeriodStatus`, {
+            params: params
+        });
+    }
+
+    public getBulkBillReport(request: GetBulkBillReportRequest) {
+        return this.apiService.postBlob('/GeneratorOwner/Bills/Report/Bulk', request);
     }
 }

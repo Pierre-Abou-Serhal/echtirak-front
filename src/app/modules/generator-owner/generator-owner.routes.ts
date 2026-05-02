@@ -25,6 +25,7 @@ import {
 import {
     SubscriberAddressesComponent
 } from '@/modules/generator-owner/subscriber-addresses/subscriber-addresses.component';
+import { BillCollectionsComponent } from '@/modules/generator-owner/bills/bill-collections/bill-collections.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -34,22 +35,23 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             profileMenu: GENERATOR_OWNER_PROFILE_MENU
         },
         children: [
-            { path: 'dashboard', component: DashboardComponent },
-            { path: 'sms-campaigns', component: SmsCampaignsListComponent },
-            { path: 'sms-campaigns/:id', component: SmsCampaignDetailsComponent },
-            { path: 'sms-campaigns-create', component: SmsCampaignCreateComponent },
-            { path: 'subscribers', component: SubscribersComponent },
-            { path: 'subscriber-addresses', component: SubscriberAddressesComponent },
-            { path: 'generators', component: GeneratorsComponent },
-            { path: 'profile', component: ProfileComponent },
-            { path: 'bill-collectors', component: BillCollectorComponent },
-            { path: 'kva-reading-history', component: KvaReadingHistoryComponent },
-            { path: 'sms-templates', component: SmsTemplatesComponent },
-            { path: 'bills', component: BillsComponent },
-            { path: 'subscription-billing-model', component: SubscriptionBillingModelComponent },
-            { path: 'currency-rates', component: CurrencyRatesComponent },
-            { path: 'wallet', component: WalletComponent },
-            { path: 'announcements', component: AnnouncementsComponent }
+            { path: 'dashboard', component: DashboardComponent, data: { screenName: 'Generator Owner - Dashboard' } },
+            { path: 'sms-campaigns', component: SmsCampaignsListComponent, data: { screenName: 'Generator Owner - SMS Campaigns' } },
+            { path: 'sms-campaigns/:id', component: SmsCampaignDetailsComponent, data: { screenName: 'Generator Owner - SMS Campaign Details' } },
+            { path: 'sms-campaigns-create', component: SmsCampaignCreateComponent, data: { screenName: 'Generator Owner - Create SMS Campaign' } },
+            { path: 'subscribers', component: SubscribersComponent, data: { screenName: 'Generator Owner - Subscribers' } },
+            { path: 'subscriber-addresses', component: SubscriberAddressesComponent, data: { screenName: 'Generator Owner - Subscriber Addresses' } },
+            { path: 'generators', component: GeneratorsComponent, data: { screenName: 'Generator Owner - Generators' } },
+            { path: 'profile', component: ProfileComponent, data: { screenName: 'Generator Owner - Profile' } },
+            { path: 'bill-collectors', component: BillCollectorComponent, data: { screenName: 'Generator Owner - Bill Collectors' } },
+            { path: 'bill-collections', component: BillCollectionsComponent, data: { screenName: 'Generator Owner - Bill Collections' } },
+            { path: 'kva-reading-history', component: KvaReadingHistoryComponent, data: { screenName: 'Generator Owner - KWH Reading History' } },
+            { path: 'sms-templates', component: SmsTemplatesComponent, data: { screenName: 'Generator Owner - SMS Templates' } },
+            { path: 'bills', component: BillsComponent, data: { screenName: 'Generator Owner - Bills' } },
+            { path: 'subscription-billing-model', component: SubscriptionBillingModelComponent, data: { screenName: 'Generator Owner - Subscription Billing Models' } },
+            { path: 'currency-rates', component: CurrencyRatesComponent, data: { screenName: 'Generator Owner - Currency Rates' } },
+            { path: 'wallet', component: WalletComponent, data: { screenName: 'Generator Owner - Wallet' } },
+            { path: 'announcements', component: AnnouncementsComponent, data: { screenName: 'Generator Owner - Announcements' } }
         ]
     }
 ] as Routes;
