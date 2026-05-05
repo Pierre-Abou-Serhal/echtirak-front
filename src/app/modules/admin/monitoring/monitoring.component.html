@@ -1,0 +1,1013 @@
+<div class="min-h-screen bg-surface-0 dark:bg-surface-900">
+    <div class="p-3 md:p-4 flex flex-col gap-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+                <h1 class="text-3xl font-bold m-0">Live Monitoring</h1>
+
+                <div class="text-sm text-color-secondary mt-1">
+                    Monitor online users, sessions, activity logs, and user locations.
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <label class="flex items-center gap-2 text-sm text-color-secondary">
+                    <input
+                        type="checkbox"
+                        [(ngModel)]="autoRefresh"
+                        (ngModelChange)="onAutoRefreshChange()"
+                    />
+                    Auto refresh
+                </label>
+
+                <p-inputnumber
+                    [(ngModel)]="refreshEverySeconds"
+                    [min]="1"
+                    [step]="1"
+                    [showButtons]="true"
+                    buttonLayout="horizontal"
+                    spinnerMode="horizontal"
+                    suffix=" sec"
+                    inputStyleClass="w-20 text-center"
+                    (ngModelChange)="onRefreshSecondsChange($event)"
+                >
+                    <ng-template #incrementbuttonicon>
+                        <span class="pi pi-plus"></span>
+                    </ng-template>
+
+                    <ng-template #decrementbuttonicon>
+                        <span class="pi pi-minus"></span>
+                    </ng-template>
+                </p-inputnumber>
+
+                <p-button
+                    label="Refresh"
+                    icon="pi pi-refresh"
+                    [loading]="anyLoading"
+                    [disabled]="anyLoading"
+                    (onClick)="refreshAll()"
+                ></p-button>
+            </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 shadow-sm">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="text-sm text-color-secondary">Online Users</div>
+                        <div class="text-3xl font-bold text-green-500 mt-1">
+                            {{ stats?.totalOnline ?? 0 }}
+                        </div>
+                    </div>
+
+                    <div class="h-11 w-11 rounded-xl bg-green-50 dark:bg-green-950/40 flex items-center justify-center">
+                        <i class="pi pi-users text-green-500 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 shadow-sm">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="text-sm text-color-secondary">Idle Users</div>
+                        <div class="text-3xl font-bold text-yellow-500 mt-1">
+                            {{ stats?.totalIdle ?? 0 }}
+                        </div>
+                    </div>
+
+                    <div class="h-11 w-11 rounded-xl bg-yellow-50 dark:bg-yellow-950/40 flex items-center justify-center">
+                        <i class="pi pi-clock text-yellow-500 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 shadow-sm">
+                <div class="text-sm text-color-secondary">Last Updated</div>
+
+                <div class="text-lg font-bold mt-2">
+                    {{ stats?.lastUpdatedAt | date:'yyyy-MM-dd, h:mm a' }}
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 shadow-sm">
+                <div class="text-sm text-color-secondary mb-3">Role Distribution</div>
+
+                @if (roleEntries.length > 0) {
+                    <div class="flex flex-col gap-2">
+                        @for (role of roleEntries; track role.key) {
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-semibold">{{ role.key }}</span>
+                                    <span>{{ role.value }}</span>
+                                </div>
+
+                                <div class="h-2 rounded-full bg-surface-100 dark:bg-surface-800 overflow-hidden">
+                                    <div
+                                        class="h-full rounded-full bg-primary"
+                                        [style.width.%]="(role.value / maxRoleCount) * 100"
+                                    ></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                } @else {
+                    <div class="text-sm text-color-secondary">No role data.</div>
+                }
+            </div>
+        </div>
+
+        <!-- Active Sessions -->
+        <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 shadow-sm">
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
+                    <div>
+                        <div class="text-xl font-semibold">Active Sessions</div>
+
+                        <div class="text-sm text-color-secondary">
+                            Online and idle sessions currently tracked by the platform.
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+                        <p-select
+                            [(ngModel)]="roleFilter"
+                            [options]="roleOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Role"
+                            class="w-full"
+                        ></p-select>
+
+                        <p-select
+                            [(ngModel)]="statusFilter"
+                            [options]="statusOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Status"
+                            class="w-full"
+                        ></p-select>
+
+                        <input
+                            pInputText
+                            [(ngModel)]="searchFilter"
+                            placeholder="Search"
+                            class="w-full"
+                        />
+
+                        <p-button
+                            label="Apply"
+                            icon="pi pi-filter"
+                            styleClass="w-full"
+                            [loading]="loadingSessions"
+                            [disabled]="loadingSessions"
+                            (onClick)="applySessionFilters()"
+                        ></p-button>
+
+                        <p-button
+                            label="Clear"
+                            icon="pi pi-times"
+                            severity="secondary"
+                            outlined
+                            styleClass="w-full"
+                            [loading]="loadingSessions"
+                            [disabled]="loadingSessions"
+                            (onClick)="clearSessionFilters()"
+                        ></p-button>
+                    </div>
+                </div>
+
+                <p-table
+                    [value]="sessions"
+                    dataKey="sessionId"
+                    selectionMode="single"
+                    [(selection)]="selectedActiveSession"
+                    [lazy]="true"
+                    [paginator]="true"
+                    [rows]="sessionRows"
+                    [first]="sessionFirst"
+                    [totalRecords]="totalSessions"
+                    [rowsPerPageOptions]="sessionRowsOptions"
+                    [loading]="loadingSessions"
+                    responsiveLayout="scroll"
+                    rowHover
+                    showGridlines
+                    stripedRows
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} sessions"
+                    [showCurrentPageReport]="true"
+                    (onLazyLoad)="loadActiveSessions($event)"
+                    (onRowSelect)="selectSession($event)"
+                >
+                    <ng-template #header>
+                        <tr>
+                            <th pSortableColumn="status">
+                                Status <p-sortIcon field="status"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="fullName">
+                                User <p-sortIcon field="fullName"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="roleCode">
+                                Role <p-sortIcon field="roleCode"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="lastSeenAt">
+                                Last Seen <p-sortIcon field="lastSeenAt"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="country">
+                                Location <p-sortIcon field="country"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="deviceType">
+                                Device <p-sortIcon field="deviceType"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="lastEndpoint">
+                                Last Endpoint <p-sortIcon field="lastEndpoint"></p-sortIcon>
+                            </th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #body let-session>
+                        <tr
+                            [pSelectableRow]="session"
+                            class="cursor-pointer"
+                            [ngClass]="{
+                                'bg-primary-50 dark:bg-primary-950 ring-1 ring-primary-300': isSelectedSession(session.sessionId)
+                            }"
+                        >
+                            <td>
+                                <p-tag
+                                    [value]="session.status"
+                                    [severity]="getStatusSeverity(session.status)"
+                                ></p-tag>
+                            </td>
+
+                            <td>
+                                <div class="font-semibold whitespace-nowrap">
+                                    {{ session.fullName || session.username }}
+                                </div>
+
+                                <div class="text-xs text-color-secondary">
+                                    {{ session.username }} · User #{{ session.userId }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <p-tag [value]="session.roleCode" severity="info"></p-tag>
+                            </td>
+
+                            <td class="whitespace-nowrap">
+                                {{ session.lastSeenAt | date:'yyyy-MM-dd, h:mm a' }}
+                            </td>
+
+                            <td>
+                                {{ formatLocation(session.country, session.city) }}
+                            </td>
+
+                            <td>
+                                <div class="font-semibold">
+                                    {{ session.deviceType || '—' }}
+                                </div>
+
+                                <div class="text-xs text-color-secondary">
+                                    {{ session.browser || '—' }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="max-w-80 truncate" [title]="session.lastEndpoint || ''">
+                                    {{ session.lastEndpoint || '—' }}
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #emptymessage>
+                        <tr>
+                            <td colspan="7">No active sessions found.</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+
+        <!-- Session Detail + Activity -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+            <!-- Session Detail -->
+            <div class="xl:col-span-4 rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 shadow-sm">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <div>
+                        <div class="text-xl font-semibold">Session Detail</div>
+                        <div class="text-sm text-color-secondary">Selected session.</div>
+                    </div>
+
+                    @if (selectedSession || loadingSessionDetail) {
+                        <p-button
+                            label="Force Logout"
+                            icon="pi pi-sign-out"
+                            severity="danger"
+                            size="small"
+                            [loading]="forceLogoutLoading"
+                            [disabled]="loadingSessionDetail || forceLogoutLoading || !selectedSession"
+                            (onClick)="openForceLogout()"
+                        ></p-button>
+                    }
+                </div>
+
+                @if (loadingSessionDetail) {
+                    <div class="flex flex-col gap-4">
+                        <div class="flex items-center gap-3">
+                            <p-skeleton shape="circle" size="3rem"></p-skeleton>
+
+                            <div class="flex-1">
+                                <p-skeleton height="1.3rem" width="70%" class="mb-2"></p-skeleton>
+                                <p-skeleton height="0.9rem" width="50%"></p-skeleton>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <p-skeleton height="1.8rem" width="6rem" borderRadius="999px"></p-skeleton>
+                            <p-skeleton height="1.8rem" width="8rem" borderRadius="999px"></p-skeleton>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-3">
+                            @for (item of sessionDetailSkeletonRows; track item) {
+                                <div class="flex justify-between gap-3">
+                                    <p-skeleton height="0.9rem" width="35%"></p-skeleton>
+                                    <p-skeleton height="0.9rem" width="45%"></p-skeleton>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                } @else if (!selectedSession) {
+                    <div class="text-sm text-color-secondary">
+                        Select a session from Active Sessions or User Session History to view details.
+                    </div>
+                } @else {
+                    <div class="flex flex-col gap-3">
+                        <div>
+                            <div class="text-lg font-bold">
+                                {{ selectedSession.fullName || selectedSession.username }}
+                            </div>
+
+                            <div class="text-sm text-color-secondary">
+                                {{ selectedSession.username }} · User #{{ selectedSession.userId }}
+                            </div>
+                        </div>
+
+                        <p-tag
+                            [value]="selectedSession.status"
+                            [severity]="getStatusSeverity(selectedSession.status)"
+                            class="w-fit"
+                        ></p-tag>
+
+                        <div class="grid grid-cols-1 gap-2 text-sm">
+                            <div class="flex justify-between gap-3">
+                                <span class="text-color-secondary">Session ID</span>
+                                <span class="font-semibold">{{ selectedSession.sessionId }}</span>
+                            </div>
+
+                            <div class="flex justify-between gap-3">
+                                <span class="text-color-secondary">Role</span>
+                                <span class="font-semibold">{{ selectedSession.roleCode }}</span>
+                            </div>
+
+                            <div class="flex justify-between gap-3">
+                                <span class="text-color-secondary">IP</span>
+                                <span class="font-semibold">{{ selectedSession.ipAddress || '—' }}</span>
+                            </div>
+
+                            <div class="flex justify-between gap-3">
+                                <span class="text-color-secondary">Location</span>
+                                <span class="font-semibold">
+                                    {{ formatLocation(selectedSession.country, selectedSession.city) }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between gap-3">
+                                <span class="text-color-secondary">Device</span>
+                                <span class="font-semibold">
+                                    {{ selectedSession.deviceType || '—' }} / {{ selectedSession.browser || '—' }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between gap-3">
+                                <span class="text-color-secondary">OS</span>
+                                <span class="font-semibold">
+                                    {{ selectedSession.os || '—' }} {{ selectedSession.osVersion || '' }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between gap-3">
+                                <span class="text-color-secondary">Signed In</span>
+                                <span class="font-semibold">
+                                    {{ selectedSession.signedInAt | date:'yyyy-MM-dd, h:mm a' }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between gap-3">
+                                <span class="text-color-secondary">Last Seen</span>
+                                <span class="font-semibold">
+                                    {{ selectedSession.lastSeenAt | date:'yyyy-MM-dd, h:mm a' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-surface-200 dark:border-surface-700">
+                            <p-button
+                                label="View User Agent"
+                                icon="pi pi-eye"
+                                severity="secondary"
+                                outlined
+                                size="small"
+                                (onClick)="openPayload('User Agent', selectedSession.userAgentRaw)"
+                            ></p-button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="xl:col-span-8 rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 shadow-sm">
+                <div class="flex flex-col gap-4 mb-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div>
+                            <div class="text-xl font-semibold">Recent Activity</div>
+                            <div class="text-sm text-color-secondary">
+                                Activity for the selected session.
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <div class="flex-auto">
+                                <label class="mb-2 block" for="activityDirection">Direction</label>
+                                <p-select
+                                    id="activityDirection"
+                                    [(ngModel)]="activityDirection"
+                                    [options]="[
+                                        { label: 'Both', value: 'both' },
+                                        { label: 'Request', value: 'request' },
+                                        { label: 'Response', value: 'response' }
+                                    ]"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    class="w-36"
+                                    [disabled]="!selectedSession || loadingActivity"
+                                    (onChange)="onActivityOptionsChange()"
+                                ></p-select>
+                            </div>
+
+                            <div class="flex-auto">
+                                <label class="mb-2 block" for="activityLimit">Limit</label>
+                                <p-inputnumber
+                                    inputId="activityLimit"
+                                    [(ngModel)]="activityLimit"
+                                    [min]="1"
+                                    [max]="200"
+                                    [showButtons]="true"
+                                    buttonLayout="horizontal"
+                                    spinnerMode="horizontal"
+                                    inputStyleClass="w-20 text-center"
+                                    [disabled]="!selectedSession || loadingActivity"
+                                    (ngModelChange)="onActivityLimitChange($event)"
+                                >
+                                    <ng-template #incrementbuttonicon>
+                                        <span class="pi pi-plus"></span>
+                                    </ng-template>
+
+                                    <ng-template #decrementbuttonicon>
+                                        <span class="pi pi-minus"></span>
+                                    </ng-template>
+                                </p-inputnumber>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (selectedSession || loadingSessionDetail) {
+                        <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+                            <input
+                                pInputText
+                                type="text"
+                                class="w-full sm:w-80"
+                                [ngModel]="activitySearch"
+                                (ngModelChange)="onActivitySearch($event)"
+                                placeholder="Search activity..."
+                                [disabled]="loadingActivity || loadingSessionDetail"
+                            />
+
+                            <div class="text-sm text-color-secondary">
+                                @if (!loadingActivity && !loadingSessionDetail) {
+                                    Showing {{ filteredSessionActivity.length }} activity row(s)
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (!selectedSession && !loadingSessionDetail) {
+                    <div class="text-sm text-color-secondary">
+                        Select a session to view activity.
+                    </div>
+                } @else {
+                    <p-table
+                        [value]="activityTableValue"
+                        [paginator]="!loadingActivity && !loadingSessionDetail"
+                        [rows]="activityRows"
+                        [first]="activityFirst"
+                        [rowsPerPageOptions]="activityRowsOptions"
+                        [showCurrentPageReport]="!loadingActivity && !loadingSessionDetail"
+                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} activity rows"
+                        responsiveLayout="scroll"
+                        rowHover
+                        showGridlines
+                        stripedRows
+                        (onPage)="onActivityPage($event)"
+                    >
+                        <ng-template #header>
+                            <tr>
+                                <th pSortableColumn="lastTime">
+                                    Time <p-sortIcon field="lastTime"></p-sortIcon>
+                                </th>
+
+                                <th pSortableColumn="httpMethod">
+                                    Method <p-sortIcon field="httpMethod"></p-sortIcon>
+                                </th>
+
+                                <th pSortableColumn="requestPath">
+                                    Endpoint <p-sortIcon field="requestPath"></p-sortIcon>
+                                </th>
+
+                                <th pSortableColumn="screenName">
+                                    Screen <p-sortIcon field="screenName"></p-sortIcon>
+                                </th>
+
+                                <th pSortableColumn="lastStatusCode">
+                                    Status <p-sortIcon field="lastStatusCode"></p-sortIcon>
+                                </th>
+
+                                <th pSortableColumn="rowCount">
+                                    Rows <p-sortIcon field="rowCount"></p-sortIcon>
+                                </th>
+
+                                <th></th>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template #body let-activity>
+                            @if (loadingActivity || loadingSessionDetail) {
+                                <tr>
+                                    <td>
+                                        <p-skeleton height="1rem" width="9rem"></p-skeleton>
+                                    </td>
+
+                                    <td>
+                                        <p-skeleton height="1.5rem" width="4rem" borderRadius="999px"></p-skeleton>
+                                    </td>
+
+                                    <td>
+                                        <p-skeleton height="1rem" width="18rem"></p-skeleton>
+                                    </td>
+
+                                    <td>
+                                        <p-skeleton height="1rem" width="8rem"></p-skeleton>
+                                    </td>
+
+                                    <td>
+                                        <p-skeleton height="1.5rem" width="4rem" borderRadius="999px"></p-skeleton>
+                                    </td>
+
+                                    <td>
+                                        <p-skeleton height="1rem" width="3rem"></p-skeleton>
+                                    </td>
+
+                                    <td>
+                                        <p-skeleton height="2rem" width="5rem"></p-skeleton>
+                                    </td>
+                                </tr>
+                            } @else {
+                                <tr>
+                                    <td class="whitespace-nowrap">
+                                        {{ activity.lastTime | date:'yyyy-MM-dd, h:mm a' }}
+                                    </td>
+
+                                    <td>
+                                        <p-tag
+                                            [value]="activity.httpMethod || '—'"
+                                            [severity]="getMethodSeverity(activity.httpMethod)"
+                                        ></p-tag>
+                                    </td>
+
+                                    <td>
+                                        <div class="max-w-96 truncate" [title]="activity.requestPath || activity.endpointName || ''">
+                                            {{ activity.requestPath || activity.endpointName || '—' }}
+                                        </div>
+                                    </td>
+
+                                    <td>{{ activity.screenName || '—' }}</td>
+
+                                    <td>
+                                        <p-tag
+                                            [value]="activity.lastStatusCode?.toString() || '—'"
+                                            [severity]="getHttpSeverity(activity.lastStatusCode)"
+                                        ></p-tag>
+                                    </td>
+
+                                    <td>{{ activity.rowCount }}</td>
+
+                                    <td>
+                                        <p-button
+                                            label="View"
+                                            icon="pi pi-eye"
+                                            size="small"
+                                            severity="secondary"
+                                            outlined
+                                            [loading]="loadingActivityRequestId === activity.requestId"
+                                            [disabled]="!!loadingActivityRequestId"
+                                            (onClick)="openActivityDetail(activity)"
+                                        ></p-button>
+                                    </td>
+                                </tr>
+                            }
+                        </ng-template>
+
+                        <ng-template #emptymessage>
+                            <tr>
+                                <td colspan="7">No activity found.</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                }
+            </div>
+        </div>
+
+        <!-- History + Geo -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+            <!-- History -->
+            <div class="xl:col-span-8 rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 shadow-sm">
+                <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 mb-4">
+                    <div>
+                        <div class="text-xl font-semibold">User Session History</div>
+                        <div class="text-sm text-color-secondary">
+                            Click a history row to inspect that session and its activity.
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        <p-inputnumber
+                            [(ngModel)]="historyUserId"
+                            placeholder="User ID"
+                            [useGrouping]="false"
+                            inputStyleClass="w-full"
+                        ></p-inputnumber>
+
+                        <p-datepicker
+                            [(ngModel)]="historyFrom"
+                            dateFormat="yy-mm-dd"
+                            placeholder="From"
+                            [showIcon]="true"
+                            appendTo="body"
+                            class="w-full"
+                            inputStyleClass="w-full"
+                        ></p-datepicker>
+
+                        <p-datepicker
+                            [(ngModel)]="historyTo"
+                            dateFormat="yy-mm-dd"
+                            placeholder="To"
+                            [showIcon]="true"
+                            appendTo="body"
+                            class="w-full"
+                            inputStyleClass="w-full"
+                        ></p-datepicker>
+
+                        <p-button
+                            label="Load"
+                            icon="pi pi-search"
+                            styleClass="w-full"
+                            [loading]="loadingHistory"
+                            [disabled]="loadingHistory"
+                            (onClick)="historyFirst = 0; loadUserHistory(undefined, true)"
+                        ></p-button>
+                    </div>
+                </div>
+
+                <p-table
+                    [value]="historyRows"
+                    dataKey="sessionId"
+                    selectionMode="single"
+                    [(selection)]="selectedHistorySession"
+                    [lazy]="true"
+                    [paginator]="true"
+                    [rows]="historyPageSize"
+                    [first]="historyFirst"
+                    [totalRecords]="historyTotal"
+                    [loading]="loadingHistory"
+                    [rowsPerPageOptions]="[10, 20, 50]"
+                    responsiveLayout="scroll"
+                    rowHover
+                    showGridlines
+                    stripedRows
+                    (onLazyLoad)="loadUserHistory($event)"
+                    (onRowSelect)="selectHistorySession($event)"
+                >
+                    <ng-template #header>
+                        <tr>
+                            <th pSortableColumn="status">
+                                Status <p-sortIcon field="status"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="signedInAt">
+                                Signed In <p-sortIcon field="signedInAt"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="lastSeenAt">
+                                Last Seen <p-sortIcon field="lastSeenAt"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="loggedOutAt">
+                                Logged Out <p-sortIcon field="loggedOutAt"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="durationSeconds">
+                                Duration <p-sortIcon field="durationSeconds"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="logoutReason">
+                                Reason <p-sortIcon field="logoutReason"></p-sortIcon>
+                            </th>
+
+                            <th pSortableColumn="deviceType">
+                                Device <p-sortIcon field="deviceType"></p-sortIcon>
+                            </th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #body let-row>
+                        <tr
+                            [pSelectableRow]="row"
+                            class="cursor-pointer"
+                            [ngClass]="{
+                                'bg-primary-50 dark:bg-primary-950 ring-1 ring-primary-300': isSelectedHistorySession(row.sessionId)
+                            }"
+                        >
+                            <td>
+                                <p-tag
+                                    [value]="row.status"
+                                    [severity]="getStatusSeverity(row.status)"
+                                ></p-tag>
+                            </td>
+
+                            <td class="whitespace-nowrap">
+                                {{ row.signedInAt | date:'yyyy-MM-dd, h:mm a' }}
+                            </td>
+
+                            <td class="whitespace-nowrap">
+                                {{ row.lastSeenAt | date:'yyyy-MM-dd, h:mm a' }}
+                            </td>
+
+                            <td class="whitespace-nowrap">
+                                {{ row.loggedOutAt ? (row.loggedOutAt | date:'yyyy-MM-dd, h:mm a') : '—' }}
+                            </td>
+
+                            <td>{{ formatDuration(row.durationSeconds) }}</td>
+
+                            <td>{{ row.logoutReason || '—' }}</td>
+
+                            <td>
+                                {{ row.deviceType || '—' }} / {{ row.browser || '—' }}
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #emptymessage>
+                        <tr>
+                            <td colspan="7">No session history found.</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+
+            <!-- Geo -->
+            <div class="xl:col-span-4 rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 shadow-sm">
+                <div class="text-xl font-semibold mb-1">Geo Distribution</div>
+                <div class="text-sm text-color-secondary mb-4">
+                    Active sessions grouped by location.
+                </div>
+
+                @if (mapBuckets.length > 0) {
+                    <div class="flex flex-col gap-3">
+                        @for (bucket of mapBuckets; track bucket.country + '-' + bucket.city) {
+                            <div class="rounded-xl border border-surface-200 dark:border-surface-700 p-3">
+                                <div class="flex justify-between gap-3">
+                                    <div>
+                                        <div class="font-semibold">
+                                            {{ formatLocation(bucket.country, bucket.city) }}
+                                        </div>
+
+                                        <div class="text-xs text-color-secondary">
+                                            {{ bucket.latitude ?? '—' }}, {{ bucket.longitude ?? '—' }}
+                                        </div>
+                                    </div>
+
+                                    <p-tag
+                                        [value]="bucket.count.toString()"
+                                        severity="info"
+                                    ></p-tag>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                } @else {
+                    <div class="text-sm text-color-secondary">
+                        No map data found.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Force Logout Dialog -->
+<p-dialog
+    [(visible)]="forceLogoutOpen"
+    header="Force Logout"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '95vw', maxWidth: '480px' }"
+>
+    <div class="flex flex-col gap-3">
+        <div class="text-sm text-color-secondary">
+            This will close the selected session and revoke its refresh token chain.
+        </div>
+
+        <textarea
+            pTextarea
+            [(ngModel)]="forceLogoutReason"
+            rows="4"
+            class="w-full"
+            placeholder="Reason, e.g. Suspicious activity"
+        ></textarea>
+    </div>
+
+    <ng-template #footer>
+        <div class="flex justify-end gap-2">
+            <p-button
+                label="Cancel"
+                severity="secondary"
+                text
+                [disabled]="forceLogoutLoading"
+                (onClick)="forceLogoutOpen = false"
+            ></p-button>
+
+            <p-button
+                label="Force Logout"
+                icon="pi pi-sign-out"
+                severity="danger"
+                [loading]="forceLogoutLoading"
+                [disabled]="forceLogoutLoading"
+                (onClick)="forceLogoutSelectedSession()"
+            ></p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- Activity Detail Dialog -->
+<p-dialog
+    [(visible)]="activityDetailOpen"
+    [header]="'Activity Detail' + (selectedRequestId ? ' - ' + selectedRequestId : '')"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '96vw', maxWidth: '1200px' }"
+>
+    <p-table
+        [value]="activityDetailRows"
+        [loading]="activityDetailLoading"
+        responsiveLayout="scroll"
+        rowHover
+        showGridlines
+        stripedRows
+    >
+        <ng-template #header>
+            <tr>
+                <th pSortableColumn="time">
+                    Time <p-sortIcon field="time"></p-sortIcon>
+                </th>
+
+                <th pSortableColumn="requestDirection">
+                    Direction <p-sortIcon field="requestDirection"></p-sortIcon>
+                </th>
+
+                <th pSortableColumn="httpMethod">
+                    Method <p-sortIcon field="httpMethod"></p-sortIcon>
+                </th>
+
+                <th pSortableColumn="statusCode">
+                    Status <p-sortIcon field="statusCode"></p-sortIcon>
+                </th>
+
+                <th pSortableColumn="requestPath">
+                    Endpoint <p-sortIcon field="requestPath"></p-sortIcon>
+                </th>
+
+                <th pSortableColumn="logLevel">
+                    Log Level <p-sortIcon field="logLevel"></p-sortIcon>
+                </th>
+
+                <th>Message</th>
+                <th>JSON</th>
+                <th>Exception</th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-row>
+            <tr>
+                <td class="whitespace-nowrap">
+                    {{ row.time | date:'yyyy-MM-dd, h:mm a' }}
+                </td>
+
+                <td>{{ row.requestDirection }}</td>
+
+                <td>
+                    <p-tag
+                        [value]="row.httpMethod || '—'"
+                        [severity]="getMethodSeverity(row.httpMethod)"
+                    ></p-tag>
+                </td>
+
+                <td>
+                    <p-tag
+                        [value]="row.statusCode?.toString() || '—'"
+                        [severity]="getHttpSeverity(row.statusCode)"
+                    ></p-tag>
+                </td>
+
+                <td>
+                    <div class="max-w-80 truncate" [title]="row.requestPath || row.endpointName || ''">
+                        {{ row.requestPath || row.endpointName || '—' }}
+                    </div>
+                </td>
+
+                <td>{{ row.logLevel || '—' }}</td>
+
+                <td>
+                    <p-button
+                        label="View"
+                        icon="pi pi-eye"
+                        size="small"
+                        severity="secondary"
+                        outlined
+                        [disabled]="!row.message"
+                        (onClick)="openPayload('Message', row.message)"
+                    ></p-button>
+                </td>
+
+                <td>
+                    <p-button
+                        label="View"
+                        icon="pi pi-code"
+                        size="small"
+                        severity="secondary"
+                        outlined
+                        [disabled]="!row.json"
+                        (onClick)="openPayload('JSON Payload', row.json)"
+                    ></p-button>
+                </td>
+
+                <td>
+                    <p-button
+                        label="View"
+                        icon="pi pi-exclamation-triangle"
+                        size="small"
+                        severity="danger"
+                        outlined
+                        [disabled]="!row.exception"
+                        (onClick)="openPayload('Exception', row.exception)"
+                    ></p-button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="9">No activity detail rows found.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-dialog>
+
+<!-- Payload Viewer Dialog -->
+<p-dialog
+    [(visible)]="payloadOpen"
+    [header]="payloadTitle"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '96vw', maxWidth: '1000px' }"
+>
+    <pre class="m-0 p-3 rounded-xl bg-surface-100 dark:bg-surface-950 overflow-auto text-sm max-h-[70vh] whitespace-pre-wrap">{{ payloadContent }}</pre>
+</p-dialog>

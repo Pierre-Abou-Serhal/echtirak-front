@@ -2,9 +2,13 @@ import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
 import { Observable } from 'rxjs';
 import {
+    ForceLogoutMonitoringSessionRequest,
     GetAdminAnnouncementsQueryParams,
     GetDashboardQueryParams,
     GetGoWalletTransactionsQueryParams,
+    GetMonitoringActiveSessionsQueryParams,
+    GetMonitoringSessionActivityQueryParams,
+    GetMonitoringUserSessionsQueryParams,
     GetSmsTemplatesQueryParams,
     PublishAnnouncementRequest,
     ReactivateGeneratorOwnerRequest,
@@ -29,7 +33,15 @@ import {
     SetCapOverrideGoWalletResponse,
     GetGoWalletTransactionsResponse,
     GetGoStatusResponse,
-    GetGoWalletBalanceResponse
+    GetGoWalletBalanceResponse,
+    GetMonitoringStatsResponse,
+    GetMonitoringActiveSessionsResponse,
+    GetMonitoringUserSessionsResponse,
+    GetMonitoringSessionDetailResponse,
+    GetMonitoringSessionActivityResponse,
+    GetMonitoringActivityDetailResponse,
+    GetMonitoringMapResponse,
+    ForceLogoutMonitoringSessionResponse
 } from '@/core/services/api/response';
 
 class DeactivateGeneratorOwnerRequest {}
@@ -112,5 +124,51 @@ export class AdminService {
 
     public getGoStatus(generatorOwnerUserId: number): Observable<GetGoStatusResponse> {
         return this.apiService.get<GetGoStatusResponse>(`/Admin/GeneratorOwner/${generatorOwnerUserId}/Status`);
+    }
+
+    public getMonitoringStats(): Observable<GetMonitoringStatsResponse> {
+        return this.apiService.get<GetMonitoringStatsResponse>('/Admin/Monitoring/Stats');
+    }
+
+    public getMonitoringActiveSessions(queryParams: GetMonitoringActiveSessionsQueryParams): Observable<GetMonitoringActiveSessionsResponse> {
+        const params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetMonitoringActiveSessionsResponse>('/Admin/Monitoring/Sessions/Active', { params });
+    }
+
+    public getMonitoringUserSessions(queryParams: GetMonitoringUserSessionsQueryParams): Observable<GetMonitoringUserSessionsResponse> {
+        const params = this.apiService.buildParams({
+            from: queryParams.from,
+            to: queryParams.to,
+            role: queryParams.role,
+            sortBy: queryParams.sortBy,
+            sortDir: queryParams.sortDir,
+            page: queryParams.page,
+            pageSize: queryParams.pageSize
+        });
+
+        return this.apiService.get<GetMonitoringUserSessionsResponse>(`/Admin/Monitoring/Users/${queryParams.userId}/Sessions`, { params });
+    }
+
+    public getMonitoringSessionDetail(sessionId: number): Observable<GetMonitoringSessionDetailResponse> {
+        return this.apiService.get<GetMonitoringSessionDetailResponse>(`/Admin/Monitoring/Sessions/${sessionId}`);
+    }
+
+    public getMonitoringSessionActivity(sessionId: number, queryParams: GetMonitoringSessionActivityQueryParams): Observable<GetMonitoringSessionActivityResponse> {
+        const params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetMonitoringSessionActivityResponse>(`/Admin/Monitoring/Sessions/${sessionId}/Activity`, { params });
+    }
+
+    public getMonitoringActivityDetail(sessionId: number, requestId: string): Observable<GetMonitoringActivityDetailResponse> {
+        return this.apiService.get<GetMonitoringActivityDetailResponse>(`/Admin/Monitoring/Sessions/${sessionId}/Activity/${encodeURIComponent(requestId)}`);
+    }
+
+    public getMonitoringMap(): Observable<GetMonitoringMapResponse> {
+        return this.apiService.get<GetMonitoringMapResponse>('/Admin/Monitoring/Map');
+    }
+
+    public forceLogoutMonitoringSession(sessionId: number, request: ForceLogoutMonitoringSessionRequest): Observable<ForceLogoutMonitoringSessionResponse> {
+        return this.apiService.post<ForceLogoutMonitoringSessionResponse>(`/Admin/Monitoring/Sessions/${sessionId}/ForceLogout`, request);
     }
 }

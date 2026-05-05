@@ -19,7 +19,8 @@ import {
     Announcement,
     AdminGeneratorOwnerProfile,
     AdminAnnouncement,
-    ExtraFee, BillCollection
+    ExtraFee,
+    BillCollection
 } from '@/core/models/model';
 import {
     SubscriberAddress,
@@ -557,4 +558,174 @@ export interface PayBillsInBulkResponse {
 
 export interface GetBillsByPeriodStatusResponse {
     bills: Bill[];
+}
+
+export interface GetMonitoringStatsResponse {
+    stats: MonitoringStats;
+}
+
+export interface MonitoringStats {
+    totalOnline: number;
+    totalIdle: number;
+    lastUpdatedAt: string;
+    byRole: Record<string, number>;
+    byCountry: Record<string, number>;
+    topCities: MonitoringTopCity[];
+}
+
+export interface MonitoringTopCity {
+    country: string;
+    city: string | null;
+    count: number;
+}
+
+export interface GetMonitoringActiveSessionsResponse {
+    page: MonitoringActiveSessionsPage;
+}
+
+export interface MonitoringActiveSessionsPage {
+    items: MonitoringSession[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+}
+
+export interface MonitoringSession {
+    sessionId: number;
+    userId: number;
+    username: string;
+    fullName: string;
+    roleCode: string;
+    status: string;
+    lastSeenAt: string;
+    signedInAt: string;
+    country: string | null;
+    city: string | null;
+    deviceType: string | null;
+    browser: string | null;
+    refreshCount: number;
+    lastEndpoint: string | null;
+}
+
+export interface GetMonitoringUserSessionsResponse {
+    page: MonitoringUserSessionsPage;
+}
+
+export interface MonitoringUserSessionsPage {
+    items: MonitoringUserSession[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+}
+
+export interface MonitoringUserSession {
+    sessionId: number;
+    userId: number;
+    username: string;
+    fullName: string;
+    roleCode: string;
+    status: string;
+    signedInAt: string;
+    lastSeenAt: string;
+    loggedOutAt: string | null;
+    logoutReason: string | null;
+    refreshCount: number;
+    country: string | null;
+    city: string | null;
+    deviceType: string | null;
+    browser: string | null;
+    durationSeconds: number | null;
+}
+
+export interface GetMonitoringSessionDetailResponse {
+    session: MonitoringSessionDetail;
+}
+
+export interface MonitoringSessionDetail {
+    sessionId: number;
+    userId: number;
+    username: string;
+    fullName: string;
+    roleCode: string;
+    status: string;
+    signedInAt: string;
+    lastSeenAt: string;
+    loggedOutAt: string | null;
+    logoutReason: string | null;
+    refreshCount: number;
+    rootRefreshTokenId: number | null;
+    currentRefreshTokenId: number | null;
+    ipAddress: string | null;
+    country: string | null;
+    region: string | null;
+    city: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    userAgentRaw: string | null;
+    deviceType: string | null;
+    os: string | null;
+    osVersion: string | null;
+    browser: string | null;
+    browserVersion: string | null;
+    language: string | null;
+    cfRay: string | null;
+}
+
+export interface GetMonitoringSessionActivityResponse {
+    items: MonitoringSessionActivity[];
+}
+
+export interface MonitoringSessionActivity {
+    requestId: string;
+    lastTime: string;
+    endpointName: string | null;
+    httpMethod: string | null;
+    requestPath: string | null;
+    screenName: string | null;
+    lastStatusCode: number | null;
+    rowCount: number;
+}
+
+export interface GetMonitoringActivityDetailResponse {
+    items: MonitoringActivityDetailRow[];
+}
+
+export interface MonitoringActivityDetailRow {
+    id: number;
+    time: string;
+    requestId: string;
+    requestDirection: string;
+    endpointName: string | null;
+    httpMethod: string | null;
+    statusCode: number | null;
+    requestPath: string | null;
+    correlationId: string | null;
+    userId: number | null;
+    userSessionId: number | null;
+    screenName: string | null;
+    message: string | null;
+    json: string | null;
+    serviceName: string | null;
+    sourceContext: string | null;
+    logLevel: string | null;
+    exception: string | null;
+}
+
+export interface GetMonitoringMapResponse {
+    buckets: MonitoringMapBucket[];
+}
+
+export interface MonitoringMapBucket {
+    country: string | null;
+    city: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    count: number;
+}
+
+export interface ForceLogoutMonitoringSessionResponse {
+    result: {
+        logged: boolean;
+        rowsAffected: number;
+    };
 }

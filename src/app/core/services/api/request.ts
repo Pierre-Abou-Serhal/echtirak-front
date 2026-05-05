@@ -426,3 +426,35 @@ export interface GetBulkBillReportRequest {
     billIds: number[];
     paperSize: string;
 }
+
+export interface GetMonitoringActiveSessionsQueryParams {
+    page: number;
+    pageSize: number;
+    role?: string;
+    status?: string;
+    country?: string;
+    city?: string;
+    search?: string;
+    sortBy?: string;
+    sortDir?: 'asc' | 'desc';
+}
+
+export interface GetMonitoringUserSessionsQueryParams {
+    userId: number;
+    from?: string;
+    to?: string;
+    role?: string;
+    sortBy?: string;
+    sortDir?: 'asc' | 'desc';
+    page: number;
+    pageSize: number;
+}
+
+export interface GetMonitoringSessionActivityQueryParams {
+    limit?: number;
+    direction?: 'request' | 'response' | 'both';
+}
+
+export interface ForceLogoutMonitoringSessionRequest {
+    reason: string;
+}

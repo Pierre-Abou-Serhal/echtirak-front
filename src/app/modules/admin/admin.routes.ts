@@ -8,6 +8,7 @@ import { SmsTemplatesComponent } from '@/modules/admin/sms-templates/sms-templat
 import {
     GeneratorOwnerManagementComponent
 } from '@/modules/admin/generator-owners/generator-owner-management/generator-owner-management.component';
+import { MonitoringComponent } from '@/modules/admin/monitoring/monitoring.component';
 
 export const ADMIN_ROUTES: Routes = [
     {
@@ -21,7 +22,8 @@ export const ADMIN_ROUTES: Routes = [
             { path: 'generator-owners', component: GeneratorOwnersComponent, data: { screenName: 'Admin - Generator Owners' } },
             { path: 'generator-owner-management', component: GeneratorOwnerManagementComponent, data: { screenName: 'Admin - Generator Owner Management' } },
             { path: 'announcements', component: AnnouncementsComponent, data: { screenName: 'Admin - Announcements' } },
-            { path: 'sms-templates', component: SmsTemplatesComponent, data: { screenName: 'Admin - SMS Templates' } }
+            { path: 'sms-templates', component: SmsTemplatesComponent, data: { screenName: 'Admin - SMS Templates' } },
+            { path: 'monitoring', component: MonitoringComponent, data: { screenName: 'Admin - Monitoring' } }
         ]
     }
 ] as Routes;
