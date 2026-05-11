@@ -27,6 +27,7 @@ import {
     GetMonitoringSessionDetailResponse,
     GetMonitoringStatsResponse,
     GetMonitoringUserSessionsResponse,
+    GetMonitoringUsersResponse,
     MonitoringActivityDetailRow,
     MonitoringMapBucket,
     MonitoringSession,
@@ -35,6 +36,7 @@ import {
     MonitoringStats,
     MonitoringUserSession
 } from '@/core/services/api/response';
+import { SelectOptionNumValue } from '@/core/dtos/dto';
 
 @Component({
     selector: 'app-monitoring',
@@ -148,7 +150,12 @@ export class MonitoringComponent implements OnInit, OnDestroy {
 
     readonly sessionDetailSkeletonRows = [1, 2, 3, 4, 5, 6, 7, 8];
 
+    monitoringUsersOptions: SelectOptionNumValue[] = [];
+    isMonitoringUsersLoading = false;
+
     ngOnInit(): void {
+        this.loadMonitoringUsers();
+
         this.activitySearch$.pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
             this.activitySearch = value;
             this.applyActivityFilter();
@@ -699,5 +706,31 @@ export class MonitoringComponent implements OnInit, OnDestroy {
 
     isSelectedHistorySession(sessionId: number): boolean {
         return this.selectedHistorySessionId === sessionId;
+    }
+
+    // TODO: To change to load all users instead of generator owners
+    private loadMonitoringUsers(): void {
+        this.isMonitoringUsersLoading = true;
+
+        this.adminService
+            .getMonitoringUsers()
+            .pipe(finalize(() => (this.isMonitoringUsersLoading = false)))
+            .subscribe({
+                next: (response: GetMonitoringUsersResponse) => {
+                    this.monitoringUsersOptions = (response.users ?? [])
+                        .map((user) => {
+                            return {
+                                value: user.id,
+                                label: `${user.username} - ${user.displayName}`
+                            };
+                        })
+                        .sort((a, b) => a.label.localeCompare(b.label));
+                },
+                error: (err) => {
+                    console.error(err);
+                    this.monitoringUsersOptions = [];
+                    this.notificationService.warn('Failure', 'Failed to load generator owners.');
+                }
+            });
     }
 }

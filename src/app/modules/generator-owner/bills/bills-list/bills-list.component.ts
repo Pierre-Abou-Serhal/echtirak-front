@@ -31,6 +31,7 @@ import { mapBillToBillRow } from '@/core/utils/utils';
 import {
     BulkBillReportModalComponent
 } from '@/modules/generator-owner/bills/bulk-bill-report-modal/bulk-bill-report-modal.component';
+import { InputNumber } from 'primeng/inputnumber';
 
 @Component({
     selector: 'app-bills-list-component',
@@ -56,7 +57,8 @@ import {
         ContextMenuModule,
         Tooltip,
         CurrencyPipe,
-        BulkBillReportModalComponent
+        BulkBillReportModalComponent,
+        InputNumber
     ],
     templateUrl: './bills-list.component.html',
     styleUrl: './bills-list.component.scss',
@@ -210,6 +212,7 @@ export class BillsListComponent implements OnInit {
                 generatorId: this.billSearchFilter.generatorId,
                 subscriberName: this.billSearchFilter.subscriberName,
                 subscriberPhoneNumber: this.billSearchFilter.subscriberPhoneNumber,
+                billReference: this.billSearchFilter.billReference,
                 keyword: this.billSearchFilter.keyword
             })
             .pipe(
@@ -383,7 +386,8 @@ export class BillsListComponent implements OnInit {
             generatorId: undefined,
             statusCode: undefined,
             keyword: undefined,
-            subscriberPhoneNumber: undefined
+            subscriberPhoneNumber: undefined,
+            billReference: undefined,
         };
 
         this.applyFilters();

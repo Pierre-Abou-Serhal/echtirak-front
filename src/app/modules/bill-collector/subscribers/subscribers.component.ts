@@ -1,42 +1,49 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { BarcodeScannedEvent, QrScannerComponent } from '@/modules/bill-collector/qr-scanner/qr-scanner.component';
-import { BillCollectorService } from '@/core/services/bill-collector.service';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import { debounceTime, distinctUntilChanged, finalize, firstValueFrom, Subject, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { Skeleton } from 'primeng/skeleton';
-import { Subscriber } from '@/core/models/model';
-import { debounceTime, distinctUntilChanged, finalize, firstValueFrom, Subject, tap } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DataView } from 'primeng/dataview';
 import { Tag } from 'primeng/tag';
-import { FormsModule } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { Button } from 'primeng/button';
-import { SubscriberStatus } from '@/core/enums/enum';
-import { ActivatedRoute, Router } from '@angular/router';
 import { Dialog } from 'primeng/dialog';
-import { NotificationService } from '@/core/services/notification.service';
-import { GetSubscribersResponse } from '@/core/services/api/response';
-import { LbPhonePipe } from '@/core/pipes/pipes';
+
 import { provideNgxMask } from 'ngx-mask';
+
+import { QrScannerComponent } from '@/modules/bill-collector/qr-scanner/qr-scanner.component';
+import { BillCollectorService } from '@/core/services/bill-collector.service';
+import { NotificationService } from '@/core/services/notification.service';
+
+import { Subscriber } from '@/core/models/model';
+import { SubscriberStatus } from '@/core/enums/enum';
+import { GetSubscribersResponse } from '@/core/services/api/response';
+
+import { LbPhonePipe } from '@/core/pipes/pipes';
 import { formatSubscriberAddress } from '@/core/utils/utils';
+
+type QrTarget = { type: 'kwh-reading'; subscriberId: number } | { type: 'bill-collection'; billId: number };
 
 @Component({
     selector: 'app-subscribers.component',
+    standalone: true,
     imports: [IconField, InputIcon, Skeleton, DataView, Tag, FormsModule, InputText, Button, QrScannerComponent, Dialog, LbPhonePipe, DecimalPipe],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
-    standalone: true,
     providers: [provideNgxMask()]
 })
 export class SubscribersComponent implements OnInit {
     private readonly billCollectorService = inject(BillCollectorService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly notificationService = inject(NotificationService);
-
-    private router = inject(Router);
-    private route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
+    private readonly route = inject(ActivatedRoute);
 
     subs: Subscriber[] = [];
 
@@ -45,6 +52,7 @@ export class SubscribersComponent implements OnInit {
 
     private pageNumber = 1;
     private readonly pageSize = 20;
+
     hasMore = true;
 
     loading = false;
@@ -53,15 +61,14 @@ export class SubscribersComponent implements OnInit {
     skeletonItems = [1, 2, 3];
 
     isQrDialogOpen = false;
-    scanningBillBarcode = false;
 
     ngOnInit(): void {
         this.search$
             .pipe(
                 debounceTime(300),
                 distinctUntilChanged(),
-                tap((q) => {
-                    this.keyword = q;
+                tap((query) => {
+                    this.keyword = query;
                     this.reset();
                     this.loading = true;
                 }),
@@ -73,16 +80,17 @@ export class SubscribersComponent implements OnInit {
         this.search$.next('');
     }
 
-    onSearch(value: string) {
+    onSearch(value: string): void {
         this.search$.next((value ?? '').trim());
     }
 
-    loadMore() {
+    loadMore(): void {
         if (!this.hasMore || this.loadingMore) return;
+
         this.fetchNextPage();
     }
 
-    private fetchFirstPage() {
+    private fetchFirstPage(): void {
         this.pageNumber = 1;
 
         this.billCollectorService
@@ -107,8 +115,9 @@ export class SubscribersComponent implements OnInit {
             });
     }
 
-    private fetchNextPage() {
+    private fetchNextPage(): void {
         this.loadingMore = true;
+
         const nextPage = this.pageNumber + 1;
 
         this.billCollectorService
@@ -133,7 +142,7 @@ export class SubscribersComponent implements OnInit {
             });
     }
 
-    private reset() {
+    private reset(): void {
         this.subs = [];
         this.pageNumber = 1;
         this.hasMore = true;
@@ -152,92 +161,130 @@ export class SubscribersComponent implements OnInit {
         }
     }
 
-    openSubscriberClick(subscriberId: number) {
-        this.router.navigate(['add-kva-reading', subscriberId], { relativeTo: this.route });
+    openSubscriberClick(subscriberId: number): void {
+        this.router.navigate(['add-kva-reading', subscriberId], {
+            relativeTo: this.route
+        });
     }
 
-    openQr() {
+    openQr(): void {
         this.isQrDialogOpen = true;
     }
 
-    closeQr() {
+    closeQr(): void {
         this.isQrDialogOpen = false;
     }
 
     async onQrScanned(value: string): Promise<void> {
         this.isQrDialogOpen = false;
 
-        const id = this.extractSubscriberIdFromQr(value);
+        const target = this.parseQrTarget(value);
 
-        if (!id) {
-            this.notificationService.warn('Failure', 'Failed to extract QR code content. Try to search for subscriber manually.');
+        if (!target) {
+            this.notificationService.warn('Invalid QR', 'This QR code is not recognized. Please search manually.');
             return;
         }
 
-        const isValid = await this.isParsedSubIdValid(id);
+        if (target.type === 'kwh-reading') {
+            const isValid = await this.isParsedSubIdValid(target.subscriberId);
 
-        if (!isValid) {
-            this.notificationService.warn('Failure', 'Something went wrong reading the QR code. Try to search for subscriber manually.');
-            return;
-        }
+            if (!isValid) {
+                this.notificationService.warn('Failure', 'Something went wrong reading the QR code. Try to search for subscriber manually.');
+                return;
+            }
 
-        this.router.navigate(['add-kva-reading', id], { relativeTo: this.route });
-    }
-
-    onBarcodeScanned(event: BarcodeScannedEvent): void {
-        if (this.scanningBillBarcode) return;
-
-        const readBarcode: string = event.value;
-        const billId = Number(readBarcode.replace('BILL-', ''));
-
-        if (!Number.isInteger(billId) || billId <= 0) {
-            this.isQrDialogOpen = false;
-
-            this.notificationService.warn('Failure', 'Invalid bill barcode. Try to search for the bill manually.');
+            this.router.navigate(['add-kva-reading', target.subscriberId], {
+                relativeTo: this.route
+            });
 
             return;
         }
 
-        this.scanningBillBarcode = true;
-
-        this.billCollectorService
-            .ScanBillBarcode({
-                billId
-            })
-            .pipe(finalize(() => (this.scanningBillBarcode = false)))
-            .subscribe({
-                next: (res) => {
-                    this.isQrDialogOpen = false;
-
-                    const collection = res?.item;
-
-                    this.notificationService.success('Bill Collected', collection ? `Bill #${collection.billId} was collected successfully. Amount: ${collection.amount} ${collection.currencyCode}.` : 'Bill was collected successfully.');
-                },
-                error: (err) => {
-                    console.error(err);
-
-                    this.isQrDialogOpen = false;
-
-                    this.notificationService.warn('Failure', 'Failed to collect bill. Please try again or search manually.');
+        if (target.type === 'bill-collection') {
+            this.router.navigate(['/app', 'bill-collector', 'bill-collections'], {
+                queryParams: {
+                    collectBillId: target.billId
                 }
             });
+        }
     }
 
-    private extractSubscriberIdFromQr(qr: string): number | null {
-        try {
-            const url = new URL(qr.trim());
-            const segments = url.pathname.split('/').filter(Boolean);
-            const last = segments.at(-1);
-            const id = Number(last);
+    private parseQrTarget(value: string): QrTarget | null {
+        const url = this.toUrl(value);
 
-            return Number.isFinite(id) && id > 0 ? id : null;
-        } catch {
-            const s = qr.trim().replace(/\/+$/, '');
-            const last = s.split('/').at(-1);
-            const id = Number(last);
+        if (!url) return null;
 
-            return Number.isFinite(id) && id > 0 ? id : null;
+        const path = url.pathname.toLowerCase();
+
+        const subscriberId = this.getNumberQueryParam(url, ['subscriberId', 'subscriber', 'subId']) ?? (this.isKwhReadingPath(path) ? this.getLastNumberFromPath(url.pathname) : null);
+
+        if (subscriberId && this.isKwhReadingPath(path)) {
+            return {
+                type: 'kwh-reading',
+                subscriberId
+            };
         }
+
+        const billId = this.getNumberQueryParam(url, ['collectBillId', 'billId', 'billReference']) ?? (this.isBillCollectionPath(path) ? this.getLastNumberFromPath(url.pathname) : null);
+
+        if (billId && this.isBillCollectionPath(path)) {
+            return {
+                type: 'bill-collection',
+                billId
+            };
+        }
+
+        return null;
+    }
+
+    private toUrl(value: string): URL | null {
+        const raw = (value ?? '').trim();
+
+        if (!raw) return null;
+
+        try {
+            return new URL(raw);
+        } catch {
+            try {
+                return new URL(raw, window.location.origin);
+            } catch {
+                return null;
+            }
+        }
+    }
+
+    private isKwhReadingPath(path: string): boolean {
+        return path.includes('add-kva-reading') || path.includes('kva-reading');
+    }
+
+    private isBillCollectionPath(path: string): boolean {
+        return path.includes('bill-collections') || path.includes('bill-collection');
+    }
+
+    private getNumberQueryParam(url: URL, names: string[]): number | null {
+        for (const name of names) {
+            const value = url.searchParams.get(name);
+
+            if (!value) continue;
+
+            const id = Number(value);
+
+            if (Number.isInteger(id) && id > 0) return id;
+        }
+
+        return null;
+    }
+
+    private getLastNumberFromPath(pathname: string): number | null {
+        const segments = pathname.split('/').filter(Boolean);
+
+        for (let i = segments.length - 1; i >= 0; i--) {
+            const id = Number(segments[i]);
+
+            if (Number.isInteger(id) && id > 0) return id;
+        }
+
+        return null;
     }
 
     private async isParsedSubIdValid(parsedSubId: number): Promise<boolean> {
@@ -251,9 +298,10 @@ export class SubscribersComponent implements OnInit {
             );
 
             const items = res?.page?.items ?? [];
+
             return items.length === 1 && items[0].id === parsedSubId;
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return false;
         }
     }

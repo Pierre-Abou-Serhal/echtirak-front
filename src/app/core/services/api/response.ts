@@ -729,3 +729,7 @@ export interface ForceLogoutMonitoringSessionResponse {
         rowsAffected: number;
     };
 }
+
+export interface GetMonitoringUsersResponse {
+    users: User[];
+}

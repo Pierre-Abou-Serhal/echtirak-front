@@ -144,3 +144,9 @@ export enum ReportPaperSize {
     A2 = 'A2',
     A1 = 'A1'
 }
+
+export enum KvaReadingHistoryAction {
+    EDIT = 'EDIT',
+    VIEW_IMAGE = 'VIEW_IMAGE',
+    CANCEL = 'CANCEL'
+}

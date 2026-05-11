@@ -656,12 +656,19 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                        <p-inputnumber
+                        <p-select
                             [(ngModel)]="historyUserId"
-                            placeholder="User ID"
-                            [useGrouping]="false"
-                            inputStyleClass="w-full"
-                        ></p-inputnumber>
+                            [options]="monitoringUsersOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Generator Owner"
+                            [showClear]="true"
+                            [filter]="true"
+                            filterBy="label"
+                            [loading]="isMonitoringUsersLoading"
+                            appendTo="body"
+                            class="w-full"
+                        ></p-select>
 
                         <p-datepicker
                             [(ngModel)]="historyFrom"

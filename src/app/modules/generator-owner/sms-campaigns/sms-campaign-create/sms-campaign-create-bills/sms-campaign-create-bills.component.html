@@ -220,6 +220,13 @@
                 </div>
             </th>
 
+            <th class="no-wrap-text" pSortableColumn="subscriberFirstName">
+                <div class="flex justify-between items-center gap-2">
+                    Phone Number
+                    <p-sortIcon field="subscriberFirstName" />
+                </div>
+            </th>
+
             <th class="no-wrap-text" pSortableColumn="generatorCode">
                 <div class="flex justify-between items-center gap-2">
                     Generator
@@ -303,6 +310,7 @@
             </td>
 
             <td>{{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}</td>
+            <td>{{ bill.subscriberPhoneNumber | lbPhone }}</td>
             <td>{{ bill.generatorCode }}</td>
             <td>
                 <div class="flex flex-col gap-1 min-w-[13rem]">
@@ -336,7 +344,7 @@
 
     <ng-template #expandedrow let-bill>
         <tr>
-            <td colspan="10" class="p-0">
+            <td colspan="11" class="p-0">
                 <div class="p-2">
                     <div class="bill-cards">
 
@@ -503,13 +511,13 @@
 
     <ng-template #emptymessage>
         <tr>
-            <td colspan="10">No bills found.</td>
+            <td colspan="11">No bills found.</td>
         </tr>
     </ng-template>
 
     <ng-template #loadingbody>
         <tr>
-            <td colspan="10">Loading bills data. Please wait.</td>
+            <td colspan="11">Loading bills data. Please wait.</td>
         </tr>
     </ng-template>
 </p-table>

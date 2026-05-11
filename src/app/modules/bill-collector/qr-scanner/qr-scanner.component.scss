@@ -1,23 +1,36 @@
-.scanner-window {
-    width: 100%;
-    max-width: 420px;
-    aspect-ratio: 3 / 4;
-    border: 1px solid var(--surface-200);
-    border-radius: 12px;
-    margin: 0 auto;
+.scanner-wrapper {
+    position: relative;
     overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid var(--surface-border);
+    background: #000;
 }
 
-.result {
-    word-break: break-word;
+.scanner-window {
+    display: block;
+    width: 100%;
+    min-height: 320px;
 }
 
-.camera-select {
-    text-align: center;
+.scanner-window video {
+    width: 100% !important;
+    height: 320px !important;
+    object-fit: cover;
+}
 
-    select {
-        padding: 0.25rem 0.5rem;
-        border-radius: 8px;
-        border: 1px solid var(--surface-300);
-    }
+.scan-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scan-box {
+    width: 68%;
+    aspect-ratio: 1 / 1;
+    border: 3px solid var(--primary-color);
+    border-radius: 1rem;
+    box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.35);
 }

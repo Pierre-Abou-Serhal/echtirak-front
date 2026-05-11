@@ -5,6 +5,8 @@ export interface User {
     id: number;
     username: string;
     userRoleCode: UserRole;
+    displayName: string;
+    statusCode: string;
 }
 
 export class Subscriber {
@@ -127,6 +129,7 @@ export interface Bill {
     currencyCode: string;
     statusCode: string;
     statusDescription: string;
+    subscriberPhoneNumber: string;
     billIssuedSmsStatus: string;
     billOverdueSmsStatus: string;
     previousKva: number;

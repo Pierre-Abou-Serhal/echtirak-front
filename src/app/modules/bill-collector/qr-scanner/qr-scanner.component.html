@@ -1,10 +1,10 @@
 <div class="flex flex-col gap-3">
-    @if(availableDevices.length > 1) {
+    @if (availableDevices.length > 1) {
         <div class="camera-select">
             <label class="text-sm text-color-secondary">
                 Camera:
                 <select class="ml-2" (change)="onDeviceSelectChange($event)">
-                    @for(device of availableDevices; track device.deviceId) {
+                    @for (device of availableDevices; track device.deviceId) {
                         <option [value]="device.deviceId">
                             {{ device.label || 'Camera' }}
                         </option>
@@ -14,19 +14,31 @@
         </div>
     }
 
-    <zxing-scanner
-        class="scanner-window"
-        [enable]="enabled"
-        [autostart]="true"
-        [autofocusEnabled]="true"
-        [formats]="allowedFormats"
-        [device]="currentDevice"
-        (scanComplete)="onScanComplete($event)"
-        (camerasFound)="onCamerasFound($event)"
-        (permissionResponse)="onPermissionResponse($event)"
-    ></zxing-scanner>
+    <div class="scanner-wrapper">
+        <zxing-scanner
+            class="scanner-window"
+            [enable]="enabled"
+            [autostart]="true"
+            [autofocusEnabled]="true"
+            [tryHarder]="true"
+            [formats]="allowedFormats"
+            [device]="currentDevice"
+            [videoConstraints]="videoConstraints"
+            (scanSuccess)="onScanSuccess($event)"
+            (camerasFound)="onCamerasFound($event)"
+            (permissionResponse)="onPermissionResponse($event)"
+        ></zxing-scanner>
 
-    @if(hasPermission === false) {
+        <div class="scan-overlay">
+            <div class="scan-box"></div>
+        </div>
+    </div>
+
+    <div class="text-xs text-color-secondary text-center">
+        Keep the QR code inside the box and hold the camera steady.
+    </div>
+
+    @if (hasPermission === false) {
         <p class="text-sm text-red-500 m-0">
             Please allow camera access to scan QR codes.
         </p>
@@ -52,9 +64,9 @@
         ></p-button>
     </div>
 
-    @if(scanResult) {
+    @if (scanResult) {
         <div class="result text-sm">
-            <div class="font-semibold mb-1">Scanned:</div>
+            <div class="font-semibold mb-1">Scanned QR URL:</div>
             <code>{{ scanResult }}</code>
         </div>
     }

@@ -41,7 +41,8 @@ import {
     GetMonitoringSessionActivityResponse,
     GetMonitoringActivityDetailResponse,
     GetMonitoringMapResponse,
-    ForceLogoutMonitoringSessionResponse
+    ForceLogoutMonitoringSessionResponse,
+    GetMonitoringUsersResponse
 } from '@/core/services/api/response';
 
 class DeactivateGeneratorOwnerRequest {}
@@ -170,5 +171,9 @@ export class AdminService {
 
     public forceLogoutMonitoringSession(sessionId: number, request: ForceLogoutMonitoringSessionRequest): Observable<ForceLogoutMonitoringSessionResponse> {
         return this.apiService.post<ForceLogoutMonitoringSessionResponse>(`/Admin/Monitoring/Sessions/${sessionId}/ForceLogout`, request);
+    }
+
+    public getMonitoringUsers(): Observable<GetMonitoringUsersResponse> {
+        return this.apiService.get<GetMonitoringUsersResponse>('/Admin/Monitoring/Lookup/Users');
     }
 }

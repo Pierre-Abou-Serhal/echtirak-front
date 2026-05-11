@@ -7,11 +7,12 @@ import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { KvaReading } from '@/core/models/model';
 import { SelectOptionStrValue } from '@/core/dtos/dto';
+import { LbPhonePipe } from '@/core/pipes/pipes';
 
 @Component({
     selector: 'app-kva-edit-modal',
     standalone: true,
-    imports: [FormsModule, DialogModule, InputTextModule, InputNumberModule, SelectModule, ButtonModule],
+    imports: [FormsModule, DialogModule, InputTextModule, InputNumberModule, SelectModule, ButtonModule, LbPhonePipe],
     templateUrl: './kva-edit-modal.component.html',
     styleUrl: './kva-edit-modal.component.scss'
 })

@@ -150,7 +150,6 @@ export class BulkBillReportModalComponent {
                         ...b,
                         billPeriodKey: `${b.billYear}-${String(b.billMonth).padStart(2, '0')}`
                     }));
-                    console.log(this.bills);
 
                     this.keyword = '';
 

@@ -26,7 +26,7 @@
                 <!-- Phone (disabled) -->
                 <div>
                     <label class="block text-sm font-semibold mb-2">Phone</label>
-                    <input pInputText class="w-full" [ngModel]="editable.subscriberPhoneNumber" disabled />
+                    <input pInputText class="w-full" [ngModel]="editable.subscriberPhoneNumber | lbPhone" disabled />
                 </div>
 
                 <!-- Generator (disabled) -->

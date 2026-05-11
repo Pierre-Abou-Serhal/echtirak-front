@@ -2,7 +2,7 @@
     [(visible)]="visible"
     [style]="{ width: '70vw', maxWidth: '1100px' }"
     [breakpoints]="{ '1200px': '85vw', '768px': '95vw' }"
-    header="Edit Bill"
+    [header]="readOnly ? 'Bill Details' : 'Edit Bill'"
     [modal]="true"
     [draggable]="true"
     [resizable]="true"
@@ -149,6 +149,21 @@
                     ></p-inputnumber>
                 </div>
 
+                <!-- Amount per KVA (disabled) -->
+                <div>
+                    <label for="billAmountPerKva" class="block text-sm font-semibold mb-2">Amount Per KWH</label>
+                    <p-inputnumber
+                        inputId="billAmountPerKva"
+                        [ngModel]="editableBill.amountPerKva"
+                        mode="decimal"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        class="w-full"
+                        [disabled]="true"
+                        [min]="0"
+                    ></p-inputnumber>
+                </div>
+
                 <!-- Bill Period (month/year) -->
                 <div>
                     <label for="billPeriod" class="block text-sm font-semibold mb-2">Bill Month & Year</label>
@@ -160,7 +175,7 @@
                         placeholder="Bill Month & Year"
                         [readonlyInput]="true"
                         class="w-full"
-                        [disabled]="isBillPeriodDisabled"
+                        [disabled]="readOnly || isBillPeriodDisabled"
                     ></p-datepicker>
 
                     @if (submitted && !billPeriod) {
@@ -168,23 +183,64 @@
                     }
                 </div>
 
-                <!-- Current KWH (editable) -->
+                <!-- Current KWH -->
                 <div>
-                    <label for="billCurrentKva" class="block text-sm font-semibold mb-2">Current KWH</label>
+                    <label for="billCurrentKva" class="block text-sm font-semibold mb-2">
+                        {{ customKwhReadingMode ? 'Base Current KWH' : 'Current KWH' }}
+                    </label>
                     <p-inputnumber
                         inputId="billCurrentKva"
-                        [(ngModel)]="editableBill.currentKva"
+                        [ngModel]="customKwhReadingMode ? customKwhBasePreviousKva : editableBill.currentKva"
+                        (ngModelChange)="editableBill.currentKva = $event; onCurrentKvaChanged()"
                         mode="decimal"
                         [minFractionDigits]="0"
                         [maxFractionDigits]="4"
                         class="w-full"
                         [min]="0"
+                        [disabled]="readOnly || customKwhReadingMode"
                     ></p-inputnumber>
 
-                    @if (submitted && isCurrentKvaInvalid()) {
+                    @if (customKwhReadingMode) {
+                        <small class="text-color-secondary">
+                            In custom bill generation, this value becomes Previous KWH when saving.
+                        </small>
+                    }
+
+                    @if (submitted && !customKwhReadingMode && isCurrentKvaInvalid()) {
                         <small class="text-red-500">Current KWH must be greater than or equal to Previous KWH.</small>
                     }
                 </div>
+
+                @if (customKwhReadingMode) {
+                    <!-- UI-only Current KWH Reading for Custom Bill Generation -->
+                    <div>
+                        <label for="customCurrentKvaReading" class="block text-sm font-semibold mb-2">
+                            Current KWH Reading <span class="text-red-500">*</span>
+                        </label>
+
+                        <p-inputnumber
+                            inputId="customCurrentKvaReading"
+                            [(ngModel)]="customCurrentKvaReading"
+                            (ngModelChange)="onCustomCurrentKvaReadingChanged()"
+                            mode="decimal"
+                            [minFractionDigits]="0"
+                            [maxFractionDigits]="4"
+                            class="w-full"
+                            [min]="0"
+                            [disabled]="readOnly"
+                        ></p-inputnumber>
+
+                        <small class="block text-color-secondary mt-1">
+                            On save, Previous KWH will become the base current KWH, and Current KWH will become this reading.
+                        </small>
+
+                        @if (submitted && isCustomCurrentKvaReadingInvalid()) {
+                            <small class="block text-red-500 mt-1">
+                                Current KWH Reading is required and must be greater than or equal to the base Current KWH.
+                            </small>
+                        }
+                    </div>
+                }
 
                 <!-- Amount (editable) -->
                 <div>
@@ -197,6 +253,7 @@
                         [minFractionDigits]="0"
                         [maxFractionDigits]="4"
                         class="w-full"
+                        [disabled]="readOnly"
                     ></p-inputnumber>
 
                     @if (submitted && isAmountInvalid()) {
@@ -209,7 +266,7 @@
                     <div class="flex items-center justify-between mb-2">
                         <label class="block text-sm font-semibold">Extra Fees</label>
 
-                        @if (extraFeesEditable) {
+                        @if (extraFeesEditable && !readOnly) {
                             <p-button
                                 icon="pi pi-plus"
                                 label="Add Fee"
@@ -252,6 +309,7 @@
                                                     [(ngModel)]="f.extraFeeId"
                                                     (ngModelChange)="onExtraFeeSelected(f, $event)"
                                                     [overlayOptions]="getOverlayOptions()"
+                                                    [disabled]="readOnly"
                                                 ></p-select>
 
                                                 @if (submitted && isExtraFeeSelectionInvalid(f)) {
@@ -267,7 +325,7 @@
                                             <p-inputnumber
                                                 class="w-full"
                                                 [(ngModel)]="f.amount"
-                                                [disabled]="!extraFeesEditable"
+                                                [disabled]="readOnly || !extraFeesEditable"
                                                 mode="decimal"
                                                 [min]="0"
                                                 [minFractionDigits]="0"
@@ -290,7 +348,7 @@
 
                                         <!-- remove -->
                                         <div class="col-span-1 flex justify-end pt-1">
-                                            @if (extraFeesEditable) {
+                                            @if (extraFeesEditable && !readOnly) {
                                                 <p-button
                                                     icon="pi pi-trash"
                                                     severity="danger"
@@ -330,6 +388,7 @@
                         class="w-full"
                         [(ngModel)]="editableBill.notes"
                         placeholder="Write notes..."
+                        [disabled]="readOnly"
                     ></textarea>
                 </div>
 
@@ -339,8 +398,21 @@
 
     <ng-template #footer>
         <div class="flex justify-end gap-2">
-            <p-button label="Cancel" icon="pi pi-times" text (onClick)="close()"></p-button>
-            <p-button label="Save" icon="pi pi-check" (onClick)="submit()" severity="primary"></p-button>
+            <p-button
+                [label]="readOnly ? 'Close' : 'Cancel'"
+                icon="pi pi-times"
+                text
+                (onClick)="close()"
+            ></p-button>
+
+            @if (!readOnly) {
+                <p-button
+                    label="Save"
+                    icon="pi pi-check"
+                    (onClick)="submit()"
+                    severity="primary"
+                ></p-button>
+            }
         </div>
     </ng-template>
 </p-dialog>

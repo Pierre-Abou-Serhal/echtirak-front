@@ -1,11 +1,11 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { DatePipe, DecimalPipe, formatDate, CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe, formatDate } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import * as Papa from 'papaparse';
 
 import { Button } from 'primeng/button';
-import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { DatePicker } from 'primeng/datepicker';
 import { Select } from 'primeng/select';
@@ -16,15 +16,16 @@ import { ConfirmationService } from 'primeng/api';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { NotificationService } from '@/core/services/notification.service';
 
-import { BillCollection, BillCollectorProfile, Lookup } from '@/core/models/model';
+import { Bill, BillCollection, BillCollectorProfile, Lookup } from '@/core/models/model';
 
-import { ApproveOrRejectBillCollectionRequest, GetBillCollectionsQueryParam } from '@/core/services/api/request';
+import { ApproveOrRejectBillCollectionRequest, GetBillCollectionsQueryParam, GetBillsQueryParams } from '@/core/services/api/request';
 
-import { ApproveOrRejectBillCollectionResponse, GetBillCollectorForGOResponse, GetLookupResponse, GoGetBillCollectionsResponse, GOGetBillCollectionsItem, GOGetBillCollectionsSummary } from '@/core/services/api/response';
+import { ApproveOrRejectBillCollectionResponse, GetBillCollectorForGOResponse, GetLookupResponse, GetBillsResponse, GoGetBillCollectionsResponse, GOGetBillCollectionsItem, GOGetBillCollectionsSummary } from '@/core/services/api/response';
 
 import { BillCollectionRecordStatus, BillCollectionStatus, LookupDomain } from '@/core/enums/enum';
 
 import { SelectOptionNumValue } from '@/core/dtos/dto';
+import { BillEditModalComponent } from '@/modules/generator-owner/bills/bill-edit-modal/bill-edit-modal.component';
 
 type SelectOptionStrValue = {
     label: string;
@@ -34,7 +35,7 @@ type SelectOptionStrValue = {
 @Component({
     selector: 'app-bill-collections',
     standalone: true,
-    imports: [FormsModule, Button, TableModule, Tag, DatePicker, Select, InputNumber, DatePipe, DecimalPipe, CurrencyPipe, ConfirmDialogModule],
+    imports: [FormsModule, Button, TableModule, Tag, DatePicker, Select, InputNumber, DatePipe, DecimalPipe, CurrencyPipe, ConfirmDialogModule, BillEditModalComponent],
     templateUrl: './bill-collections.component.html',
     providers: [ConfirmationService]
 })
@@ -49,25 +50,32 @@ export class BillCollectionsComponent implements OnInit {
     selectedCollections: BillCollection[] = [];
     private selectedCollectionsById = new Map<number, BillCollection>();
 
-    summary: GOGetBillCollectionsSummary = {
-        collectionsCount: 0,
-        collectionsAmount: 0,
-        pendingApprovalCount: 0,
-        pendingApprovalAmount: 0,
-        approvedCount: 0,
-        approvedAmount: 0,
-        rejectedCount: 0,
-        rejectedAmount: 0
-    };
+    summary: GOGetBillCollectionsSummary = this.emptySummary();
 
     loading = false;
     approving = false;
     rejecting = false;
 
+    /**
+     * Client-side table pagination.
+     * This controls how many loaded records are displayed per page.
+     */
     first = 0;
     rows = 10;
+    rowsPerPageOptions = [10, 50, 100, 200];
+
+    /**
+     * Server-side batch pagination.
+     * The API loads 2000 records per request.
+     * The table does NOT call the API on every page change.
+     */
+    private readonly serverPageSize = 2000;
+    private currentServerPage = 0;
+
+    /**
+     * Total records available on the server.
+     */
     totalRecords = 0;
-    rowsPerPageOptions = [10, 20, 50, 100];
 
     billId: number | null = null;
     selectedCollectionStatus: string | null = null;
@@ -86,8 +94,11 @@ export class BillCollectionsComponent implements OnInit {
     billCollectors: SelectOptionNumValue[] = [];
     isBillCollectorsLoading = true;
 
-    sortField: keyof BillCollection | null = null;
-    sortOrder: 1 | -1 = 1;
+    hasAppliedRequiredFilters = false;
+
+    billPreviewVisible = false;
+    billPreviewLoading = false;
+    billPreviewBill: any | null = null;
 
     ngOnInit(): void {
         this.loadLookups();
@@ -106,6 +117,7 @@ export class BillCollectionsComponent implements OnInit {
             },
             error: (err) => {
                 console.error(err);
+
                 this.collectionStatuses = [];
                 this.isCollectionStatusesLoading = false;
             }
@@ -122,6 +134,7 @@ export class BillCollectionsComponent implements OnInit {
             },
             error: (err) => {
                 console.error(err);
+
                 this.recordStatuses = [];
                 this.isRecordStatusesLoading = false;
             }
@@ -151,35 +164,23 @@ export class BillCollectionsComponent implements OnInit {
         });
     }
 
-    loadBillCollections(event?: TableLazyLoadEvent): void {
-        if (this.dateRangeInvalid()) return;
+    private loadBillCollectionsPage(pageNumber: number, append: boolean): void {
+        if (!this.hasAppliedRequiredFilters) return;
 
-        if (event) {
-            this.first = event.first ?? 0;
-            this.rows = event.rows ?? this.rows;
-
-            if (event.sortField) {
-                const field = Array.isArray(event.sortField) ? event.sortField[0] : event.sortField;
-
-                this.sortField = field as keyof BillCollection;
-            }
-
-            if (event.sortOrder === 1 || event.sortOrder === -1) {
-                this.sortOrder = event.sortOrder;
-            }
+        if (this.filtersInvalid) {
+            this.notificationService.warn('Validation', 'Please fill all required filters before searching.');
+            return;
         }
-
-        const pageNumber = Math.floor(this.first / this.rows) + 1;
 
         const queryParams: GetBillCollectionsQueryParam = {
             pageNumber,
-            pageSize: this.rows,
+            pageSize: this.serverPageSize,
             billId: this.billId ?? undefined,
-            billCollectorId: this.selectedBillCollectorId ?? undefined,
-            collectionScope: this.selectedCollectionStatus ?? undefined,
-            collectionStatus: this.selectedRecordStatus ?? undefined,
-            createdFrom: this.toApiDate(this.createdFrom),
-            createdTo: this.toApiDate(this.createdTo)
+            billCollectorId: this.selectedBillCollectorId!,
+            collectionScope: this.selectedCollectionStatus!,
+            collectionStatus: this.selectedRecordStatus!,
+            createdFrom: this.toApiDate(this.createdFrom)!,
+            createdTo: this.toApiDate(this.createdTo)!
         };
 
         this.loading = true;
@@ -189,33 +190,77 @@ export class BillCollectionsComponent implements OnInit {
             .pipe(finalize(() => (this.loading = false)))
             .subscribe({
                 next: (response: GoGetBillCollectionsResponse) => {
-                    this.billCollectorGroups = response.items ?? [];
+                    const newCollections = this.mapCollectionsFromResponse(response);
+
+                    this.currentServerPage = pageNumber;
+                    this.totalRecords = response.page?.totalCount ?? newCollections.length;
                     this.summary = response.summary ?? this.emptySummary();
 
-                    this.billCollections = this.billCollectorGroups.flatMap((group) =>
-                        (group.bcCollections ?? []).map((collection) => ({
-                            ...collection,
-                            billCollectorUserId: collection.billCollectorUserId ?? group.billCollectorId,
-                            billCollectorName: collection.billCollectorName || group.billCollectorName
-                        }))
-                    );
+                    /**
+                     * Used for Bill Collector Stats.
+                     * Since Bill Collector is required, this is usually one group.
+                     */
+                    this.billCollectorGroups = response.items ?? [];
 
-                    this.totalRecords = response.page?.totalCount ?? this.billCollections.length;
+                    if (append) {
+                        const existingIds = new Set(this.billCollections.map((collection) => collection.id));
 
-                    this.applyCurrentPageSort();
-                    this.refreshSelectedObjectsFromCurrentPage();
+                        const uniqueNewCollections = newCollections.filter((collection) => !existingIds.has(collection.id));
+
+                        this.billCollections = [...this.billCollections, ...uniqueNewCollections];
+                    } else {
+                        this.billCollections = newCollections;
+                        this.first = 0;
+                    }
+
+                    this.refreshSelectedObjectsFromLoadedCollections();
                 },
                 error: (err) => {
                     console.error(err);
 
-                    this.billCollectorGroups = [];
-                    this.billCollections = [];
-                    this.summary = this.emptySummary();
-                    this.totalRecords = 0;
+                    if (!append) {
+                        this.billCollectorGroups = [];
+                        this.billCollections = [];
+                        this.summary = this.emptySummary();
+                        this.totalRecords = 0;
+                        this.currentServerPage = 0;
+                    }
 
                     this.notificationService.warn('Failure', 'Failed to load bill collections.');
                 }
             });
+    }
+
+    private mapCollectionsFromResponse(response: GoGetBillCollectionsResponse): BillCollection[] {
+        return (response.items ?? []).flatMap((group) =>
+            (group.bcCollections ?? []).map((collection) => ({
+                ...collection,
+                billCollectorUserId: collection.billCollectorUserId ?? group.billCollectorId,
+                billCollectorName: collection.billCollectorName || group.billCollectorName
+            }))
+        );
+    }
+
+    private loadFirstBillCollectionsBatch(): void {
+        this.currentServerPage = 0;
+        this.loadBillCollectionsPage(1, false);
+    }
+
+    private loadNextBillCollectionsBatch(): void {
+        if (!this.canLoadMoreCollections) return;
+
+        this.loadBillCollectionsPage(this.currentServerPage + 1, true);
+    }
+
+    onTablePage(event: { first?: number; rows?: number }): void {
+        this.first = event.first ?? 0;
+        this.rows = event.rows ?? this.rows;
+
+        const reachedEndOfLoadedData = this.first + this.rows >= this.loadedRecordsCount;
+
+        if (reachedEndOfLoadedData && this.canLoadMoreCollections) {
+            this.loadNextBillCollectionsBatch();
+        }
     }
 
     private emptySummary(): GOGetBillCollectionsSummary {
@@ -231,53 +276,32 @@ export class BillCollectionsComponent implements OnInit {
         };
     }
 
-    private applyCurrentPageSort(): void {
-        if (!this.sortField) return;
-
-        const field = this.sortField;
-        const order = this.sortOrder;
-
-        this.billCollections = [...this.billCollections].sort((a, b) => {
-            const aValue = a[field];
-            const bValue = b[field];
-
-            if (aValue == null && bValue == null) return 0;
-            if (aValue == null) return -1 * order;
-            if (bValue == null) return 1 * order;
-
-            if (typeof aValue === 'number' && typeof bValue === 'number') {
-                return (aValue - bValue) * order;
-            }
-
-            if (field === 'createdAt') {
-                const aDate = new Date(String(aValue)).getTime();
-                const bDate = new Date(String(bValue)).getTime();
-
-                return (aDate - bDate) * order;
-            }
-
-            return String(aValue).localeCompare(String(bValue)) * order;
-        });
-    }
-
     onSelectionChange(selection: BillCollection[]): void {
-        const currentPageIds = new Set(this.billCollections.map((collection) => collection.id));
+        this.selectedCollections = selection ?? [];
 
-        for (const id of currentPageIds) {
-            this.selectedCollectionsById.delete(id);
-        }
+        this.selectedCollectionsById.clear();
 
-        for (const collection of selection ?? []) {
+        for (const collection of this.selectedCollections) {
             this.selectedCollectionsById.set(collection.id, collection);
         }
-
-        this.syncSelectedCollectionsFromMap();
     }
 
-    private refreshSelectedObjectsFromCurrentPage(): void {
+    private refreshSelectedObjectsFromLoadedCollections(): void {
+        if (this.selectedCollectionsById.size === 0) return;
+
+        const loadedById = new Map<number, BillCollection>();
+
         for (const collection of this.billCollections) {
-            if (this.selectedCollectionsById.has(collection.id)) {
-                this.selectedCollectionsById.set(collection.id, collection);
+            loadedById.set(collection.id, collection);
+        }
+
+        for (const selectedId of Array.from(this.selectedCollectionsById.keys())) {
+            const latestCollection = loadedById.get(selectedId);
+
+            if (latestCollection) {
+                this.selectedCollectionsById.set(selectedId, latestCollection);
+            } else {
+                this.selectedCollectionsById.delete(selectedId);
             }
         }
 
@@ -321,12 +345,25 @@ export class BillCollectionsComponent implements OnInit {
     }
 
     applyFilters(): void {
+        if (this.requiredFiltersMissing) {
+            this.notificationService.warn('Validation', 'Bill Collector, Collection Status, Record Status, Created From, and Created To are required.');
+            return;
+        }
+
         if (this.dateRangeInvalid()) return;
 
+        this.hasAppliedRequiredFilters = true;
         this.first = 0;
+        this.currentServerPage = 0;
+        this.totalRecords = 0;
+
+        this.billCollectorGroups = [];
+        this.billCollections = [];
+        this.summary = this.emptySummary();
+
         this.clearSelection();
 
-        this.loadBillCollections();
+        this.loadFirstBillCollectionsBatch();
     }
 
     resetFilters(): void {
@@ -336,11 +373,18 @@ export class BillCollectionsComponent implements OnInit {
         this.selectedRecordStatus = null;
         this.createdFrom = null;
         this.createdTo = null;
+
         this.first = 0;
+        this.currentServerPage = 0;
+        this.totalRecords = 0;
+
+        this.hasAppliedRequiredFilters = false;
+
+        this.billCollectorGroups = [];
+        this.billCollections = [];
+        this.summary = this.emptySummary();
 
         this.clearSelection();
-
-        this.loadBillCollections();
     }
 
     clearSelection(): void {
@@ -407,12 +451,8 @@ export class BillCollectionsComponent implements OnInit {
 
                     this.notificationService.success('Successful', `${response.updatedCount} collection(s) ${actionLabel} successfully.`);
 
-                    for (const collection of eligibleCollections) {
-                        this.selectedCollectionsById.delete(collection.id);
-                    }
-
-                    this.syncSelectedCollectionsFromMap();
-                    this.loadBillCollections();
+                    this.clearSelection();
+                    this.loadFirstBillCollectionsBatch();
                 },
                 error: (err) => {
                     console.error(err);
@@ -462,6 +502,26 @@ export class BillCollectionsComponent implements OnInit {
         return this.selectedCollections.filter((collection) => collection.statusCode === BillCollectionRecordStatus.COLLECTED_PENDING_GO_APPROVAL);
     }
 
+    get requiredFiltersMissing(): boolean {
+        return this.selectedBillCollectorId == null || !this.selectedCollectionStatus || !this.selectedRecordStatus || !this.createdFrom || !this.createdTo;
+    }
+
+    get filtersInvalid(): boolean {
+        return this.requiredFiltersMissing || this.dateRangeInvalid();
+    }
+
+    get loadedRecordsCount(): number {
+        return this.billCollections.length;
+    }
+
+    get remainingRecordsCount(): number {
+        return Math.max(this.totalRecords - this.loadedRecordsCount, 0);
+    }
+
+    get canLoadMoreCollections(): boolean {
+        return this.hasAppliedRequiredFilters && !this.loading && this.loadedRecordsCount > 0 && this.loadedRecordsCount < this.totalRecords;
+    }
+
     getCollectionSeverity(status: string) {
         switch (status) {
             case BillCollectionStatus.NOT_COLLECTED:
@@ -492,5 +552,49 @@ export class BillCollectionsComponent implements OnInit {
             default:
                 return null;
         }
+    }
+
+    openBillPreview(collection: BillCollection): void {
+        const billReference = Number(collection.billId);
+
+        if (!Number.isFinite(billReference)) {
+            this.notificationService.warn('Validation', 'Invalid bill reference.');
+            return;
+        }
+
+        const queryParams: GetBillsQueryParams = {
+            pageNumber: 1,
+            pageSize: 1,
+            billReference: billReference
+        };
+
+        this.billPreviewLoading = true;
+        this.billPreviewBill = null;
+
+        this.generatorOwnerService
+            .getBills(queryParams)
+            .pipe(finalize(() => (this.billPreviewLoading = false)))
+            .subscribe({
+                next: (response: GetBillsResponse) => {
+                    const bill: Bill | null = response.page?.items?.length > 0 ? response.page.items[0] : null;
+
+                    if (!bill) {
+                        this.notificationService.warn('Not Found', 'No bill details found for this reference.');
+                        return;
+                    }
+
+                    this.billPreviewBill = bill;
+                    this.billPreviewVisible = true;
+                },
+                error: (err) => {
+                    console.error(err);
+                    this.notificationService.warn('Failure', 'Failed to load bill details.');
+                }
+            });
+    }
+
+    closeBillPreview(): void {
+        this.billPreviewVisible = false;
+        this.billPreviewBill = null;
     }
 }

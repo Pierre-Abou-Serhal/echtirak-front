@@ -426,6 +426,7 @@
     [isBillPeriodDisabled]="true"
     [extraFeesEditable]="true"
     [requireExtraFeeAmounts]="true"
+    [customKwhReadingMode]="customBillGenerationMode"
     (save)="onBillEditSave($event)"
     (cancel)="onBillEditCancel()"
 />
@@ -834,9 +835,9 @@
     </ng-template>
 </p-dialog>
 
-<!-- Accept Bills Confirmation (missing extra fee amounts) -->
+<!-- Accept Bills Confirmation / Review Issues -->
 <p-dialog
-    header="Bills with Missing Extra Fee Amounts"
+    [header]="customBillGenerationMode ? 'Bills Requiring Review' : 'Bills with Missing Extra Fee Amounts'"
     [(visible)]="reviewMissingFeesVisible"
     [modal]="true"
     [draggable]="false"
@@ -845,13 +846,13 @@
     [breakpoints]="{ '1400px': '92vw', '960px': '96vw' }"
 >
     <div class="mb-4 text-sm text-color-secondary">
-        Some selected bills contain extra fees with missing or zero amounts.
-        You can edit them directly, or continue and accept anyway.
+        Some selected bills need your review before accepting.
+        Missing extra fee amounts can be accepted anyway, but missing Current KWH readings must be entered first.
     </div>
 
     <p-table
         #missingBillsDt
-        [value]="missingFeeBills"
+        [value]="billsRequiringReview"
         dataKey="id"
         rowHover
         showGridlines
@@ -909,7 +910,7 @@
                     />
 
                     <span class="text-sm text-color-secondary">
-                        Problematic Bills: {{ missingFeeBills.length }}
+                        Problematic Bills: {{ billsRequiringReview.length }}
                     </span>
                 </div>
 
@@ -934,6 +935,7 @@
         <ng-template #header>
             <tr>
                 <th style="width: 5rem">Actions</th>
+                <th style="min-width: 14rem">Issues</th>
 
                 <th class="no-wrap-text" pSortableColumn="subscriberFirstName">
                     <div class="flex justify-between items-center gap-2">
@@ -1009,6 +1011,17 @@
                     </div>
                 </td>
 
+                <td>
+                    <div class="flex flex-wrap gap-2">
+                        @for (issue of getReviewIssues(bill); track issue) {
+                            <p-tag
+                                [value]="issue"
+                                [severity]="issue.includes('KWH') ? 'danger' : 'warn'"
+                            />
+                        }
+                    </div>
+                </td>
+
                 <td>{{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}</td>
                 <td>{{ bill.generatorCode }}</td>
                 <td>
@@ -1046,7 +1059,7 @@
 
         <ng-template #expandedrow let-bill>
             <tr>
-                <td colspan="9" class="p-0">
+                <td colspan="10" class="p-0">
                     <div class="p-2">
                         <div class="bill-cards">
                             <div class="detail-card detail-card--wide">
@@ -1214,7 +1227,7 @@
 
         <ng-template #emptymessage>
             <tr>
-                <td colspan="9">No bills with missing extra fee amounts.</td>
+                <td colspan="10">No bills requiring review.</td>
             </tr>
         </ng-template>
     </p-table>
@@ -1234,13 +1247,14 @@
                     icon="pi pi-check"
                     severity="warn"
                     outlined
+                    [disabled]="hasBlockingKwhReadingIssues"
                     (onClick)="acceptBillsAnyway()"
                 ></p-button>
 
                 <p-button
                     label="Accept Bills"
                     icon="pi pi-check-circle"
-                    [disabled]="missingFeeBills.length > 0"
+                    [disabled]="billsRequiringReview.length > 0"
                     (onClick)="acceptBillsAfterReview()"
                 ></p-button>
             </div>

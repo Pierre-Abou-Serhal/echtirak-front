@@ -1,40 +1,20 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
-import { BarcodeFormat, Result } from '@zxing/library';
-import { FormsModule } from '@angular/forms';
+import { BarcodeFormat } from '@zxing/library';
 import { Button } from 'primeng/button';
-
-export interface BarcodeScannedEvent {
-    value: string;
-    format: BarcodeFormat;
-}
 
 @Component({
     selector: 'app-qr-scanner',
     standalone: true,
-    imports: [ZXingScannerModule, FormsModule, Button],
+    imports: [ZXingScannerModule, Button],
     templateUrl: './qr-scanner.component.html',
     styleUrl: './qr-scanner.component.scss'
 })
 export class QrScannerComponent {
     @Output() scanned = new EventEmitter<string>();
-    @Output() barcodeScanned = new EventEmitter<BarcodeScannedEvent>();
     @Output() closed = new EventEmitter<void>();
 
-    allowedFormats = [
-        BarcodeFormat.QR_CODE,
-
-        // Common bill/barcode formats
-        BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39,
-        BarcodeFormat.CODE_93,
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.EAN_8,
-        BarcodeFormat.UPC_A,
-        BarcodeFormat.UPC_E,
-        BarcodeFormat.ITF,
-        BarcodeFormat.CODABAR
-    ];
+    allowedFormats = [BarcodeFormat.QR_CODE];
 
     scanResult: string | null = null;
 
@@ -43,58 +23,84 @@ export class QrScannerComponent {
 
     hasPermission: boolean | null = null;
 
-    private emitted = false;
-
     enabled = true;
 
-    onScanComplete(result: Result | null | undefined): void {
-        if (!result || this.emitted) return;
+    /**
+     * Improves quality on many phones.
+     * If your ngx-scanner version does not support [videoConstraints],
+     * remove this property and the HTML binding.
+     */
+    videoConstraints: MediaTrackConstraints = {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 30 }
+    };
 
-        const value = result.getText()?.trim();
-        const format = result.getBarcodeFormat();
+    private emitted = false;
 
-        if (!value) return;
+    /**
+     * Stability check:
+     * require the same QR value to be detected twice before emitting.
+     */
+    private lastScannedValue: string | null = null;
+    private sameValueCount = 0;
+    private readonly requiredStableReads = 2;
 
-        this.emitted = true;
-        this.scanResult = value;
+    onScanSuccess(value: string | null | undefined): void {
+        if (!value || this.emitted) return;
 
-        if (format === BarcodeFormat.QR_CODE) {
-            this.scanned.emit(value);
-            return;
+        const cleanValue = value.trim();
+        if (!cleanValue) return;
+
+        if (this.lastScannedValue === cleanValue) {
+            this.sameValueCount++;
+        } else {
+            this.lastScannedValue = cleanValue;
+            this.sameValueCount = 1;
         }
 
-        this.barcodeScanned.emit({
-            value,
-            format
-        });
+        if (this.sameValueCount < this.requiredStableReads) return;
+
+        this.emitted = true;
+        this.enabled = false;
+        this.scanResult = cleanValue;
+
+        this.scanned.emit(cleanValue);
     }
 
-    onCamerasFound(devices: MediaDeviceInfo[]) {
+    onCamerasFound(devices: MediaDeviceInfo[]): void {
         this.availableDevices = devices;
 
         if (!this.currentDevice && devices.length > 0) {
-            const backCam = devices.find((d) => /back|rear|environment/i.test(d.label)) ?? devices[devices.length - 1];
+            const backCamera = devices.find((device) => /back|rear|environment/i.test(device.label)) ?? devices[devices.length - 1];
 
-            this.currentDevice = backCam;
+            this.currentDevice = backCamera;
         }
     }
 
-    onPermissionResponse(has: boolean) {
-        this.hasPermission = has;
+    onPermissionResponse(hasPermission: boolean): void {
+        this.hasPermission = hasPermission;
     }
 
-    clearResult() {
+    clearResult(): void {
         this.scanResult = null;
         this.emitted = false;
         this.enabled = true;
+
+        this.lastScannedValue = null;
+        this.sameValueCount = 0;
     }
 
     onDeviceSelectChange(event: Event): void {
         const selectedDeviceId = (event.target as HTMLSelectElement).value;
-        this.currentDevice = this.availableDevices.find((d) => d.deviceId === selectedDeviceId);
+
+        this.currentDevice = this.availableDevices.find((device) => device.deviceId === selectedDeviceId);
+
+        this.clearResult();
     }
 
-    close() {
+    close(): void {
         this.enabled = false;
         this.closed.emit();
     }

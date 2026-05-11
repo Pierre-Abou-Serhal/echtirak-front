@@ -436,6 +436,7 @@ export interface BillSearchFilter {
     billDateFrom?: Date;
     billDateTo?: Date;
     subscriberPhoneNumber?: string;
+    billReference?: number;
     keyword?: string;
 }
 

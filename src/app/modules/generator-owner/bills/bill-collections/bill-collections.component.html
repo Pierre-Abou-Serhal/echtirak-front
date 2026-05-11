@@ -1,5 +1,15 @@
 <p-confirmDialog></p-confirmDialog>
 
+<app-bill-edit-modal
+    [(visible)]="billPreviewVisible"
+    [bill]="billPreviewBill"
+    [readOnly]="true"
+    [isBillPeriodDisabled]="true"
+    [extraFeesEditable]="false"
+    [requireExtraFeeAmounts]="false"
+    (cancel)="closeBillPreview()"
+></app-bill-edit-modal>
+
 <h1 class="text-3xl font-bold mb-4">Bill Collections</h1>
 
 <div class="card">
@@ -25,7 +35,7 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Bill Collector
+                        Bill Collector <span class="text-red-500">*</span>
                     </label>
 
                     <p-select
@@ -42,7 +52,7 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Collection Status
+                        Collection Status <span class="text-red-500">*</span>
                     </label>
 
                     <p-select
@@ -59,7 +69,7 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Record Status
+                        Record Status <span class="text-red-500">*</span>
                     </label>
 
                     <p-select
@@ -76,7 +86,7 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Created From
+                        Created From <span class="text-red-500">*</span>
                     </label>
 
                     <p-datepicker
@@ -93,7 +103,7 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Created To
+                        Created To <span class="text-red-500">*</span>
                     </label>
 
                     <p-datepicker
@@ -121,7 +131,7 @@
                         label="Apply"
                         icon="pi pi-filter"
                         [loading]="loading"
-                        [disabled]="dateRangeInvalid()"
+                        [disabled]="loading"
                         (click)="applyFilters()"
                     ></p-button>
 
@@ -279,15 +289,12 @@
         <p-table
             [value]="billCollections"
             dataKey="id"
-            [lazy]="true"
-            [lazyLoadOnInit]="true"
             [paginator]="true"
             [rows]="rows"
-            [first]="first"
-            [totalRecords]="totalRecords"
+            [(first)]="first"
             [rowsPerPageOptions]="rowsPerPageOptions"
             [showCurrentPageReport]="true"
-            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} loaded entries"
             [loading]="loading"
             responsiveLayout="scroll"
             rowHover
@@ -295,16 +302,25 @@
             stripedRows
             [selection]="selectedCollections"
             (selectionChange)="onSelectionChange($event)"
-            (onLazyLoad)="loadBillCollections($event)"
+            (onPage)="onTablePage($event)"
         >
             <ng-template #caption>
                 <div class="flex flex-col gap-3">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div class="text-sm text-color-secondary">
-                            {{ selectedCollections.length }} selected.
-                            @if (approvableSelectedCollections.length > 0) {
-                                {{ approvableSelectedCollections.length }} pending GO approval.
-                            }
+                        <div class="flex flex-col gap-1 text-sm text-color-secondary">
+                            <div>
+                                {{ selectedCollections.length }} selected.
+                                @if (approvableSelectedCollections.length > 0) {
+                                    {{ approvableSelectedCollections.length }} pending GO approval.
+                                }
+                            </div>
+
+                            <div>
+                                Loaded {{ loadedRecordsCount }} of {{ totalRecords }} collection(s).
+                                @if (remainingRecordsCount > 0) {
+                                    {{ remainingRecordsCount }} remaining. More records will load automatically on the last page.
+                                }
+                            </div>
                         </div>
 
                         <div class="flex flex-wrap gap-2">
@@ -441,7 +457,14 @@
                     </td>
 
                     <td class="whitespace-nowrap">
-                        #{{ collection.billId }}
+                        <button
+                            type="button"
+                            class="text-primary font-semibold underline cursor-pointer disabled:opacity-50"
+                            [disabled]="billPreviewLoading"
+                            (click)="openBillPreview(collection); $event.stopPropagation()"
+                        >
+                            #{{ collection.billId }}
+                        </button>
                     </td>
 
                     <td>
@@ -484,7 +507,11 @@
             <ng-template #emptymessage>
                 <tr>
                     <td colspan="8">
-                        No bill collections found.
+                        @if (!hasAppliedRequiredFilters) {
+                            Apply the required filters to load bill collections.
+                        } @else {
+                            No bill collections found.
+                        }
                     </td>
                 </tr>
             </ng-template>

@@ -1,7 +1,8 @@
 import { Component, DestroyRef, Inject, inject, LOCALE_ID, OnInit } from '@angular/core';
 import { CurrencyPipe, DatePipe, DecimalPipe, formatDate } from '@angular/common';
-import { finalize, firstValueFrom } from 'rxjs';
+import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 
 import { Button } from 'primeng/button';
 import { DataView } from 'primeng/dataview';
@@ -13,15 +14,18 @@ import { Dialog } from 'primeng/dialog';
 import { Message } from 'primeng/message';
 
 import { BillCollectorService } from '@/core/services/bill-collector.service';
+import { NotificationService } from '@/core/services/notification.service';
+
 import { BillCollection } from '@/core/models/model';
 import { GetBillCollectionsQueryParam } from '@/core/services/api/request';
-import { BCGetBillCollectionsItem, BCGetBillCollectionsResponse, BCGetBillCollectionsSummary, GetSubscribersResponse } from '@/core/services/api/response';
 
-import { BarcodeScannedEvent, QrScannerComponent } from '@/modules/bill-collector/qr-scanner/qr-scanner.component';
+import { BCGetBillCollectionsItem, BCGetBillCollectionsResponse, BCGetBillCollectionsSummary } from '@/core/services/api/response';
 
-import { NotificationService } from '@/core/services/notification.service';
-import { Router } from '@angular/router';
+import { QrScannerComponent } from '@/modules/bill-collector/qr-scanner/qr-scanner.component';
+
 import { BillCollectionRecordStatus, BillCollectionStatus } from '@/core/enums/enum';
+
+type QrTarget = { type: 'kwh-reading'; subscriberId: number } | { type: 'bill-collection'; billId: number };
 
 @Component({
     selector: 'app-bill-collections.component',
@@ -34,6 +38,7 @@ export class BillCollectionsComponent implements OnInit {
     private readonly billCollectorService = inject(BillCollectorService);
     private readonly notificationService = inject(NotificationService);
     private readonly router = inject(Router);
+    private readonly route = inject(ActivatedRoute);
     private readonly destroyRef = inject(DestroyRef);
 
     billCollections: BillCollection[] = [];
@@ -41,34 +46,41 @@ export class BillCollectionsComponent implements OnInit {
 
     summary: BCGetBillCollectionsSummary = this.emptySummary();
 
-    loadingInitial: boolean = false;
-    loadingMore: boolean = false;
+    loadingInitial = false;
+    loadingMore = false;
 
-    private pageNumber: number = 1;
-    private readonly pageSize: number = 10;
+    private pageNumber = 1;
+    private readonly pageSize = 10;
 
-    totalCount: number = 0;
-    hasMore: boolean = true;
+    totalCount = 0;
+    hasMore = true;
 
-    skeletonItems: number[] = [1, 2, 3];
+    skeletonItems = [1, 2, 3];
 
     createdFromDate: Date | null = null;
     createdToDate: Date | null = null;
 
-    isQrDialogOpen: boolean = false;
-    scanningBillBarcode: boolean = false;
+    isQrDialogOpen = false;
+
+    collectingBillFromQr = false;
+    private lastAutoCollectBillId: number | null = null;
 
     constructor(@Inject(LOCALE_ID) private locale: string) {}
 
     ngOnInit(): void {
+        this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+            const collectBillId = this.getNumberFromQueryParams(params, ['collectBillId', 'billId', 'billReference']);
+
+            if (collectBillId && collectBillId !== this.lastAutoCollectBillId) {
+                this.lastAutoCollectBillId = collectBillId;
+                this.collectBillFromQr(collectBillId);
+            }
+        });
+
         this.fetchFirstPage();
     }
 
     loadMore(): void {
-        console.log(this.hasMore);
-        console.log(this.loadingMore);
-        console.log(this.loadingInitial);
-
         if (!this.hasMore || this.loadingMore || this.loadingInitial) return;
 
         this.fetchNextPage();
@@ -161,7 +173,6 @@ export class BillCollectionsComponent implements OnInit {
             createdFrom: this.createdFromDate ? formatDate(this.createdFromDate, 'yyyy-MM-dd', this.locale) : undefined,
             createdTo: this.createdToDate ? formatDate(this.createdToDate, 'yyyy-MM-dd', this.locale) : undefined,
 
-            // Keep your current filtering behavior.
             collectionStatus: BillCollectionRecordStatus.COLLECTED_PENDING_GO_APPROVAL,
             collectionScope: BillCollectionStatus.COLLECTED_BY_BC
         };
@@ -282,97 +293,165 @@ export class BillCollectionsComponent implements OnInit {
     async onQrScanned(value: string): Promise<void> {
         this.isQrDialogOpen = false;
 
-        const id = this.extractSubscriberIdFromQr(value);
+        const target = this.parseQrTarget(value);
 
-        if (!id) {
-            this.notificationService.warn('Failure', 'Failed to extract QR code content. Try to search for subscriber manually.');
+        if (!target) {
+            this.notificationService.warn('Invalid QR', 'This QR code is not recognized. Please try again or search manually.');
             return;
         }
 
-        const isValid = await this.isParsedSubIdValid(id);
+        if (target.type === 'kwh-reading') {
+            this.router.navigate(['/app', 'bill-collector', 'subscribers', 'add-kva-reading', target.subscriberId]);
 
-        if (!isValid) {
-            this.notificationService.warn('Failure', 'Something went wrong reading the QR code. Try to search for subscriber manually.');
             return;
         }
 
-        this.router.navigate(['/app', 'bill-collector', 'subscribers', 'add-kva-reading', id]);
+        if (target.type === 'bill-collection') {
+            this.lastAutoCollectBillId = target.billId;
+
+            this.router.navigate([], {
+                relativeTo: this.route,
+                queryParams: {
+                    collectBillId: target.billId
+                },
+                queryParamsHandling: 'merge'
+            });
+
+            this.collectBillFromQr(target.billId);
+        }
     }
 
-    onBarcodeScanned(event: BarcodeScannedEvent): void {
-        if (this.scanningBillBarcode) return;
-
-        const readBarcode = event.value;
-
-        const billId = Number(readBarcode.replace('BILL-', ''));
+    private collectBillFromQr(billId: number): void {
+        if (this.collectingBillFromQr) return;
 
         if (!Number.isInteger(billId) || billId <= 0) {
-            this.isQrDialogOpen = false;
-
-            this.notificationService.warn('Failure', 'Invalid bill barcode. Try to search for the bill manually.');
-
+            this.notificationService.warn('Failure', 'Invalid bill QR code. Please try again or search manually.');
             return;
         }
 
-        this.scanningBillBarcode = true;
+        this.collectingBillFromQr = true;
 
         this.billCollectorService
             .ScanBillBarcode({ billId })
-            .pipe(finalize(() => (this.scanningBillBarcode = false)))
+            .pipe(finalize(() => (this.collectingBillFromQr = false)))
             .subscribe({
                 next: (res) => {
-                    this.isQrDialogOpen = false;
-
                     const collection = res?.item;
 
                     this.reload();
+                    this.clearCollectBillQueryParam();
 
                     this.notificationService.success('Bill Collected', collection ? `Bill #${collection.billId} was collected successfully. Amount: ${collection.amount} ${collection.currencyCode}.` : 'Bill was collected successfully.');
                 },
                 error: (err) => {
                     console.error(err);
-
-                    this.isQrDialogOpen = false;
-
-                    this.notificationService.warn('Failure', 'Failed to collect bill. Please try again or search manually.');
                 }
             });
     }
 
-    private extractSubscriberIdFromQr(qr: string): number | null {
+    private clearCollectBillQueryParam(): void {
+        this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {
+                collectBillId: null,
+                billId: null,
+                billReference: null
+            },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+        });
+    }
+
+    private parseQrTarget(value: string): QrTarget | null {
+        const url = this.toUrl(value);
+
+        if (!url) return null;
+
+        const path = url.pathname.toLowerCase();
+
+        const subscriberId = this.getNumberQueryParam(url, ['subscriberId', 'subscriber', 'subId']) ?? (this.isKwhReadingPath(path) ? this.getLastNumberFromPath(url.pathname) : null);
+
+        if (subscriberId && this.isKwhReadingPath(path)) {
+            return {
+                type: 'kwh-reading',
+                subscriberId
+            };
+        }
+
+        const billId = this.getNumberQueryParam(url, ['collectBillId', 'billId', 'billReference']) ?? (this.isBillCollectionPath(path) ? this.getLastNumberFromPath(url.pathname) : null);
+
+        if (billId && this.isBillCollectionPath(path)) {
+            return {
+                type: 'bill-collection',
+                billId
+            };
+        }
+
+        return null;
+    }
+
+    private toUrl(value: string): URL | null {
+        const raw = (value ?? '').trim();
+
+        if (!raw) return null;
+
         try {
-            const url = new URL(qr.trim());
-            const segments = url.pathname.split('/').filter(Boolean);
-            const last = segments.at(-1);
-            const id = Number(last);
-
-            return Number.isFinite(id) && id > 0 ? id : null;
+            return new URL(raw);
         } catch {
-            const s = qr.trim().replace(/\/+$/, '');
-            const last = s.split('/').at(-1);
-            const id = Number(last);
-
-            return Number.isFinite(id) && id > 0 ? id : null;
+            try {
+                return new URL(raw, window.location.origin);
+            } catch {
+                return null;
+            }
         }
     }
 
-    private async isParsedSubIdValid(parsedSubId: number): Promise<boolean> {
-        try {
-            const res: GetSubscribersResponse = await firstValueFrom(
-                this.billCollectorService.getSubs({
-                    pageNumber: 1,
-                    pageSize: 1,
-                    keyword: parsedSubId.toString()
-                })
-            );
+    private isKwhReadingPath(path: string): boolean {
+        return path.includes('add-kva-reading') || path.includes('kva-reading');
+    }
 
-            const items = res?.page?.items ?? [];
+    private isBillCollectionPath(path: string): boolean {
+        return path.includes('bill-collections') || path.includes('bill-collection');
+    }
 
-            return items.length === 1 && items[0].id === parsedSubId;
-        } catch (error) {
-            console.error(error);
-            return false;
+    private getNumberQueryParam(url: URL, names: string[]): number | null {
+        for (const name of names) {
+            const value = url.searchParams.get(name);
+
+            if (!value) continue;
+
+            const id = Number(value);
+
+            if (Number.isInteger(id) && id > 0) return id;
         }
+
+        return null;
+    }
+
+    private getNumberFromQueryParams(params: ParamMap, names: string[]): number | null {
+        for (const name of names) {
+            const value = params.get(name);
+
+            if (!value) continue;
+
+            const id = Number(value);
+
+            if (Number.isInteger(id) && id > 0) return id;
+        }
+
+        return null;
+    }
+
+    private getLastNumberFromPath(pathname: string): number | null {
+        const segments = pathname.split('/').filter(Boolean);
+
+        for (let i = segments.length - 1; i >= 0; i--) {
+            const id = Number(segments[i]);
+
+            if (Number.isInteger(id) && id > 0) return id;
+        }
+
+        return null;
     }
 
     private updateHasMore(newItemsCount: number): void {
@@ -382,8 +461,5 @@ export class BillCollectionsComponent implements OnInit {
         }
 
         this.hasMore = newItemsCount >= this.pageSize;
-        console.log(`Has more from updateHasMore ${this.hasMore}`);
-        console.log(`new item,s couintrs ${newItemsCount}`);
-        console.log(`Page size ${this.pageSize}`);
     }
 }

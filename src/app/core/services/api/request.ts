@@ -98,6 +98,7 @@ export interface GetBillsQueryParams {
     billDateFrom?: string;
     billDateTo?: string;
     subscriberPhoneNumber?: string;
+    billReference?: number;
     keyword?: string;
 }
 

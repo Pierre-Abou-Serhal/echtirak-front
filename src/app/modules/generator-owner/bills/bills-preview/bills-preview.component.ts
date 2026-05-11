@@ -16,7 +16,18 @@ import { Tooltip } from 'primeng/tooltip';
 import { BillEditModalComponent } from '@/modules/generator-owner/bills/bill-edit-modal/bill-edit-modal.component';
 import { Dialog } from 'primeng/dialog';
 
-type BillRow = Bill & { billPeriodKey: string };
+type BillRow = Bill & {
+    billPeriodKey: string;
+
+    /** UI-only: used only by Custom Bill Generation. */
+    customCurrentKvaReading?: number | null;
+
+    /** UI-only: stable base reading used to map previous/current KWH on save. */
+    customKwhBasePreviousKva?: number | null;
+
+    /** UI-only: marks that the custom reading was entered/reviewed. */
+    customKwhReadingProvided?: boolean;
+};
 
 @Component({
     selector: 'app-bills-preview-component',
@@ -37,6 +48,12 @@ export class BillsPreviewComponent {
     duplicatesVisible = false;
 
     @Output() billAcceptedSuccess = new EventEmitter<void>();
+
+    /**
+     * Set this to true only when this preview is used inside Custom Bill Generation.
+     * It enables the KWH reading review flow and passes customKwhReadingMode to the edit modal.
+     */
+    @Input() customBillGenerationMode = false;
 
     selectedBills: BillRow[] = [];
 
@@ -61,9 +78,11 @@ export class BillsPreviewComponent {
     // Extra Options
     extraFeesExpanded: Record<number, boolean> = {};
 
-    // Confirmation dialog for missing extra fee amounts
+    // Confirmation dialog for bills that need review before accept
     reviewMissingFeesVisible = false;
+    billsRequiringReview: BillRow[] = [];
     missingFeeBills: BillRow[] = []; // bills that have at least 1 extra fee with missing amount
+    missingKwhReadingBills: BillRow[] = []; // custom bill generation only
     expandedMissingFeeRows: Record<string, boolean> = {};
     missingFeeKeyword = '';
     missingFeeExtraFeesExpanded: Record<number, boolean> = {};
@@ -95,9 +114,14 @@ export class BillsPreviewComponent {
 
     // ========= helpers =========
     private toBillRow(b: Bill): BillRow {
+        const source = b as BillRow;
+
         return {
-            ...b,
-            billPeriodKey: `${b.billYear}-${String(b.billMonth).padStart(2, '0')}`
+            ...source,
+            billPeriodKey: `${source.billYear}-${String(source.billMonth).padStart(2, '0')}`,
+            customCurrentKvaReading: source.customCurrentKvaReading ?? null,
+            customKwhBasePreviousKva: source.customKwhBasePreviousKva ?? null,
+            customKwhReadingProvided: source.customKwhReadingProvided ?? false
         };
     }
 
@@ -212,9 +236,9 @@ export class BillsPreviewComponent {
         }
 
         // recompute problematic bills after edit
-        this.missingFeeBills = this.findBillsWithMissingExtraFeeAmounts(this.selectedBills);
+        this.refreshBillsRequiringReview();
 
-        const validIds = new Set(this.missingFeeBills.map((b) => String(b.id)));
+        const validIds = new Set(this.billsRequiringReview.map((b) => String(b.id)));
         this.expandedMissingFeeRows = Object.fromEntries(Object.entries(this.expandedMissingFeeRows).filter(([id]) => validIds.has(id)));
     }
 
@@ -243,9 +267,9 @@ export class BillsPreviewComponent {
             return;
         }
 
-        this.missingFeeBills = this.findBillsWithMissingExtraFeeAmounts(this.selectedBills);
+        this.refreshBillsRequiringReview();
 
-        if (this.missingFeeBills.length > 0) {
+        if (this.billsRequiringReview.length > 0) {
             this.reviewMissingFeesVisible = true;
             return;
         }
@@ -296,6 +320,10 @@ export class BillsPreviewComponent {
         this.duplicatesVisible = false;
         this.billToEdit = null;
         this.editVisible = false;
+        this.reviewMissingFeesVisible = false;
+        this.billsRequiringReview = [];
+        this.missingFeeBills = [];
+        this.missingKwhReadingBills = [];
     }
 
     openDuplicatesDialog() {
@@ -330,19 +358,70 @@ export class BillsPreviewComponent {
         return (bills ?? []).filter((b) => this.hasMissingExtraFeeAmounts(b));
     }
 
+    private hasMissingCustomKwhReading(bill: BillRow): boolean {
+        if (!this.customBillGenerationMode) return false;
+
+        const reading = Number(bill.customCurrentKvaReading ?? bill.currentKva);
+        const baseReading = Number(bill.customKwhBasePreviousKva ?? bill.previousKva);
+
+        if (!bill.customKwhReadingProvided) return true;
+        if (!Number.isFinite(reading)) return true;
+        if (!Number.isFinite(baseReading)) return true;
+
+        return reading < baseReading;
+    }
+
+    private findBillsWithMissingCustomKwhReadings(bills: BillRow[]): BillRow[] {
+        return (bills ?? []).filter((b) => this.hasMissingCustomKwhReading(b));
+    }
+
+    private refreshBillsRequiringReview(): void {
+        this.missingFeeBills = this.findBillsWithMissingExtraFeeAmounts(this.selectedBills);
+        this.missingKwhReadingBills = this.findBillsWithMissingCustomKwhReadings(this.selectedBills);
+
+        const byId = new Map<number, BillRow>();
+
+        for (const bill of [...this.missingFeeBills, ...this.missingKwhReadingBills]) {
+            if (bill.id != null) byId.set(bill.id, bill);
+        }
+
+        this.billsRequiringReview = Array.from(byId.values());
+    }
+
+    get hasBlockingKwhReadingIssues(): boolean {
+        return this.missingKwhReadingBills.length > 0;
+    }
+
+    getReviewIssues(bill: BillRow): string[] {
+        const issues: string[] = [];
+
+        if (this.hasMissingExtraFeeAmounts(bill)) {
+            issues.push('Missing extra fee amount');
+        }
+
+        if (this.hasMissingCustomKwhReading(bill)) {
+            issues.push('Missing Current KWH reading');
+        }
+
+        return issues;
+    }
+
     // Accept dialog
     closeAcceptConfirmation() {
+        this.billsRequiringReview = [];
         this.missingFeeBills = [];
+        this.missingKwhReadingBills = [];
     }
 
     private sanitizeBillsForAccept(bills: BillRow[]): Bill[] {
         return (bills ?? []).map((bill) => {
             const validExtraFees = (bill.extraFees ?? []).filter((f) => Number(f?.amount ?? 0) > 0);
+            const { billPeriodKey, customCurrentKvaReading, customKwhBasePreviousKva, customKwhReadingProvided, ...sanitizedBill } = bill;
 
             return {
-                ...bill,
+                ...sanitizedBill,
                 extraFees: validExtraFees.length > 0 ? validExtraFees : null
-            };
+            } as Bill;
         });
     }
 
@@ -355,11 +434,25 @@ export class BillsPreviewComponent {
     }
 
     acceptBillsAnyway() {
+        this.refreshBillsRequiringReview();
+
+        if (this.hasBlockingKwhReadingIssues) {
+            this.notificationService.warn('Warning', 'Please enter the missing Current KWH reading before accepting the bills.');
+            return;
+        }
+
         this.reviewMissingFeesVisible = false;
         this.acceptBillsConfirmed();
     }
 
     acceptBillsAfterReview() {
+        this.refreshBillsRequiringReview();
+
+        if (this.billsRequiringReview.length > 0) {
+            this.notificationService.warn('Warning', 'Please fix all required bill issues before accepting.');
+            return;
+        }
+
         this.reviewMissingFeesVisible = false;
         this.acceptBillsConfirmed();
     }
@@ -387,7 +480,7 @@ export class BillsPreviewComponent {
     }
 
     expandAllMissingFeeRows() {
-        this.expandedMissingFeeRows = Object.fromEntries(this.missingFeeBills.filter((b) => b?.id != null).map((b) => [String(b.id), true]));
+        this.expandedMissingFeeRows = Object.fromEntries(this.billsRequiringReview.filter((b) => b?.id != null).map((b) => [String(b.id), true]));
     }
 
     collapseAllMissingFeeRows() {

@@ -46,12 +46,35 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     @Input() extraFeesEditable = false; // preview => true, list => false
     @Input() requireExtraFeeAmounts = false; // preview => true, list => false
 
+    @Input() readOnly = false;
+
+    /**
+     * Enable this only when the edit modal is opened from BillsPreviewComponent
+     * inside Custom Bill Generation.
+     * In this mode, the UI-only KWH reading input is used to produce:
+     * previousKva = original currentKva
+     * currentKva = UI-only reading
+     */
+    @Input() customKwhReadingMode = false;
+
     @Output() save = new EventEmitter<any>();
     @Output() cancel = new EventEmitter<void>();
 
     editableBill: any | null = null;
     submitted = false;
     billPeriod: Date | null = null;
+
+    /**
+     * UI-only field used only for Custom Bill Generation.
+     * This field should not be sent to the backend directly.
+     */
+    customCurrentKvaReading: number | null = null;
+
+    /**
+     * Stable base reading used in Custom Bill Generation.
+     * We keep it stable so reopening the modal after saving does not change the base previous KWH.
+     */
+    customKwhBasePreviousKva: number | null = null;
 
     // Extra fee catalog
     availableExtraFees: ExtraFee[] = [];
@@ -86,6 +109,8 @@ export class BillEditModalComponent implements OnInit, OnChanges {
 
                 // period
                 this.billPeriod = this.toBillPeriodDate(this.editableBill.billYear, this.editableBill.billMonth);
+
+                this.initializeCustomKwhReadingState();
 
                 // notes safe
                 if (this.editableBill.notes == null) this.editableBill.notes = '';
@@ -129,6 +154,11 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     }
 
     submit(): void {
+        if (this.readOnly) {
+            this.close();
+            return;
+        }
+
         this.submitted = true;
         if (!this.editableBill) return;
 
@@ -143,6 +173,13 @@ export class BillEditModalComponent implements OnInit, OnChanges {
 
         // overwrite billDate (your current behavior)
         this.editableBill.billDate = formatDate(new Date(), 'yyyy-MM-dd', this.locale);
+
+        if (this.customKwhReadingMode) {
+            if (this.isCustomCurrentKvaReadingInvalid()) return;
+            this.applyCustomKwhReadingToEditableBill();
+        } else {
+            this.recalculateMeteredBillAmount();
+        }
 
         // validate other bill fields
         if (this.isCurrentKvaInvalid() || this.isAmountInvalid()) return;
@@ -191,6 +228,10 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     // =============================
     isCurrentKvaInvalid(): boolean {
         if (!this.editableBill) return false;
+
+        if (this.customKwhReadingMode) {
+            return this.isCustomCurrentKvaReadingInvalid();
+        }
 
         const prev = this.toNumberOrNull(this.editableBill.previousKva);
         const curr = this.toNumberOrNull(this.editableBill.currentKva);
@@ -348,5 +389,123 @@ export class BillEditModalComponent implements OnInit, OnChanges {
                 return options?.valid;
             }
         };
+    }
+
+    onCurrentKvaChanged(): void {
+        if (this.readOnly) return;
+
+        this.recalculateMeteredBillAmount();
+    }
+
+    onCustomCurrentKvaReadingChanged(): void {
+        if (this.readOnly || !this.customKwhReadingMode) return;
+
+        this.recalculateMeteredBillAmountFromCustomReading();
+    }
+
+    isCustomCurrentKvaReadingInvalid(): boolean {
+        if (!this.customKwhReadingMode) return false;
+
+        const basePreviousKva = this.getCustomKwhBasePreviousKva();
+        const currentKvaReading = this.toNumberOrNull(this.customCurrentKvaReading);
+
+        if (basePreviousKva == null || currentKvaReading == null) return true;
+
+        return currentKvaReading < basePreviousKva;
+    }
+
+    private initializeCustomKwhReadingState(): void {
+        if (!this.editableBill) {
+            this.customCurrentKvaReading = null;
+            this.customKwhBasePreviousKva = null;
+            return;
+        }
+
+        if (!this.customKwhReadingMode) {
+            this.customCurrentKvaReading = null;
+            this.customKwhBasePreviousKva = null;
+            return;
+        }
+
+        this.customKwhBasePreviousKva = this.toNumberOrNull(this.editableBill.customKwhBasePreviousKva) ?? this.toNumberOrNull(this.editableBill.currentKva) ?? this.toNumberOrNull(this.editableBill.previousKva);
+
+        this.customCurrentKvaReading = this.toNumberOrNull(this.editableBill.customCurrentKvaReading) ?? (this.editableBill.customKwhReadingProvided ? this.toNumberOrNull(this.editableBill.currentKva) : null);
+
+        this.recalculateMeteredBillAmountFromCustomReading();
+    }
+
+    private getCustomKwhBasePreviousKva(): number | null {
+        return this.customKwhBasePreviousKva ?? this.toNumberOrNull(this.editableBill?.currentKva);
+    }
+
+    private applyCustomKwhReadingToEditableBill(): void {
+        if (!this.editableBill) return;
+
+        const basePreviousKva = this.getCustomKwhBasePreviousKva();
+        const currentKvaReading = this.toNumberOrNull(this.customCurrentKvaReading);
+
+        if (basePreviousKva == null || currentKvaReading == null) return;
+
+        this.editableBill.customKwhBasePreviousKva = basePreviousKva;
+        this.editableBill.customCurrentKvaReading = currentKvaReading;
+        this.editableBill.customKwhReadingProvided = true;
+
+        this.editableBill.previousKva = basePreviousKva;
+        this.editableBill.currentKva = currentKvaReading;
+
+        this.recalculateMeteredBillAmount();
+    }
+
+    private recalculateMeteredBillAmountFromCustomReading(): void {
+        if (!this.editableBill) return;
+
+        const basePreviousKva = this.getCustomKwhBasePreviousKva();
+        const currentKvaReading = this.toNumberOrNull(this.customCurrentKvaReading);
+
+        if (basePreviousKva == null || currentKvaReading == null || currentKvaReading < basePreviousKva) {
+            return;
+        }
+
+        this.recalculateMeteredBillAmount(basePreviousKva, currentKvaReading);
+    }
+
+    private recalculateMeteredBillAmount(previousKvaOverride?: number, currentKvaOverride?: number): void {
+        if (!this.editableBill) return;
+
+        const previousKva = previousKvaOverride ?? this.toNumberOrNull(this.editableBill.previousKva);
+        const currentKva = currentKvaOverride ?? this.toNumberOrNull(this.editableBill.currentKva);
+        const amountPerKva = this.toNumberOrNull(this.editableBill.amountPerKva);
+        const subscriptionFeeFixed = this.toNumberOrNull(this.editableBill.subscriptionFeeFixed) ?? 0;
+
+        /**
+         * Fixed billing model:
+         * amountPerKva is zero, so do not auto-calculate the amount.
+         */
+        if (amountPerKva == null || amountPerKva <= 0) {
+            return;
+        }
+
+        /**
+         * Metered billing model:
+         * We only calculate when values are valid.
+         */
+        if (previousKva == null || currentKva == null) {
+            return;
+        }
+
+        if (currentKva < previousKva) {
+            return;
+        }
+
+        const consumedKva = currentKva - previousKva;
+        const kvaFee = consumedKva * amountPerKva;
+        const totalAmount = kvaFee + subscriptionFeeFixed;
+
+        this.editableBill.kvaFee = this.roundToFourDecimals(kvaFee);
+        this.editableBill.amount = this.roundToFourDecimals(totalAmount);
+    }
+
+    private roundToFourDecimals(value: number): number {
+        return Math.round((value + Number.EPSILON) * 10000) / 10000;
     }
 }

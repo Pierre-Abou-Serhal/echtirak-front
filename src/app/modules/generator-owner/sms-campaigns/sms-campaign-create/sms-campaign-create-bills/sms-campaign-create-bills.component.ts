@@ -19,10 +19,11 @@ import { NotificationService } from '@/core/services/notification.service';
 import { WalletService } from '@/core/services/wallet.service';
 import { WalletForecastRequest } from '@/core/services/api/request';
 import { Tooltip } from 'primeng/tooltip';
+import { LbPhonePipe } from '@/core/pipes/pipes';
 
 @Component({
     selector: 'app-sms-campaign-create-bills-component',
-    imports: [Button, Select, FormsModule, IconField, InputIcon, InputText, ButtonDirective, DatePipe, DecimalPipe, TableModule, Tag, NgClass, DatePicker, Dialog, CurrencyPipe, Tooltip],
+    imports: [Button, Select, FormsModule, IconField, InputIcon, InputText, ButtonDirective, DatePipe, DecimalPipe, TableModule, Tag, NgClass, DatePicker, Dialog, CurrencyPipe, Tooltip, LbPhonePipe],
     templateUrl: './sms-campaign-create-bills.component.html',
     styleUrl: './sms-campaign-create-bills.component.scss'
 })
