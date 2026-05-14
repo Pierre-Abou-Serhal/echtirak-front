@@ -167,6 +167,13 @@
                     </div>
                 </th>
 
+                <th pSortableColumn="pending">
+                    <div class="flex justify-between items-center gap-2">
+                        Pending
+                        <p-sortIcon field="pending" />
+                    </div>
+                </th>
+
                 <th pSortableColumn="delivered">
                     <div class="flex justify-between items-center gap-2">
                         Delivered
@@ -206,6 +213,7 @@
                 </td>
                 <td>{{ campaign.totalSubscribers }}</td>
                 <td>{{ campaign.totalSmsSent }}</td>
+                <td>{{ campaign.totalSmsPending }}</td>
                 <td>{{ campaign.totalSmsDelivered }}</td>
                 <td>{{ campaign.totalSmsFailed }}</td>
                 <td>{{ campaign.createdAt | date:'yyyy-MM-dd, h:mm a' }}</td>
@@ -213,12 +221,12 @@
         </ng-template>
         <ng-template #emptymessage>
             <tr>
-                <td colspan="9">No sms campaigns found.</td>
+                <td colspan="10">No sms campaigns found.</td>
             </tr>
         </ng-template>
         <ng-template #loadingbody>
             <tr>
-                <td colspan="9">Loading sms campaigns data. Please wait.</td>
+                <td colspan="10">Loading sms campaigns data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>

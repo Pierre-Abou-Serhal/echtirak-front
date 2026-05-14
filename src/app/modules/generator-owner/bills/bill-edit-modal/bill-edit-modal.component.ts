@@ -17,12 +17,12 @@ import { UserContextService } from '@/core/services/user-context.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type EditableExtraFee = {
-    id?: number | null; // existing row id (if your backend uses it)
-    extraFeeId?: number | null; // ✅ master extra fee id (from /ExtraFees)
-    extraFeeName?: string | null; // display name (derived from catalog)
-    amount?: number | null; // USD
-    amountLBP?: string | null; // LBP (string as in your interface)
-    _key: string; // local unique key for @for tracking
+    id?: number | null;
+    extraFeeId?: number | null;
+    extraFeeName?: string | null;
+    amount?: number | null;
+    amountLBP?: string | null;
+    _key: string;
 };
 
 @Component({
@@ -42,18 +42,14 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     @Input() bill: any | null = null;
     @Input() isBillPeriodDisabled = false;
 
-    // Extra fees behavior switches (set by parent)
-    @Input() extraFeesEditable = false; // preview => true, list => false
-    @Input() requireExtraFeeAmounts = false; // preview => true, list => false
+    @Input() extraFeesEditable = false;
+    @Input() requireExtraFeeAmounts = false;
 
     @Input() readOnly = false;
 
     /**
      * Enable this only when the edit modal is opened from BillsPreviewComponent
      * inside Custom Bill Generation.
-     * In this mode, the UI-only KWH reading input is used to produce:
-     * previousKva = original currentKva
-     * currentKva = UI-only reading
      */
     @Input() customKwhReadingMode = false;
 
@@ -65,18 +61,15 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     billPeriod: Date | null = null;
 
     /**
-     * UI-only field used only for Custom Bill Generation.
-     * This field should not be sent to the backend directly.
+     * UI-only field used only for Custom Bill Generation + Metered bills.
      */
     customCurrentKvaReading: number | null = null;
 
     /**
      * Stable base reading used in Custom Bill Generation.
-     * We keep it stable so reopening the modal after saving does not change the base previous KWH.
      */
     customKwhBasePreviousKva: number | null = null;
 
-    // Extra fee catalog
     availableExtraFees: ExtraFee[] = [];
     extraFeeOptions: { label: string; value: number }[] = [];
     isExtraFeesLoading = false;
@@ -102,32 +95,26 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['bill'] || changes['visible']) {
+        if (changes['bill'] || changes['visible'] || changes['customKwhReadingMode']) {
             if (this.visible && this.bill) {
                 this.submitted = false;
                 this.editableBill = this.clone(this.bill);
 
-                // period
                 this.billPeriod = this.toBillPeriodDate(this.editableBill.billYear, this.editableBill.billMonth);
 
                 this.initializeCustomKwhReadingState();
 
-                // notes safe
-                if (this.editableBill.notes == null) this.editableBill.notes = '';
+                if (this.editableBill.notes == null) {
+                    this.editableBill.notes = '';
+                }
 
-                // ensure extraFees array exists
                 if (!Array.isArray(this.editableBill.extraFees)) {
                     this.editableBill.extraFees = this.extraFeesEditable ? [] : (this.editableBill.extraFees ?? []);
                 }
 
-                // normalize extraFees rows + add stable _key
                 this.editableBill.extraFees = (this.editableBill.extraFees as any[]).map((f, idx) => {
-                    // Prefer stable key from existing row id; fallback to generated key
                     const keyFromRowId = f?.id != null && String(f.id).trim() !== '' ? `row_${String(f.id)}` : null;
 
-                    // Try to infer extraFeeId from the incoming object:
-                    // - best: f.extraFeeId
-                    // - fallback: if the incoming object is actually the master fee, it may have id but no extraFeeId
                     const inferredExtraFeeId = f?.extraFeeId ?? null;
 
                     return {
@@ -145,9 +132,6 @@ export class BillEditModalComponent implements OnInit, OnChanges {
         }
     }
 
-    // =============================
-    // Dialog controls
-    // =============================
     close(): void {
         this.visibleChange.emit(false);
         this.cancel.emit();
@@ -160,61 +144,50 @@ export class BillEditModalComponent implements OnInit, OnChanges {
         }
 
         this.submitted = true;
+
         if (!this.editableBill) return;
 
-        // Bill period required
         const ym = getBillYearMonth(this.billPeriod);
         if (!ym) return;
 
-        // normalize fields
         this.editableBill.notes = (this.editableBill.notes ?? '').toString();
         this.editableBill.billYear = ym.billYear;
         this.editableBill.billMonth = ym.billMonth;
-
-        // overwrite billDate (your current behavior)
         this.editableBill.billDate = formatDate(new Date(), 'yyyy-MM-dd', this.locale);
 
-        if (this.customKwhReadingMode) {
+        if (this.shouldUseCustomKwhReading) {
             if (this.isCustomCurrentKvaReadingInvalid()) return;
             this.applyCustomKwhReadingToEditableBill();
         } else {
             this.recalculateMeteredBillAmount();
         }
 
-        // validate other bill fields
         if (this.isCurrentKvaInvalid() || this.isAmountInvalid()) return;
 
-        // normalize extraFees rows
         if (Array.isArray(this.editableBill.extraFees)) {
             this.editableBill.extraFees = (this.editableBill.extraFees as EditableExtraFee[])
-                // trim names if present
                 .map((f) => ({
                     ...f,
                     extraFeeName: (f.extraFeeName ?? '').toString().trim()
                 }))
-                // remove completely empty rows (user added then left blank)
                 .filter((f) => !(f.extraFeeId == null && this.toNumberOrNull(f.amount) == null));
         }
 
-        // validate extra fees only when editable
         if (this.extraFeesEditable && !this.validateExtraFees()) return;
 
-        // Persist computed amountLBP into row before emitting (if exchangeRate exists)
         if (this.extraFeesEditable && Array.isArray(this.editableBill.extraFees)) {
             const rate = this.toNumberOrNull(this.editableBill.exchangeRate);
+
             if (rate != null) {
                 for (const f of this.editableBill.extraFees as EditableExtraFee[]) {
                     const usd = this.toNumberOrNull(f.amount);
-                    // store as string (your interface amountLBP?: string)
                     f.amountLBP = usd == null ? null : String(Math.round(usd * rate));
                 }
             }
         }
 
-        // Ensure extraFeeName is set from catalog for selected ids (good for UI + backend logs)
         this.hydrateExtraFeesFromCatalog();
 
-        // Strip _key before emitting (backend doesn’t want it)
         if (Array.isArray(this.editableBill.extraFees)) {
             this.editableBill.extraFees = (this.editableBill.extraFees as EditableExtraFee[]).map(({ _key, ...rest }) => rest);
         }
@@ -223,20 +196,41 @@ export class BillEditModalComponent implements OnInit, OnChanges {
         this.visibleChange.emit(false);
     }
 
-    // =============================
-    // Bill validation (your existing logic)
-    // =============================
+    get shouldUseCustomKwhReading(): boolean {
+        return this.customKwhReadingMode && this.isMeteredBillingModel;
+    }
+
+    get isMeteredBillingModel(): boolean {
+        if (!this.editableBill) return false;
+
+        const billingModel = (this.editableBill.billingModel ?? '').toString().trim().toUpperCase();
+
+        if (billingModel) {
+            return billingModel.includes('METERED');
+        }
+
+        const amountPerKva = this.toNumberOrNull(this.editableBill.amountPerKva);
+
+        return amountPerKva != null && amountPerKva > 0;
+    }
+
     isCurrentKvaInvalid(): boolean {
         if (!this.editableBill) return false;
 
-        if (this.customKwhReadingMode) {
+        if (this.shouldUseCustomKwhReading) {
             return this.isCustomCurrentKvaReadingInvalid();
+        }
+
+        /**
+         * In Custom Bill Generation, fixed bills do not require KWH readings.
+         */
+        if (this.customKwhReadingMode && !this.isMeteredBillingModel) {
+            return false;
         }
 
         const prev = this.toNumberOrNull(this.editableBill.previousKva);
         const curr = this.toNumberOrNull(this.editableBill.currentKva);
 
-        // keep your behavior: if missing => invalid
         if (prev == null || curr == null) return true;
 
         return curr < prev;
@@ -246,6 +240,7 @@ export class BillEditModalComponent implements OnInit, OnChanges {
         if (!this.editableBill) return false;
 
         const amt = this.toNumberOrNull(this.editableBill.amount);
+
         return amt == null || amt < 0;
     }
 
@@ -254,24 +249,30 @@ export class BillEditModalComponent implements OnInit, OnChanges {
         if (!this.availableExtraFees?.length) return;
 
         const byId = new Map<number, ExtraFee>();
+
         for (const f of this.availableExtraFees) {
-            if (f?.id != null) byId.set(f.id, f);
+            if (f?.id != null) {
+                byId.set(f.id, f);
+            }
         }
 
         for (const row of this.editableBill.extraFees as EditableExtraFee[]) {
-            // If row has extraFeeId -> set name from catalog
             if (row.extraFeeId != null) {
                 const found = byId.get(row.extraFeeId);
-                if (found) row.extraFeeName = (found.name ?? found.extraFeeName ?? row.extraFeeName ?? '').toString();
+
+                if (found) {
+                    row.extraFeeName = (found.name ?? found.extraFeeName ?? row.extraFeeName ?? '').toString();
+                }
             } else if (row.extraFeeName) {
-                // If row only has name -> try to match to get id
                 const match = this.availableExtraFees.find((x) => (x.name ?? x.extraFeeName ?? '').toLowerCase() === row.extraFeeName!.toLowerCase());
-                if (match?.id != null) row.extraFeeId = match.id;
+
+                if (match?.id != null) {
+                    row.extraFeeId = match.id;
+                }
             }
         }
     }
 
-    // Prevent selecting the same fee twice: filter options per row
     getExtraFeeOptionsForRow(row: EditableExtraFee) {
         const used = new Set<number>(
             (this.editableBill?.extraFees ?? [])
@@ -283,16 +284,20 @@ export class BillEditModalComponent implements OnInit, OnChanges {
         return this.extraFeeOptions.filter((opt) => !used.has(opt.value) || opt.value === row.extraFeeId);
     }
 
-    onExtraFeeSelected(row: EditableExtraFee, selectedId: number | null) {
+    onExtraFeeSelected(row: EditableExtraFee, selectedId: number | null): void {
         row.extraFeeId = selectedId ?? null;
 
         const found = this.availableExtraFees.find((x) => x.id === row.extraFeeId);
+
         row.extraFeeName = (found?.name ?? found?.extraFeeName ?? null)?.toString() ?? null;
     }
 
     addExtraFee(): void {
         if (!this.editableBill) return;
-        if (!Array.isArray(this.editableBill.extraFees)) this.editableBill.extraFees = [];
+
+        if (!Array.isArray(this.editableBill.extraFees)) {
+            this.editableBill.extraFees = [];
+        }
 
         const row: EditableExtraFee = {
             id: null,
@@ -308,6 +313,7 @@ export class BillEditModalComponent implements OnInit, OnChanges {
 
     removeExtraFee(key: string): void {
         if (!this.editableBill?.extraFees) return;
+
         this.editableBill.extraFees = (this.editableBill.extraFees as EditableExtraFee[]).filter((x) => x._key !== key);
     }
 
@@ -317,11 +323,10 @@ export class BillEditModalComponent implements OnInit, OnChanges {
 
     isExtraFeeAmountInvalid(row: EditableExtraFee): boolean {
         const amt = this.toNumberOrNull(row?.amount);
-        // mandatory => must be provided; allow 0 as valid
+
         return amt == null || amt <= 0;
     }
 
-    // LBP display: computed if rate exists, else fallback to stored amountLBP
     calcExtraFeeLbp(row: EditableExtraFee): number | null {
         if (!this.editableBill) return null;
 
@@ -329,7 +334,10 @@ export class BillEditModalComponent implements OnInit, OnChanges {
         const usd = this.toNumberOrNull(row?.amount);
         const stored = this.toNumberOrNull(row?.amountLBP);
 
-        if (rate != null && usd != null) return usd * rate;
+        if (rate != null && usd != null) {
+            return usd * rate;
+        }
+
         return stored;
     }
 
@@ -343,52 +351,18 @@ export class BillEditModalComponent implements OnInit, OnChanges {
 
     private validateExtraFees(): boolean {
         const list: EditableExtraFee[] = this.editableBill?.extraFees ?? [];
+
         if (list.length === 0) return true;
 
-        // fee selection required if there is any row
-        if (list.some((f) => this.isExtraFeeSelectionInvalid(f))) return false;
+        if (list.some((f) => this.isExtraFeeSelectionInvalid(f))) {
+            return false;
+        }
 
-        // amounts required only if requireExtraFeeAmounts=true
-        if (this.requireExtraFeeAmounts && list.some((f) => this.isExtraFeeAmountInvalid(f))) return false;
+        if (this.requireExtraFeeAmounts && list.some((f) => this.isExtraFeeAmountInvalid(f))) {
+            return false;
+        }
 
         return true;
-    }
-
-    // =============================
-    // Utilities
-    // =============================
-    private toNumberOrNull(v: any): number | null {
-        if (v === null || v === undefined || v === '') return null;
-        const n = Number(v);
-        return Number.isFinite(n) ? n : null;
-    }
-
-    private clone<T>(obj: T): T {
-        if (typeof structuredClone === 'function') return structuredClone(obj);
-        return JSON.parse(JSON.stringify(obj));
-    }
-
-    private toBillPeriodDate(year: any, month: any): Date | null {
-        const y = Number(year);
-        const m = Number(month); // 1..12 expected
-        if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) return null;
-        return new Date(y, m - 1, 1);
-    }
-
-    private newExtraFeeKey(): string {
-        this.extraFeeKeySeq += 1;
-        return `xef_${Date.now()}_${this.extraFeeKeySeq}`;
-    }
-
-    getOverlayOptions(): OverlayOptions {
-        return {
-            listener: (event: Event, options?: OverlayListenerOptions) => {
-                if (options?.type === 'scroll') {
-                    return false;
-                }
-                return options?.valid;
-            }
-        };
     }
 
     onCurrentKvaChanged(): void {
@@ -398,18 +372,20 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     }
 
     onCustomCurrentKvaReadingChanged(): void {
-        if (this.readOnly || !this.customKwhReadingMode) return;
+        if (this.readOnly || !this.shouldUseCustomKwhReading) return;
 
         this.recalculateMeteredBillAmountFromCustomReading();
     }
 
     isCustomCurrentKvaReadingInvalid(): boolean {
-        if (!this.customKwhReadingMode) return false;
+        if (!this.shouldUseCustomKwhReading) return false;
 
         const basePreviousKva = this.getCustomKwhBasePreviousKva();
         const currentKvaReading = this.toNumberOrNull(this.customCurrentKvaReading);
 
-        if (basePreviousKva == null || currentKvaReading == null) return true;
+        if (basePreviousKva == null || currentKvaReading == null) {
+            return true;
+        }
 
         return currentKvaReading < basePreviousKva;
     }
@@ -421,7 +397,7 @@ export class BillEditModalComponent implements OnInit, OnChanges {
             return;
         }
 
-        if (!this.customKwhReadingMode) {
+        if (!this.shouldUseCustomKwhReading) {
             this.customCurrentKvaReading = null;
             this.customKwhBasePreviousKva = null;
             return;
@@ -439,7 +415,7 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     }
 
     private applyCustomKwhReadingToEditableBill(): void {
-        if (!this.editableBill) return;
+        if (!this.editableBill || !this.shouldUseCustomKwhReading) return;
 
         const basePreviousKva = this.getCustomKwhBasePreviousKva();
         const currentKvaReading = this.toNumberOrNull(this.customCurrentKvaReading);
@@ -457,7 +433,7 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     }
 
     private recalculateMeteredBillAmountFromCustomReading(): void {
-        if (!this.editableBill) return;
+        if (!this.editableBill || !this.shouldUseCustomKwhReading) return;
 
         const basePreviousKva = this.getCustomKwhBasePreviousKva();
         const currentKvaReading = this.toNumberOrNull(this.customCurrentKvaReading);
@@ -473,22 +449,16 @@ export class BillEditModalComponent implements OnInit, OnChanges {
         if (!this.editableBill) return;
 
         const previousKva = previousKvaOverride ?? this.toNumberOrNull(this.editableBill.previousKva);
+
         const currentKva = currentKvaOverride ?? this.toNumberOrNull(this.editableBill.currentKva);
+
         const amountPerKva = this.toNumberOrNull(this.editableBill.amountPerKva);
         const subscriptionFeeFixed = this.toNumberOrNull(this.editableBill.subscriptionFeeFixed) ?? 0;
 
-        /**
-         * Fixed billing model:
-         * amountPerKva is zero, so do not auto-calculate the amount.
-         */
         if (amountPerKva == null || amountPerKva <= 0) {
             return;
         }
 
-        /**
-         * Metered billing model:
-         * We only calculate when values are valid.
-         */
         if (previousKva == null || currentKva == null) {
             return;
         }
@@ -507,5 +477,50 @@ export class BillEditModalComponent implements OnInit, OnChanges {
 
     private roundToFourDecimals(value: number): number {
         return Math.round((value + Number.EPSILON) * 10000) / 10000;
+    }
+
+    private toNumberOrNull(v: any): number | null {
+        if (v === null || v === undefined || v === '') return null;
+
+        const n = Number(v);
+
+        return Number.isFinite(n) ? n : null;
+    }
+
+    private clone<T>(obj: T): T {
+        if (typeof structuredClone === 'function') {
+            return structuredClone(obj);
+        }
+
+        return JSON.parse(JSON.stringify(obj));
+    }
+
+    private toBillPeriodDate(year: any, month: any): Date | null {
+        const y = Number(year);
+        const m = Number(month);
+
+        if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) {
+            return null;
+        }
+
+        return new Date(y, m - 1, 1);
+    }
+
+    private newExtraFeeKey(): string {
+        this.extraFeeKeySeq += 1;
+
+        return `xef_${Date.now()}_${this.extraFeeKeySeq}`;
+    }
+
+    getOverlayOptions(): OverlayOptions {
+        return {
+            listener: (event: Event, options?: OverlayListenerOptions) => {
+                if (options?.type === 'scroll') {
+                    return false;
+                }
+
+                return options?.valid;
+            }
+        };
     }
 }

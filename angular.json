@@ -3,7 +3,7 @@
     "version": 1,
     "newProjectRoot": "projects",
     "projects": {
-        "sakai-ng": {
+        "echtirak-front": {
             "projectType": "application",
             "schematics": {
                 "@schematics/angular:component": {
@@ -20,7 +20,7 @@
                         "allowedCommonJsDependencies": [
                             "papaparse"
                         ],
-                        "outputPath": "dist/sakai-ng",
+                        "outputPath": "dist/echtirak-front",
                         "index": "src/index.html",
                         "browser": "src/main.ts",
                         "polyfills": [
@@ -85,16 +85,16 @@
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "configurations": {
                         "production": {
-                            "buildTarget": "sakai-ng:build:production"
+                            "buildTarget": "echtirak-front:build:production"
                         },
                         "development": {
-                            "buildTarget": "sakai-ng:build:development"
+                            "buildTarget": "echtirak-front:build:development"
                         },
                         "dev": {
-                            "buildTarget": "sakai-ng:build:dev"
+                            "buildTarget": "echtirak-front:build:dev"
                         },
                         "uat": {
-                            "buildTarget": "sakai-ng:build:uat"
+                            "buildTarget": "echtirak-front:build:uat"
                         }
                     },
                     "defaultConfiguration": "dev"

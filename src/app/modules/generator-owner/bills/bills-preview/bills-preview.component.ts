@@ -359,16 +359,58 @@ export class BillsPreviewComponent {
     }
 
     private hasMissingCustomKwhReading(bill: BillRow): boolean {
+        /**
+         * This validation applies only when Bills Preview is used
+         * from Custom Bill Generation.
+         */
         if (!this.customBillGenerationMode) return false;
 
-        const reading = Number(bill.customCurrentKvaReading ?? bill.currentKva);
-        const baseReading = Number(bill.customKwhBasePreviousKva ?? bill.previousKva);
+        /**
+         * Fixed billing model:
+         * No meter exists, so Current KWH Reading is not required.
+         */
+        if (!this.isMeteredBill(bill)) return false;
+
+        const reading = this.toNumberOrNull(bill.customCurrentKvaReading ?? bill.currentKva);
+
+        /**
+         * In Custom Bill Generation, the base previous KWH is usually
+         * the bill's currentKva before the user enters the UI-only reading.
+         */
+        const baseReading = this.toNumberOrNull(bill.customKwhBasePreviousKva ?? bill.previousKva ?? bill.currentKva);
 
         if (!bill.customKwhReadingProvided) return true;
-        if (!Number.isFinite(reading)) return true;
-        if (!Number.isFinite(baseReading)) return true;
+        if (reading == null) return true;
+        if (baseReading == null) return true;
 
         return reading < baseReading;
+    }
+
+    private isMeteredBill(bill: BillRow | null | undefined): boolean {
+        if (!bill) return false;
+
+        const billingModel = (bill.billingModel ?? '').toString().trim().toUpperCase();
+
+        if (billingModel) {
+            return billingModel.includes('METERED');
+        }
+
+        /**
+         * Fallback:
+         * Metered bills have amountPerKva > 0.
+         * Fixed bills usually have amountPerKva = 0.
+         */
+        const amountPerKva = this.toNumberOrNull(bill.amountPerKva);
+
+        return amountPerKva != null && amountPerKva > 0;
+    }
+
+    private toNumberOrNull(value: unknown): number | null {
+        if (value === null || value === undefined || value === '') return null;
+
+        const numberValue = Number(value);
+
+        return Number.isFinite(numberValue) ? numberValue : null;
     }
 
     private findBillsWithMissingCustomKwhReadings(bills: BillRow[]): BillRow[] {

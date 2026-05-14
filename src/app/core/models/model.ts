@@ -344,6 +344,7 @@ export interface ExtraFee {
 export interface BillCollection {
     id: number;
     billId: number;
+    billReference: number;
     billCollectorUserId: number;
     billCollectorName: string;
     amount: number;

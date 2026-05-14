@@ -341,7 +341,7 @@ export class BillCollectionsComponent implements OnInit {
                     this.reload();
                     this.clearCollectBillQueryParam();
 
-                    this.notificationService.success('Bill Collected', collection ? `Bill #${collection.billId} was collected successfully. Amount: ${collection.amount} ${collection.currencyCode}.` : 'Bill was collected successfully.');
+                    this.notificationService.success('Bill Collected', collection ? `Bill #${collection.billReference} was collected successfully. Amount: ${collection.amount} ${collection.currencyCode}.` : 'Bill was collected successfully.');
                 },
                 error: (err) => {
                     console.error(err);

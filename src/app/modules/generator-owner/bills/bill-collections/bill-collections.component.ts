@@ -77,7 +77,7 @@ export class BillCollectionsComponent implements OnInit {
      */
     totalRecords = 0;
 
-    billId: number | null = null;
+    billReference: number | null = null;
     selectedCollectionStatus: string | null = null;
     selectedRecordStatus: string | null = null;
     selectedBillCollectorId: number | null = null;
@@ -175,7 +175,7 @@ export class BillCollectionsComponent implements OnInit {
         const queryParams: GetBillCollectionsQueryParam = {
             pageNumber,
             pageSize: this.serverPageSize,
-            billId: this.billId ?? undefined,
+            billReference: this.billReference ?? undefined,
             billCollectorId: this.selectedBillCollectorId!,
             collectionScope: this.selectedCollectionStatus!,
             collectionStatus: this.selectedRecordStatus!,
@@ -322,7 +322,7 @@ export class BillCollectionsComponent implements OnInit {
 
         const rowsToExport = listToExport.map((collection) => ({
             collectionId: collection.id,
-            billReference: collection.billId,
+            billReference: collection.billReference,
             billCollectorUserId: collection.billCollectorUserId,
             billCollectorName: collection.billCollectorName,
             amount: collection.amount,
@@ -367,7 +367,7 @@ export class BillCollectionsComponent implements OnInit {
     }
 
     resetFilters(): void {
-        this.billId = null;
+        this.billReference = null;
         this.selectedCollectionStatus = null;
         this.selectedBillCollectorId = null;
         this.selectedRecordStatus = null;
@@ -475,7 +475,7 @@ export class BillCollectionsComponent implements OnInit {
     }
 
     get hasActiveFilters(): boolean {
-        return this.billId !== null || this.selectedBillCollectorId !== null || !!this.selectedCollectionStatus || !!this.selectedRecordStatus || !!this.createdFrom || !!this.createdTo;
+        return this.billReference !== null || this.selectedBillCollectorId !== null || !!this.selectedCollectionStatus || !!this.selectedRecordStatus || !!this.createdFrom || !!this.createdTo;
     }
 
     get canApproveReject(): boolean {
@@ -555,7 +555,7 @@ export class BillCollectionsComponent implements OnInit {
     }
 
     openBillPreview(collection: BillCollection): void {
-        const billReference = Number(collection.billId);
+        const billReference = Number(collection.billReference);
 
         if (!Number.isFinite(billReference)) {
             this.notificationService.warn('Validation', 'Invalid bill reference.');

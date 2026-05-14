@@ -399,6 +399,7 @@ export interface GetBillCollectionsQueryParam {
     pageNumber: number;
     pageSize: number;
     billId?: number;
+    billReference?: number;
     collectionStatus?: string;
     collectionScope?: string;
     createdFrom?: string;

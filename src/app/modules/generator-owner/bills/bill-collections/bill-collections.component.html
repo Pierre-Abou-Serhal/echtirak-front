@@ -24,8 +24,8 @@
                     </label>
 
                     <p-inputNumber
-                        [(ngModel)]="billId"
-                        inputId="billId"
+                        [(ngModel)]="billReference"
+                        inputId="billReference"
                         placeholder="Search by bill Reference"
                         [useGrouping]="false"
                         class="w-full"
@@ -402,10 +402,10 @@
                         </div>
                     </th>
 
-                    <th class="no-wrap-text" pSortableColumn="billId">
+                    <th class="no-wrap-text" pSortableColumn="billReference">
                         <div class="flex justify-between items-center gap-2">
                             Bill Reference
-                            <p-sortIcon field="billId"></p-sortIcon>
+                            <p-sortIcon field="billReference"></p-sortIcon>
                         </div>
                     </th>
 
@@ -463,7 +463,7 @@
                             [disabled]="billPreviewLoading"
                             (click)="openBillPreview(collection); $event.stopPropagation()"
                         >
-                            #{{ collection.billId }}
+                            #{{ collection.billReference }}
                         </button>
                     </td>
 
