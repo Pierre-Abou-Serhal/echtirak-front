@@ -17,7 +17,8 @@ export const GENERATOR_OWNER_MENU: MenuItem[] = [
             { label: 'SMS Campaigns', icon: 'pi pi-send', routerLink: ['/app/generator-owner/sms-campaigns'], badge: undefined },
             { label: 'Currency Rates', icon: 'pi pi-dollar', routerLink: ['/app/generator-owner/currency-rates'], badge: undefined },
             { label: 'Wallet', icon: 'pi pi-wallet', routerLink: ['/app/generator-owner/wallet'], badge: undefined },
-            { label: 'Announcements', icon: 'pi pi-megaphone', routerLink: ['/app/generator-owner/announcements'], badge: undefined }
+            { label: 'Announcements', icon: 'pi pi-megaphone', routerLink: ['/app/generator-owner/announcements'], badge: undefined },
+            { label: 'Docs', icon: 'pi pi-question-circle', routerLink: ['/app/generator-owner/docs'], badge: undefined }
         ]
     }
 ];

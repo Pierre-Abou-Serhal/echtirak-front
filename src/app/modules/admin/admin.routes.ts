@@ -9,6 +9,7 @@ import {
     GeneratorOwnerManagementComponent
 } from '@/modules/admin/generator-owners/generator-owner-management/generator-owner-management.component';
 import { MonitoringComponent } from '@/modules/admin/monitoring/monitoring.component';
+import { AdminDocsComponent } from '@/modules/admin/docs/admin-docs.component';
 
 export const ADMIN_ROUTES: Routes = [
     {
@@ -23,7 +24,8 @@ export const ADMIN_ROUTES: Routes = [
             { path: 'generator-owner-management', component: GeneratorOwnerManagementComponent, data: { screenName: 'Admin - Generator Owner Management' } },
             { path: 'announcements', component: AnnouncementsComponent, data: { screenName: 'Admin - Announcements' } },
             { path: 'sms-templates', component: SmsTemplatesComponent, data: { screenName: 'Admin - SMS Templates' } },
-            { path: 'monitoring', component: MonitoringComponent, data: { screenName: 'Admin - Monitoring' } }
+            { path: 'monitoring', component: MonitoringComponent, data: { screenName: 'Admin - Monitoring' } },
+            { path: 'docs', component: AdminDocsComponent, data: { screenName: 'Docs' } }
         ]
     }
 ] as Routes;

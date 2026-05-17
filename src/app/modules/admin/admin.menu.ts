@@ -7,7 +7,8 @@ export const ADMIN_MENU: MenuItem[] = [
             { label: 'Generator Owners', icon: 'pi pi-users', routerLink: ['/app/admin/generator-owners'] },
             { label: 'Announcements', icon: 'pi pi-megaphone', routerLink: ['/app/admin/announcements'] },
             { label: 'SMS Templates', icon: 'pi pi-envelope', routerLink: ['/app/admin/sms-templates'] },
-            { label: 'Monitoring', icon: 'pi pi-eye', routerLink: ['/app/admin/monitoring'] }
+            { label: 'Monitoring', icon: 'pi pi-eye', routerLink: ['/app/admin/monitoring'] },
+            { label: 'Docs', icon: 'pi pi-question-circle', routerLink: ['/app/admin/docs'] }
         ]
     }
 ];

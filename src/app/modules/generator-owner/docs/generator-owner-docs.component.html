@@ -1,0 +1,243 @@
+<div class="go-docs" [attr.dir]="direction">
+    <header class="go-docs-header">
+        <div class="go-header-left">
+            <p-button
+                icon="pi pi-bars"
+                severity="secondary"
+                text
+                rounded
+                styleClass="go-mobile-topics-button"
+                [pTooltip]="isArabic ? 'المواضيع' : 'Topics'"
+                (onClick)="mobileTopicsVisible = true"
+            ></p-button>
+
+            <div class="go-brand-mark" aria-hidden="true">E</div>
+
+            <div class="go-brand-text">
+                <strong>{{ productTitle }}</strong>
+                <span>{{ pageTitle }}</span>
+            </div>
+        </div>
+
+        <div class="go-header-search">
+            <p-iconfield iconPosition="left" class="go-search-field">
+                <p-inputicon>
+                    <i class="pi pi-search"></i>
+                </p-inputicon>
+                <input
+                    pInputText
+                    type="text"
+                    [(ngModel)]="searchTerm"
+                    [placeholder]="searchPlaceholder"
+                    autocomplete="off"
+                />
+            </p-iconfield>
+
+            @if (searchTerm) {
+                <p-button
+                    icon="pi pi-times"
+                    severity="secondary"
+                    text
+                    rounded
+                    [pTooltip]="isArabic ? 'مسح البحث' : 'Clear search'"
+                    (onClick)="clearSearch()"
+                ></p-button>
+            }
+        </div>
+
+        <div class="go-header-actions">
+            @if (selectedDoc?.appRoute) {
+                <p-button
+                    [label]="isArabic ? 'فتح الصفحة' : 'Open page'"
+                    icon="pi pi-arrow-up-right"
+                    size="small"
+                    outlined
+                    (onClick)="openInApp()"
+                ></p-button>
+            }
+
+            <p-select
+                [(ngModel)]="language"
+                [options]="languageOptions"
+                optionLabel="label"
+                optionValue="value"
+                size="small"
+                appendTo="body"
+                styleClass="go-language-select"
+                (onChange)="onLanguageChange()"
+            ></p-select>
+        </div>
+    </header>
+
+    <p-drawer
+        [(visible)]="mobileTopicsVisible"
+        [header]="isArabic ? 'المواضيع' : 'Topics'"
+        [position]="isArabic ? 'right' : 'left'"
+        [style]="{ width: '88vw', maxWidth: '390px' }"
+        [styleClass]="'go-docs-drawer ' + (isArabic ? 'go-docs-drawer-rtl' : 'go-docs-drawer-ltr')"
+    >
+        <div class="go-drawer-topic-shell" [attr.dir]="direction">
+            <ng-container *ngTemplateOutlet="topicsNav"></ng-container>
+        </div>
+    </p-drawer>
+
+    <div class="go-docs-layout">
+        <aside class="go-left-nav">
+            <ng-container *ngTemplateOutlet="topicsNav"></ng-container>
+        </aside>
+
+        <main class="go-docs-main" #articleStart id="docs-article-start">
+            @if (selectedDoc) {
+                <article class="go-article">
+                    <div class="go-breadcrumbs" aria-label="Breadcrumb">
+                        <button type="button" (click)="goToFirstDoc()">
+                            {{ isArabic ? 'الدليل' : 'Docs' }}
+                        </button>
+                        <i class="pi" [class.pi-angle-right]="!isArabic" [class.pi-angle-left]="isArabic"></i>
+                        <span>{{ t(selectedDoc.group) }}</span>
+                    </div>
+
+                    <header class="go-article-header">
+                        <div class="go-topic-label">{{ t(selectedDoc.group) }}</div>
+                        <h1>{{ t(selectedDoc.title) }}</h1>
+
+                        <div class="go-article-meta">
+                            <p-tag [value]="sectionCountLabel" severity="secondary"></p-tag>
+
+                            @if (activeSectionTitle) {
+                                <p-tag [value]="activeSectionTitle" severity="info"></p-tag>
+                            }
+                        </div>
+                    </header>
+
+                    <div
+                        #articleContent
+                        class="go-article-content"
+                        [innerHTML]="articleHtml"
+                        (click)="onArticleClick($event)"
+                        (pointerover)="onArticlePointerOver($event)"
+                        (pointerout)="onArticlePointerOut($event)"
+                    ></div>
+
+                    <footer class="go-page-switcher">
+                        @if (previousDoc; as previous) {
+                            <button type="button" class="go-page-link go-page-link-prev" (click)="selectDoc(previous, { smooth: false })">
+                                <span>{{ isArabic ? 'السابق' : 'Previous' }}</span>
+                                <strong>{{ t(previous.title) }}</strong>
+                            </button>
+                        } @else {
+                            <span></span>
+                        }
+
+                        @if (nextDoc; as next) {
+                            <button type="button" class="go-page-link go-page-link-next" (click)="selectDoc(next, { smooth: false })">
+                                <span>{{ isArabic ? 'التالي' : 'Next' }}</span>
+                                <strong>{{ t(next.title) }}</strong>
+                            </button>
+                        }
+                    </footer>
+                </article>
+            }
+        </main>
+
+        <aside class="go-right-toc">
+            <div class="go-toc-card">
+                <div class="go-toc-title">{{ isArabic ? 'في هذه الصفحة' : 'On this page' }}</div>
+
+                @if (selectedDoc; as doc) {
+                    @if (doc.sections.length) {
+                        <nav class="go-section-list" [attr.aria-label]="isArabic ? 'أقسام الصفحة' : 'Page sections'">
+                            @for (section of doc.sections; track section.id) {
+                                <button
+                                    type="button"
+                                    [class.active]="activeSectionId === section.id"
+                                    (click)="scrollToSection(section.id, $event)"
+                                >
+                                    {{ t(section.title) }}
+                                </button>
+                            }
+                        </nav>
+                    }
+                }
+            </div>
+        </aside>
+    </div>
+
+    @if (activeTooltip.visible) {
+        <div
+            class="go-floating-tooltip"
+            [class.go-floating-tooltip-bottom]="activeTooltip.placement === 'bottom'"
+            [style.left.px]="activeTooltip.left"
+            [style.top.px]="activeTooltip.top"
+            role="tooltip"
+        >
+            {{ activeTooltip.text }}
+        </div>
+    }
+
+    <ng-template #topicsNav>
+        <div class="go-topics-panel">
+            <div class="go-mobile-search">
+                <p-iconfield iconPosition="left" class="go-search-field">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input
+                        pInputText
+                        type="text"
+                        [(ngModel)]="searchTerm"
+                        [placeholder]="searchPlaceholder"
+                        autocomplete="off"
+                    />
+                </p-iconfield>
+            </div>
+
+            <div class="go-topics-title">{{ isArabic ? 'المواضيع' : 'Topics' }}</div>
+
+            @if (!hasSearchResults) {
+                <div class="go-empty-state">
+                    <i class="pi pi-search"></i>
+                    <strong>{{ isArabic ? 'لا توجد نتائج' : 'No results' }}</strong>
+                    <span>{{ isArabic ? 'جرّب كلمات بحث مختلفة.' : 'Try different search terms.' }}</span>
+                </div>
+            }
+
+            @for (group of groupedDocs; track group.key) {
+                <section class="go-topic-group">
+                    <button
+                        type="button"
+                        class="go-topic-group-title"
+                        (click)="toggleGroup(group.group)"
+                    >
+                        <span>{{ t(group.group) }}</span>
+                        <i
+                            class="pi"
+                            [class.pi-chevron-down]="isGroupExpanded(group.group)"
+                            [class.pi-chevron-right]="!isGroupExpanded(group.group) && !isArabic"
+                            [class.pi-chevron-left]="!isGroupExpanded(group.group) && isArabic"
+                        ></i>
+                    </button>
+
+                    @if (isGroupExpanded(group.group)) {
+                        <div class="go-topic-items">
+                            @for (doc of group.docs; track doc.id) {
+                                <button
+                                    type="button"
+                                    class="go-topic-item"
+                                    [class.active]="selectedDocId === doc.id"
+                                    (click)="selectDoc(doc, { smooth: false })"
+                                >
+                                    <span>{{ t(doc.title) }}</span>
+
+                                    @if (doc.appRoute) {
+                                        <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+                                    }
+                                </button>
+                            }
+                        </div>
+                    }
+                </section>
+            }
+        </div>
+    </ng-template>
+</div>

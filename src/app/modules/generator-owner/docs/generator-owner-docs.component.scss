@@ -1,0 +1,1113 @@
+:host {
+    display: block;
+
+    /* PrimeNG Sakai topbar is fixed and has height: 4rem.
+       Keep this value in sync with assets/layout/_topbar.scss. */
+    --go-app-topbar-height: 4rem;
+    --go-page-inline-padding: clamp(1rem, 2vw, 2rem);
+    --go-layout-gap: clamp(1rem, 1.5vw, 1.5rem);
+}
+
+.go-docs {
+    --go-primary: var(--primary-color, #1b9f8e);
+    --go-primary-soft: color-mix(in srgb, var(--go-primary) 12%, transparent);
+    --go-primary-border: color-mix(in srgb, var(--go-primary) 42%, var(--surface-border, #e5e7eb));
+    --go-bg: var(--surface-ground, #f6f7fb);
+    --go-panel: var(--surface-card, #ffffff);
+    --go-panel-raised: color-mix(in srgb, var(--go-panel) 96%, var(--go-bg) 4%);
+    --go-hover: var(--surface-hover, color-mix(in srgb, var(--go-panel) 92%, var(--go-text) 8%));
+    --go-border: var(--surface-border, #e5e7eb);
+    --go-text: var(--text-color, #111827);
+    --go-muted: var(--text-color-secondary, #64748b);
+    --go-code-bg: color-mix(in srgb, var(--go-panel) 88%, var(--go-text) 4%);
+    --go-panel-strong: color-mix(in srgb, var(--go-panel) 96%, var(--go-bg) 4%);
+    --go-panel-soft: color-mix(in srgb, var(--go-panel) 90%, var(--go-bg) 10%);
+    --go-active-bg: color-mix(in srgb, var(--go-panel) 88%, var(--go-text) 7%);
+    --go-selected-bg: color-mix(in srgb, var(--go-panel) 84%, var(--go-text) 8%);
+    --go-table-head-bg: color-mix(in srgb, var(--go-panel) 78%, var(--go-text) 22%);
+    --go-table-head-text: var(--go-text);
+    --go-table-row-bg: color-mix(in srgb, var(--go-panel) 94%, var(--go-text) 6%);
+    --go-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+    --go-tooltip-bg: #0b1220;
+    --go-tooltip-text: #ffffff;
+    --go-header-height: 64px;
+    --go-left-width: 300px;
+    --go-right-width: 238px;
+    --go-content-width: 790px;
+    --go-layout-max: none;
+    --go-app-topbar-height: 4rem;
+    --go-page-inline-padding: clamp(1rem, 2vw, 2rem);
+    --go-layout-gap: clamp(1rem, 1.5vw, 1.5rem);
+    --go-sticky-header-top: var(--go-app-topbar-height);
+    --go-sticky-sidebar-top: calc(var(--go-app-topbar-height) + var(--go-header-height) + 1rem);
+    --go-scroll-margin-top: calc(var(--go-app-topbar-height) + var(--go-header-height) + 1.5rem);
+
+    min-height: 100vh;
+    background: var(--go-bg);
+    color: var(--go-text);
+    font-family: "JetBrains Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+    font-kerning: normal;
+    text-rendering: optimizeLegibility;
+}
+
+.go-docs,
+.go-docs * {
+    box-sizing: border-box;
+}
+
+.go-docs .go-article,
+.go-docs .go-article *,
+.go-docs .go-article-content,
+.go-docs .go-article-content * {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.go-docs ::selection {
+    background: color-mix(in srgb, var(--go-primary) 32%, transparent);
+    color: var(--go-text);
+}
+
+.go-docs button {
+    font: inherit;
+}
+
+.go-docs-header {
+    position: sticky;
+    /* Keep the docs header below the fixed PrimeNG/Sakai app topbar. */
+    top: var(--go-sticky-header-top);
+    z-index: 90;
+    height: var(--go-header-height);
+    display: grid;
+    grid-template-columns: minmax(230px, 320px) minmax(260px, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid var(--go-border);
+    background: color-mix(in srgb, var(--go-panel) 94%, transparent);
+    backdrop-filter: saturate(180%) blur(18px);
+}
+
+.go-header-left,
+.go-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.go-header-actions {
+    justify-content: flex-end;
+}
+
+.go-mobile-topics-button {
+    display: none !important;
+}
+
+.go-brand-mark {
+    display: grid;
+    place-items: center;
+    width: 2.15rem;
+    height: 2.15rem;
+    flex: 0 0 auto;
+    border-radius: 0.7rem;
+    background: var(--go-primary);
+    color: #ffffff;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+}
+
+.go-brand-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.go-brand-text strong {
+    font-size: 0.98rem;
+    font-weight: 760;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.go-brand-text span {
+    margin-top: 0.18rem;
+    color: var(--go-muted);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.go-header-search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.go-search-field {
+    width: min(100%, 520px);
+}
+
+.go-search-field input {
+    width: 100%;
+    height: 2.35rem;
+    border-radius: 999px;
+    background: var(--go-panel-soft);
+}
+
+.go-language-select {
+    min-width: 8.75rem;
+}
+
+.go-docs-layout {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(240px, var(--go-left-width)) minmax(0, 1fr) minmax(220px, var(--go-right-width));
+    gap: var(--go-layout-gap);
+    align-items: start;
+    padding: 1.5rem var(--go-page-inline-padding) 4rem;
+}
+
+.go-left-nav,
+.go-right-toc {
+    position: sticky;
+    top: var(--go-sticky-sidebar-top);
+    max-height: calc(100dvh - var(--go-sticky-sidebar-top) - 1rem);
+    overflow: auto;
+    scrollbar-width: thin;
+}
+
+.go-left-nav,
+.go-docs-main,
+.go-toc-card {
+    background: var(--go-panel-strong);
+    border: 1px solid var(--go-border);
+    border-radius: 1.1rem;
+    box-shadow: var(--go-shadow);
+}
+
+.go-left-nav,
+.go-toc-card {
+    background: var(--go-panel-raised);
+}
+
+.go-left-nav {
+    padding: 0.85rem;
+}
+
+.go-topics-panel {
+    padding: 0.35rem 0.15rem 1rem;
+}
+
+.go-mobile-search {
+    display: none;
+    margin-bottom: 1rem;
+}
+
+.go-topics-title,
+.go-toc-title {
+    color: var(--go-muted);
+    font-size: 0.76rem;
+    font-weight: 760;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+}
+
+.go-topic-group + .go-topic-group {
+    margin-top: 0.35rem;
+}
+
+.go-topic-group-title,
+.go-topic-item,
+.go-section-list button,
+.go-breadcrumbs button,
+.go-page-link {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    text-align: start;
+}
+
+.go-topic-group-title {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 0.6rem;
+    color: var(--go-text);
+    font-size: 0.95rem;
+    font-weight: 720;
+    letter-spacing: -0.012em;
+}
+
+.go-topic-group-title:hover {
+    background: var(--go-hover);
+}
+
+.go-topic-group-title span {
+    font-weight: 820;
+    letter-spacing: 0;
+}
+
+.go-topic-group-title i {
+    color: var(--go-muted);
+    font-size: 0.75rem;
+}
+
+.go-topic-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin: 0.15rem 0 0.45rem;
+    padding-inline-start: 0.65rem;
+    border-inline-start: 1px solid var(--go-border);
+}
+
+.go-topic-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.48rem 0.6rem;
+    border-radius: 0.55rem;
+    color: var(--go-muted);
+    font-size: 0.9rem;
+    line-height: 1.35;
+}
+
+.go-topic-item:hover {
+    color: var(--go-text);
+    background: var(--go-hover);
+}
+
+.go-topic-item.active {
+    color: var(--go-primary);
+    background: var(--go-selected-bg);
+    font-weight: 740;
+    outline: 1px solid var(--go-primary-border);
+    box-shadow: inset 3px 0 0 var(--go-primary);
+}
+
+.go-docs[dir='rtl'] .go-topic-item.active {
+    box-shadow: inset -3px 0 0 var(--go-primary);
+}
+
+.go-topic-item i {
+    font-size: 0.72rem;
+    opacity: 0.75;
+}
+
+.go-empty-state {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+    border: 1px dashed var(--go-border);
+    border-radius: 0.85rem;
+    color: var(--go-muted);
+    font-size: 0.9rem;
+}
+
+.go-empty-state i {
+    color: var(--go-primary);
+}
+
+.go-empty-state strong {
+    color: var(--go-text);
+}
+
+
+.go-left-nav,
+.go-docs-main,
+.go-toc-card {
+    background: var(--go-panel-strong);
+}
+
+.go-left-nav,
+.go-toc-card {
+    background: var(--go-panel-soft);
+}
+
+.go-docs-main {
+    min-width: 0;
+    padding: 1.85rem 2rem 2.1rem;
+}
+
+.go-article {
+    min-width: 0;
+    padding: 0 0 0.25rem;
+}
+
+.go-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.42rem;
+    margin-bottom: 1.1rem;
+    color: var(--go-muted);
+    font-size: 0.83rem;
+}
+
+.go-breadcrumbs button {
+    padding: 0;
+    color: var(--go-muted);
+}
+
+.go-breadcrumbs button:hover {
+    color: var(--go-primary);
+}
+
+.go-breadcrumbs i {
+    font-size: 0.65rem;
+    opacity: 0.75;
+}
+
+.go-article-header {
+    padding-bottom: 1.75rem;
+    margin-bottom: 1.85rem;
+    border-bottom: 1px solid var(--go-border);
+}
+
+.go-topic-label {
+    color: var(--go-primary);
+    font-size: 0.8rem;
+    font-weight: 760;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.go-article-header h1 {
+    margin: 0;
+    color: var(--go-text);
+    font-size: clamp(2.15rem, 4vw, 3.25rem);
+    line-height: 1.08;
+    font-weight: 740;
+    letter-spacing: -0.012em;
+}
+
+.go-article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.2rem;
+}
+
+.go-toc-card {
+    padding: 0.9rem;
+}
+
+.go-section-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.08rem;
+}
+
+.go-section-list button {
+    width: 100%;
+    position: relative;
+    padding: 0.45rem 0.65rem;
+    border-radius: 0.55rem;
+    color: var(--go-muted);
+    font-size: 0.86rem;
+    line-height: 1.42;
+}
+
+.go-section-list button:hover {
+    color: var(--go-text);
+    background: var(--go-hover);
+}
+
+.go-section-list button.active {
+    color: var(--go-primary);
+    background: var(--go-active-bg);
+    font-weight: 720;
+}
+
+.go-section-list button.active::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: -0.92rem;
+    top: 0.45rem;
+    bottom: 0.45rem;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--go-primary);
+}
+
+/*
+   Dynamic article body.
+   ViewEncapsulation.None is used so these rules can style HTML inserted with [innerHTML].
+*/
+.go-docs .go-article-content {
+    color: var(--go-text);
+    font-size: 1.12rem;
+    line-height: 1.9;
+    font-weight: 430;
+    letter-spacing: 0;
+}
+
+.go-docs .go-article-content :is(p, li, td, th) {
+    font-size: 1.08rem;
+    line-height: 1.9;
+}
+
+.go-docs .go-article-content > * + * {
+    margin-top: 1.25rem;
+}
+
+.go-docs .go-article-content section.chapter {
+    margin: 2.65rem 0;
+    scroll-margin-top: var(--go-scroll-margin-top);
+}
+
+.go-docs .go-article-content section.chapter:first-child {
+    margin-top: 0;
+}
+
+.go-docs .go-article-content section.chapter section.chapter {
+    margin: 1.35rem 0;
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--go-primary-border);
+}
+
+.go-docs .go-article-content :is(h2, h3, h4) {
+    color: var(--go-text);
+    letter-spacing: -0.01em;
+    scroll-margin-top: var(--go-scroll-margin-top);
+}
+
+.go-docs .go-article-content h2 {
+    margin: 0 0 1rem;
+    font-size: clamp(1.65rem, 2.25vw, 2.05rem);
+    line-height: 1.28;
+    font-weight: 730;
+    letter-spacing: -0.012em;
+}
+
+.go-docs .go-article-content h3 {
+    margin: 1.5rem 0 0.75rem;
+    font-size: 1.38rem;
+    line-height: 1.35;
+    font-weight: 700;
+    letter-spacing: -0.006em;
+}
+
+.go-docs .go-article-content h4 {
+    margin: 1.2rem 0 0.6rem;
+    font-size: 1.18rem;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.go-docs .go-article-content p {
+    margin: 0.8rem 0;
+}
+
+.go-docs .go-article-content a {
+    color: var(--go-primary);
+    font-weight: 720;
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--go-primary) 34%, transparent);
+}
+
+.go-docs .go-article-content a:hover {
+    border-bottom-color: var(--go-primary);
+}
+
+
+.go-docs .go-article-content a[data-tooltip] {
+    position: relative;
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 1px dotted color-mix(in srgb, var(--go-primary) 65%, transparent);
+}
+
+
+
+
+
+.go-floating-tooltip {
+    position: fixed;
+    z-index: 2147483647;
+    max-width: min(460px, calc(100vw - 2rem));
+    width: max-content;
+    padding: 0.78rem 0.92rem;
+    border-radius: 0.78rem;
+    background: var(--go-tooltip-bg);
+    color: var(--go-tooltip-text);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+    font-size: 0.92rem;
+    font-weight: 680;
+    line-height: 1.55;
+    white-space: normal;
+    text-align: start;
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    animation: go-tooltip-in 90ms ease-out;
+}
+
+.go-floating-tooltip::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 50%;
+    top: 100%;
+    width: 12px;
+    height: 12px;
+    background: var(--go-tooltip-bg);
+    border-inline-end: 1px solid rgba(255, 255, 255, 0.16);
+    border-block-end: 1px solid rgba(255, 255, 255, 0.16);
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.go-floating-tooltip-bottom {
+    transform: translateX(-50%);
+}
+
+.go-floating-tooltip-bottom::after {
+    top: auto;
+    bottom: 100%;
+    border-inline-end: 0;
+    border-block-end: 0;
+    border-inline-start: 1px solid rgba(255, 255, 255, 0.16);
+    border-block-start: 1px solid rgba(255, 255, 255, 0.16);
+    transform: translate(-50%, 50%) rotate(45deg);
+}
+
+@keyframes go-tooltip-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.go-docs .go-article-content :is(ul, ol) {
+    padding-inline-start: 1.4rem;
+    margin: 0.9rem 0 1.5rem;
+}
+
+.go-docs .go-article-content li {
+    margin: 0.45rem 0;
+    padding-inline-start: 0.15rem;
+}
+
+.go-docs .go-article-content li::marker {
+    color: var(--go-primary);
+    font-weight: 720;
+}
+
+.go-docs .go-article-content .control {
+    display: inline;
+    padding: 0.08rem 0.24rem;
+    border-radius: 0.35rem;
+    color: var(--go-primary);
+    background: var(--go-primary-soft);
+    font-size: 0.96em;
+    font-weight: 720;
+}
+
+.go-docs .go-article-content .prompt,
+.go-docs .go-article-content aside.prompt {
+    position: relative;
+    margin: 1.35rem 0;
+    padding: 1rem 1.1rem 1rem 1.25rem;
+    border-radius: 0.85rem;
+    border: 1px solid var(--go-primary-border);
+    background: color-mix(in srgb, var(--go-primary) 7%, var(--go-panel));
+}
+
+.go-docs .go-article-content .prompt::before,
+.go-docs .go-article-content aside.prompt::before {
+    content: attr(data-type);
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--go-primary);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.go-docs .go-article-content .table-wrapper,
+.go-docs .go-article-content .go-table-wrap {
+    overflow-x: auto;
+    margin: 1.25rem 0 1.75rem;
+    border: 1px solid var(--go-border);
+    border-radius: 0.85rem;
+    background: var(--go-panel-soft);
+}
+
+.go-docs .go-article-content .table-wrapper .go-table-wrap {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+}
+
+.go-docs .go-article-content table,
+.go-docs .go-article-content .go-docs-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    font-size: 1.02rem;
+    line-height: 1.65;
+}
+
+.go-docs .go-article-content th,
+.go-docs .go-article-content td {
+    padding: 0.82rem 0.95rem;
+    vertical-align: top;
+    border-bottom: 1px solid var(--go-border);
+    text-align: start;
+}
+
+.go-docs .go-article-content :is(thead, thead tr, tr.ijRowHead) {
+    background: var(--go-table-head-bg) !important;
+}
+
+.go-docs .go-article-content th,
+.go-docs .go-article-content :is(thead, tr.ijRowHead) th {
+    background: var(--go-table-head-bg) !important;
+    color: var(--go-table-head-text) !important;
+    font-weight: 880;
+}
+
+.go-docs .go-article-content tbody tr:nth-child(even) {
+    background: var(--go-table-row-bg);
+}
+
+.go-docs .go-article-content tr:last-child td {
+    border-bottom: 0;
+}
+
+.go-docs .go-article-content code,
+.go-docs .go-article-content kbd {
+    padding: 0.12rem 0.35rem;
+    border-radius: 0.35rem;
+    background: var(--go-code-bg);
+    border: 1px solid var(--go-border);
+    font-size: 0.88em;
+}
+
+.go-docs .go-article-content img {
+    max-width: 100%;
+    border-radius: 0.85rem;
+    border: 1px solid var(--go-border);
+}
+
+.go-docs .go-article-content .last-modified {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--go-border);
+    color: var(--go-muted);
+    font-size: 0.86rem;
+}
+
+.go-docs .go-article-content [data-feedback-placeholder='true'] {
+    display: none;
+}
+
+.go-docs .go-article-content .navigation-links {
+    display: none;
+}
+
+.go-page-switcher {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--go-border);
+}
+
+.go-page-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-height: 4.75rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--go-border);
+    border-radius: 0.85rem;
+    background: var(--go-panel);
+}
+
+.go-page-link:hover {
+    border-color: var(--go-primary-border);
+    background: var(--go-primary-soft);
+}
+
+.go-page-link span {
+    color: var(--go-muted);
+    font-size: 0.77rem;
+    font-weight: 720;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.go-page-link strong {
+    color: var(--go-text);
+    font-size: 0.98rem;
+    line-height: 1.35;
+}
+
+.go-page-link-next {
+    text-align: end;
+}
+
+.go-docs[dir='rtl'] .go-header-left,
+.go-docs[dir='rtl'] .go-header-actions,
+.go-docs[dir='rtl'] .go-breadcrumbs,
+.go-docs[dir='rtl'] .go-article-meta {
+    direction: rtl;
+}
+
+.go-docs[dir='rtl'] .go-topic-items,
+.go-drawer-topic-shell[dir='rtl'] .go-topic-items {
+    padding-inline-start: 0.65rem;
+    padding-inline-end: 0;
+}
+
+.go-docs[dir='rtl'] .go-article-content :is(ul, ol) {
+    padding-inline-start: 0;
+    padding-inline-end: 1.4rem;
+}
+
+.go-docs[dir='rtl'] .go-article-content section.chapter section.chapter {
+    padding-inline-start: 0;
+    padding-inline-end: 1rem;
+}
+
+.go-docs[dir='rtl'] .go-page-link-next {
+    text-align: start;
+}
+
+.go-docs[dir='rtl'] .go-page-link-prev {
+    text-align: end;
+}
+
+.go-docs[dir='rtl'] .go-article-content {
+    font-size: 1.15rem;
+    line-height: 2;
+}
+
+.go-docs[dir='rtl'] .go-article-content :is(p, li, td, th) {
+    font-size: 1.11rem;
+    line-height: 2;
+}
+
+.go-docs-drawer .p-drawer-content {
+    padding-top: 0;
+}
+
+.go-docs-drawer .go-topics-panel {
+    background: var(--go-panel);
+    color: var(--go-text);
+}
+
+.go-docs-drawer .go-topic-group-title {
+    font-weight: 720;
+}
+
+.go-docs-drawer .go-topic-item.active {
+    color: var(--go-primary) !important;
+    background: var(--go-active-bg) !important;
+    font-weight: 850 !important;
+    box-shadow: inset 3px 0 0 var(--go-primary);
+}
+
+.go-docs[dir='rtl'] .go-docs-drawer .go-topic-item.active {
+    box-shadow: inset -3px 0 0 var(--go-primary);
+}
+
+
+.go-docs-drawer .go-topic-item.active,
+.go-docs-drawer .go-topic-item.active:hover {
+    color: var(--go-primary) !important;
+    background: var(--go-selected-bg) !important;
+    font-weight: 780 !important;
+    outline: 1px solid var(--go-primary-border) !important;
+    box-shadow: inset 4px 0 0 var(--go-primary) !important;
+}
+
+.go-docs[dir='rtl'] .go-docs-drawer .go-topic-item.active,
+.go-docs[dir='rtl'] .go-docs-drawer .go-topic-item.active:hover {
+    box-shadow: inset -4px 0 0 var(--go-primary) !important;
+}
+
+@media (max-width: 1279px) {
+    .go-docs-layout {
+        grid-template-columns: minmax(240px, var(--go-left-width)) minmax(0, 1fr);
+        width: 100%;
+        max-width: none;
+    }
+
+    .go-right-toc {
+        display: none;
+    }
+}
+
+@media (max-width: 1023px) {
+    .go-docs-header {
+        grid-template-columns: minmax(0, 1fr) auto;
+        height: auto;
+        min-height: var(--go-header-height);
+        padding: 0.75rem 1rem;
+    }
+
+    .go-header-search {
+        display: none;
+    }
+
+    .go-mobile-topics-button {
+        display: inline-flex !important;
+    }
+
+    .go-docs-layout {
+        display: block;
+        padding: 1.25rem var(--go-page-inline-padding) 3rem;
+    }
+
+    .go-docs-main {
+        padding: 1.35rem;
+    }
+
+    .go-left-nav {
+        display: none;
+    }
+
+    .go-mobile-search {
+        display: block;
+    }
+
+    .go-article-header h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+}
+
+@media (max-width: 640px) {
+    .go-docs-header {
+        gap: 0.65rem;
+    }
+
+    .go-brand-mark {
+        display: none;
+    }
+
+    .go-brand-text span {
+        display: none;
+    }
+
+    .go-header-actions {
+        gap: 0.45rem;
+    }
+
+    .go-language-select {
+        min-width: 7.35rem;
+    }
+
+    .go-docs-layout {
+        padding-inline: 0.85rem;
+    }
+
+    .go-docs-main {
+        padding: 1.05rem;
+    }
+
+    .go-article-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.45rem;
+    }
+
+    .go-docs .go-article-content {
+        font-size: 1.04rem;
+    }
+
+    .go-docs .go-article-content :is(p, li, td, th) {
+        font-size: 1.03rem;
+    }
+
+    .go-docs .go-article-content section.chapter {
+        margin: 2.15rem 0;
+    }
+
+    .go-page-switcher {
+        grid-template-columns: 1fr;
+    }
+
+    .go-page-link,
+    .go-page-link-next,
+    .go-page-link-prev {
+        text-align: start;
+    }
+}
+
+/* Deploy fix: keep the original docs font family, but avoid overly heavy compressed bold text. */
+.go-docs {
+    font-family: "JetBrains Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0;
+}
+
+.go-docs .go-article-header h1,
+.go-docs .go-article-content h1,
+.go-docs .go-article-content h2,
+.go-docs .go-article-content h3,
+.go-docs .go-topic-group-title span,
+.go-docs .go-toc-title,
+.go-docs .go-topics-title {
+    font-family: "JetBrains Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+    font-stretch: normal;
+    font-kerning: normal;
+    letter-spacing: -0.015em;
+}
+
+.go-docs .go-article-header h1 {
+    font-weight: 760;
+    letter-spacing: -0.025em;
+}
+
+.go-docs .go-article-content h1,
+.go-docs .go-article-content h2 {
+    font-weight: 740;
+    letter-spacing: -0.018em;
+}
+
+.go-docs .go-article-content h3 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.go-docs .go-article-content a,
+.go-docs .go-article-content .control,
+.go-docs .go-topic-item.active,
+.go-docs .go-section-list button.active {
+    font-weight: 690;
+}
+
+.go-docs .go-article-content th,
+.go-docs .go-article-content :is(thead, tr.ijRowHead) th {
+    font-weight: 720 !important;
+}
+
+/* Deploy fix: floating tooltips must never block clicks, and must stay readable in every theme. */
+.go-floating-tooltip {
+    pointer-events: none !important;
+    z-index: 2147483647 !important;
+    background: #0b1220 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.go-floating-tooltip::after {
+    background: #0b1220 !important;
+}
+
+/* Deploy fix: make the selected topic visible in the mobile drawer with more than font weight. */
+.go-docs-drawer .go-topic-item.active,
+.go-docs-drawer .go-topic-item.active:hover {
+    color: var(--go-primary) !important;
+    background: var(--go-selected-bg) !important;
+    outline: 1px solid var(--go-primary-border) !important;
+    box-shadow: inset 4px 0 0 var(--go-primary), 0 0 0 1px color-mix(in srgb, var(--go-primary) 10%, transparent) !important;
+}
+
+.go-docs[dir='rtl'] .go-docs-drawer .go-topic-item.active,
+.go-docs[dir='rtl'] .go-docs-drawer .go-topic-item.active:hover {
+    box-shadow: inset -4px 0 0 var(--go-primary), 0 0 0 1px color-mix(in srgb, var(--go-primary) 10%, transparent) !important;
+}
+
+
+/* Fix: PrimeNG drawer is rendered outside .go-docs, so it needs its own theme variables and RTL context. */
+.go-docs-drawer {
+    --go-primary: var(--primary-color, #1b9f8e);
+    --go-primary-soft: color-mix(in srgb, var(--go-primary) 12%, transparent);
+    --go-primary-border: color-mix(in srgb, var(--go-primary) 42%, var(--surface-border, #e5e7eb));
+    --go-panel: var(--surface-card, #ffffff);
+    --go-panel-soft: color-mix(in srgb, var(--go-panel) 90%, var(--surface-ground, #f6f7fb) 10%);
+    --go-hover: var(--surface-hover, color-mix(in srgb, var(--go-panel) 92%, var(--text-color, #111827) 8%));
+    --go-border: var(--surface-border, #e5e7eb);
+    --go-text: var(--text-color, #111827);
+    --go-muted: var(--text-color-secondary, #64748b);
+    --go-selected-bg: color-mix(in srgb, var(--go-panel) 84%, var(--go-text) 8%);
+}
+
+.go-drawer-topic-shell {
+    direction: ltr;
+}
+
+.go-drawer-topic-shell[dir='rtl'] {
+    direction: rtl;
+}
+
+.go-drawer-topic-shell[dir='rtl'] .go-topics-panel {
+    text-align: start;
+}
+
+.go-drawer-topic-shell[dir='rtl'] .go-topic-items {
+    padding-inline-start: 0.65rem !important;
+    padding-inline-end: 0 !important;
+    border-inline-start: 1px solid var(--go-border) !important;
+    border-inline-end: 0 !important;
+}
+
+.go-drawer-topic-shell[dir='rtl'] .go-topic-item.active,
+.go-drawer-topic-shell[dir='rtl'] .go-topic-item.active:hover {
+    box-shadow: none !important;
+}
+
+.go-docs-drawer .go-topic-item.active,
+.go-docs-drawer .go-topic-item.active:hover {
+    color: #ffffff !important;
+    background: var(--go-primary) !important;
+    outline: 1px solid var(--go-primary) !important;
+    box-shadow: none !important;
+    font-weight: 780 !important;
+}
+
+.go-docs-drawer .go-topic-item.active i {
+    color: currentColor !important;
+    opacity: 1 !important;
+}
+
+
+/* --------------------------------------------------------------------------
+   Click safety fix for generated documentation links.
+   This does not change routing logic; it only ensures links can receive clicks
+   if another local stacking context or pseudo-element overlaps them.
+--------------------------------------------------------------------------- */
+
+.go-docs .go-article-content {
+    position: relative;
+    z-index: 1;
+}
+
+.go-docs .go-article-content a {
+    position: relative;
+    z-index: 2;
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+
+.go-docs .go-article-content a *,
+.go-docs .go-article-content a::before,
+.go-docs .go-article-content a::after {
+    pointer-events: none;
+}
+
+.go-floating-tooltip,
+.go-floating-tooltip::before,
+.go-floating-tooltip::after {
+    pointer-events: none !important;
+}

@@ -26,6 +26,7 @@ import {
     SubscriberAddressesComponent
 } from '@/modules/generator-owner/subscriber-addresses/subscriber-addresses.component';
 import { BillCollectionsComponent } from '@/modules/generator-owner/bills/bill-collections/bill-collections.component';
+import { GeneratorOwnerDocsComponent } from '@/modules/generator-owner/docs/generator-owner-docs.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -51,7 +52,8 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             { path: 'subscription-billing-model', component: SubscriptionBillingModelComponent, data: { screenName: 'Generator Owner - Subscription Billing Models' } },
             { path: 'currency-rates', component: CurrencyRatesComponent, data: { screenName: 'Generator Owner - Currency Rates' } },
             { path: 'wallet', component: WalletComponent, data: { screenName: 'Generator Owner - Wallet' } },
-            { path: 'announcements', component: AnnouncementsComponent, data: { screenName: 'Generator Owner - Announcements' } }
+            { path: 'announcements', component: AnnouncementsComponent, data: { screenName: 'Generator Owner - Announcements' } },
+            { path: 'docs', component: GeneratorOwnerDocsComponent, data: { screenName: 'Docs' } }
         ]
     }
 ] as Routes;
