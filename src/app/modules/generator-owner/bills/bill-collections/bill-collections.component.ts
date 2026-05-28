@@ -101,6 +101,8 @@ export class BillCollectionsComponent implements OnInit {
     billPreviewBill: any | null = null;
 
     ngOnInit(): void {
+        this.applyDefaultFilterValues();
+
         this.loadLookups();
         this.loadBillCollectors();
     }
@@ -112,6 +114,8 @@ export class BillCollectionsComponent implements OnInit {
                     value: lookup.code,
                     label: lookup.description
                 }));
+
+                this.selectedCollectionStatus = BillCollectionStatus.COLLECTED_BY_BC;
 
                 this.isCollectionStatusesLoading = false;
             },
@@ -129,6 +133,8 @@ export class BillCollectionsComponent implements OnInit {
                     value: lookup.code,
                     label: lookup.description
                 }));
+
+                this.selectedRecordStatus = BillCollectionRecordStatus.COLLECTED_PENDING_GO_APPROVAL;
 
                 this.isRecordStatusesLoading = false;
             },
@@ -176,11 +182,11 @@ export class BillCollectionsComponent implements OnInit {
             pageNumber,
             pageSize: this.serverPageSize,
             billReference: this.billReference ?? undefined,
-            billCollectorId: this.selectedBillCollectorId!,
-            collectionScope: this.selectedCollectionStatus!,
-            collectionStatus: this.selectedRecordStatus!,
-            createdFrom: this.toApiDate(this.createdFrom)!,
-            createdTo: this.toApiDate(this.createdTo)!
+            billCollectorId: this.selectedBillCollectorId ?? undefined,
+            collectionScope: this.selectedCollectionStatus ?? undefined,
+            collectionStatus: this.selectedRecordStatus ?? undefined,
+            createdFrom: this.toApiDate(this.createdFrom),
+            createdTo: this.toApiDate(this.createdTo)
         };
 
         this.loading = true;
@@ -346,7 +352,7 @@ export class BillCollectionsComponent implements OnInit {
 
     applyFilters(): void {
         if (this.requiredFiltersMissing) {
-            this.notificationService.warn('Validation', 'Bill Collector, Collection Status, Record Status, Created From, and Created To are required.');
+            this.notificationService.warn('Validation', 'Either enter a Bill Reference, or fill Bill Collector, Collection Status, Record Status, Created From, and Created To.');
             return;
         }
 
@@ -502,7 +508,19 @@ export class BillCollectionsComponent implements OnInit {
         return this.selectedCollections.filter((collection) => collection.statusCode === BillCollectionRecordStatus.COLLECTED_PENDING_GO_APPROVAL);
     }
 
+    get hasBillReferenceFilter(): boolean {
+        return this.billReference !== null && this.billReference !== undefined;
+    }
+
+    get areOtherFiltersRequired(): boolean {
+        return !this.hasBillReferenceFilter;
+    }
+
     get requiredFiltersMissing(): boolean {
+        if (!this.areOtherFiltersRequired) {
+            return false;
+        }
+
         return this.selectedBillCollectorId == null || !this.selectedCollectionStatus || !this.selectedRecordStatus || !this.createdFrom || !this.createdTo;
     }
 
@@ -596,5 +614,24 @@ export class BillCollectionsComponent implements OnInit {
     closeBillPreview(): void {
         this.billPreviewVisible = false;
         this.billPreviewBill = null;
+    }
+
+    private getDefaultCreatedFrom(): Date {
+        const date = new Date();
+        date.setHours(23, 59, 59, 999);
+
+        return date;
+    }
+
+    private getDefaultCreatedTo(): Date {
+        const date = new Date();
+        date.setHours(23, 59, 59, 999);
+
+        return date;
+    }
+
+    private applyDefaultFilterValues(): void {
+        this.createdFrom = this.getDefaultCreatedFrom();
+        this.createdTo = this.getDefaultCreatedTo();
     }
 }

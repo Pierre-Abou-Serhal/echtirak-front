@@ -39,6 +39,9 @@ import { Tooltip } from 'primeng/tooltip';
 import { ContextMenu } from 'primeng/contextmenu';
 import { Router } from '@angular/router';
 import { UserContextService } from '@/core/services/user-context.service';
+import {
+    ExtraFeesManagerComponent
+} from '@/layout/generator-owner/extra-fees-widget/extra-fees-manager/extra-fees-manager.component';
 
 type AddressHintVm = SubscriberAddress & { label: string };
 
@@ -71,7 +74,8 @@ type AddressHintVm = SubscriberAddress & { label: string };
         AutoComplete,
         MultiSelect,
         Tooltip,
-        ContextMenu
+        ContextMenu,
+        ExtraFeesManagerComponent
     ],
     templateUrl: './subscribers.component.html',
     styleUrl: './subscribers.component.scss',
@@ -174,6 +178,7 @@ export class SubscribersComponent implements OnInit {
     // Extra Fees
     extraFeesOptions: SelectOptionNumValue[] = [];
     selectedExtraFeeIds: number[] = [];
+    isExtraFeesManagerOpen = false;
 
     ngOnInit(): void {
         // Fetch generators drop down items
@@ -245,6 +250,7 @@ export class SubscribersComponent implements OnInit {
 
         // Extra fees
         this.bindExtraFees();
+        this.userContext.loadExtraFees();
 
         // Initial load (empty search)
         this.search$.next('');
@@ -252,20 +258,34 @@ export class SubscribersComponent implements OnInit {
 
     private bindExtraFees(): void {
         this.userContext.generatorOwnerExtraFees$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((fees) => {
-            this.extraFeesOptions = fees.map((extraFee: ExtraFee) => ({
+            const validFees = fees.filter((fee) => fee.id != null);
+
+            this.extraFeesOptions = validFees.map((extraFee: ExtraFee) => ({
                 value: extraFee.id!,
-                label: extraFee.name!
+                label: extraFee.name ?? '—'
             }));
 
-            const feeNameById = new Map(fees.filter((f) => f.id != null).map((f) => [f.id!, f.name ?? '—']));
+            const validFeeIds = new Set(validFees.map((fee) => fee.id!));
 
+            /**
+             * If the user deletes an extra fee while the Subscriber dialog is open,
+             * remove it from the current selected chips.
+             */
+            this.selectedExtraFeeIds = this.selectedExtraFeeIds.filter((id) => validFeeIds.has(id));
+
+            const feeNameById = new Map(validFees.map((fee) => [fee.id!, fee.name ?? '—']));
+
+            /**
+             * Keep expanded subscriber rows synchronized with latest fee names.
+             * Also removes deleted fees from already-loaded subscribers.
+             */
             this.subscribers = this.subscribers.map((subscriber) => ({
                 ...subscriber,
                 extraFees: (subscriber.extraFees ?? [])
-                    .filter((f) => f.extraFeeId != null && feeNameById.has(f.extraFeeId))
-                    .map((f) => ({
-                        ...f,
-                        extraFeeName: feeNameById.get(f.extraFeeId!) ?? '—'
+                    .filter((fee) => fee.extraFeeId != null && feeNameById.has(fee.extraFeeId))
+                    .map((fee) => ({
+                        ...fee,
+                        extraFeeName: feeNameById.get(fee.extraFeeId!) ?? '—'
                     }))
             }));
         });
@@ -467,6 +487,7 @@ export class SubscribersComponent implements OnInit {
         this.lastCity = this.selectedSubscriber.address!.city ?? '';
 
         this.selectedExtraFeeIds = [];
+        this.isExtraFeesManagerOpen = false;
     }
 
     editSubscriber(subscriber: Subscriber) {
@@ -477,7 +498,9 @@ export class SubscribersComponent implements OnInit {
             address: clone.address ? { ...clone.address } : null
         };
 
-        this.selectedExtraFeeIds = (subscriber.extraFees ?? []).map((x) => x.extraFeeId!);
+        this.selectedExtraFeeIds = (subscriber.extraFees ?? []).map((x) => x.extraFeeId!).filter((id) => id != null);
+
+        this.isExtraFeesManagerOpen = false;
 
         this.ensureAddressInitialized();
 
@@ -514,6 +537,7 @@ export class SubscribersComponent implements OnInit {
         };
 
         this.selectedExtraFeeIds = (subscriber.extraFees ?? []).map((x) => x.extraFeeId!).filter((id) => id != null);
+        this.isExtraFeesManagerOpen = false;
 
         this.ensureAddressInitialized();
 
@@ -540,6 +564,7 @@ export class SubscribersComponent implements OnInit {
     hideDialog() {
         this.isSubscriberDialogOpen = false;
         this.submitted = false;
+        this.isExtraFeesManagerOpen = false;
     }
 
     findIndexById(id: number): number {
@@ -1176,6 +1201,22 @@ export class SubscribersComponent implements OnInit {
 
     private key(id: number, action: SubscriberAction) {
         return `${id}:${action}`;
+    }
+
+    toggleExtraFeesManager(): void {
+        this.isExtraFeesManagerOpen = !this.isExtraFeesManagerOpen;
+    }
+
+    onExtraFeeCreated(fee: ExtraFee): void {
+        if (!fee?.id) return;
+
+        if (!this.selectedExtraFeeIds.includes(fee.id)) {
+            this.selectedExtraFeeIds = [...this.selectedExtraFeeIds, fee.id];
+        }
+    }
+
+    onExtraFeeDeleted(id: number): void {
+        this.selectedExtraFeeIds = this.selectedExtraFeeIds.filter((feeId) => feeId !== id);
     }
 
     protected readonly BillingModel = BillingModel;

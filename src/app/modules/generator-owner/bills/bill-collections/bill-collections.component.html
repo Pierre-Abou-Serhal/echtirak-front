@@ -35,7 +35,10 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Bill Collector <span class="text-red-500">*</span>
+                        Bill Collector
+                        @if (areOtherFiltersRequired) {
+                            <span class="text-red-500">*</span>
+                        }
                     </label>
 
                     <p-select
@@ -52,7 +55,10 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Collection Status <span class="text-red-500">*</span>
+                        Collection Status
+                        @if (areOtherFiltersRequired) {
+                            <span class="text-red-500">*</span>
+                        }
                     </label>
 
                     <p-select
@@ -69,7 +75,10 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Record Status <span class="text-red-500">*</span>
+                        Record Status
+                        @if (areOtherFiltersRequired) {
+                            <span class="text-red-500">*</span>
+                        }
                     </label>
 
                     <p-select
@@ -86,7 +95,10 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Created From <span class="text-red-500">*</span>
+                        Created From
+                        @if (areOtherFiltersRequired) {
+                            <span class="text-red-500">*</span>
+                        }
                     </label>
 
                     <p-datepicker
@@ -103,7 +115,10 @@
 
                 <div class="flex flex-col">
                     <label class="block text-sm font-semibold mb-2">
-                        Created To <span class="text-red-500">*</span>
+                        Created To
+                        @if (areOtherFiltersRequired) {
+                            <span class="text-red-500">*</span>
+                        }
                     </label>
 
                     <p-datepicker
@@ -183,107 +198,107 @@
         </div>
 
         <!-- Bill Collector Stats -->
-        <div class="rounded-2xl border border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 p-4">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-                <div>
-                    <div class="text-lg font-semibold">
-                        Bill Collector Stats
-                    </div>
+<!--        <div class="rounded-2xl border border-surface-200 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 p-4">-->
+<!--            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">-->
+<!--                <div>-->
+<!--                    <div class="text-lg font-semibold">-->
+<!--                        Bill Collector Stats-->
+<!--                    </div>-->
 
-                    <div class="text-sm text-color-secondary">
-                        Collection amount, approval status, and amount share by bill collector.
-                    </div>
-                </div>
-            </div>
+<!--                    <div class="text-sm text-color-secondary">-->
+<!--                        Collection amount, approval status, and amount share by bill collector.-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
 
-            <p-table
-                [value]="billCollectorGroups"
-                responsiveLayout="scroll"
-                rowHover
-                stripedRows
-                showGridlines
-            >
-                <ng-template #header>
-                    <tr>
-                        <th class="whitespace-nowrap">Bill Collector</th>
-                        <th class="whitespace-nowrap">Total</th>
-                        <th class="whitespace-nowrap">Pending Approval</th>
-                        <th class="whitespace-nowrap">Approved</th>
-                        <th class="whitespace-nowrap">Rejected</th>
-                        <th class="whitespace-nowrap">Share</th>
-                    </tr>
-                </ng-template>
+<!--            <p-table-->
+<!--                [value]="billCollectorGroups"-->
+<!--                responsiveLayout="scroll"-->
+<!--                rowHover-->
+<!--                stripedRows-->
+<!--                showGridlines-->
+<!--            >-->
+<!--                <ng-template #header>-->
+<!--                    <tr>-->
+<!--                        <th class="whitespace-nowrap">Bill Collector</th>-->
+<!--                        <th class="whitespace-nowrap">Total</th>-->
+<!--                        <th class="whitespace-nowrap">Pending Approval</th>-->
+<!--                        <th class="whitespace-nowrap">Approved</th>-->
+<!--                        <th class="whitespace-nowrap">Rejected</th>-->
+<!--                        <th class="whitespace-nowrap">Share</th>-->
+<!--                    </tr>-->
+<!--                </ng-template>-->
 
-                <ng-template #body let-group>
-                    <tr>
-                        <td>
-                            <div class="font-semibold whitespace-nowrap">
-                                {{ group.billCollectorName || '—' }}
-                            </div>
+<!--                <ng-template #body let-group>-->
+<!--                    <tr>-->
+<!--                        <td>-->
+<!--                            <div class="font-semibold whitespace-nowrap">-->
+<!--                                {{ group.billCollectorName || '—' }}-->
+<!--                            </div>-->
 
-                            <div class="text-xs text-color-secondary whitespace-nowrap">
-                                ID: {{ group.billCollectorId }}
-                            </div>
-                        </td>
+<!--                            <div class="text-xs text-color-secondary whitespace-nowrap">-->
+<!--                                ID: {{ group.billCollectorId }}-->
+<!--                            </div>-->
+<!--                        </td>-->
 
-                        <td>
-                            <div class="font-semibold">
-                                {{ group.bcStats.collectionsCount }}
-                            </div>
+<!--                        <td>-->
+<!--                            <div class="font-semibold">-->
+<!--                                {{ group.bcStats.collectionsCount }}-->
+<!--                            </div>-->
 
-                            <div class="text-xs text-color-secondary whitespace-nowrap">
-                                {{ group.bcStats.collectionsAmount | currency:'USD':'symbol':'1.0-4' }}
-                            </div>
-                        </td>
+<!--                            <div class="text-xs text-color-secondary whitespace-nowrap">-->
+<!--                                {{ group.bcStats.collectionsAmount | currency:'USD':'symbol':'1.0-4' }}-->
+<!--                            </div>-->
+<!--                        </td>-->
 
-                        <td>
-                            <div class="font-semibold text-blue-500">
-                                {{ group.bcStats.pendingApprovalCount }}
-                            </div>
+<!--                        <td>-->
+<!--                            <div class="font-semibold text-blue-500">-->
+<!--                                {{ group.bcStats.pendingApprovalCount }}-->
+<!--                            </div>-->
 
-                            <div class="text-xs text-blue-500 whitespace-nowrap">
-                                {{ group.bcStats.pendingApprovalAmount | currency:'USD':'symbol':'1.0-4' }}
-                            </div>
-                        </td>
+<!--                            <div class="text-xs text-blue-500 whitespace-nowrap">-->
+<!--                                {{ group.bcStats.pendingApprovalAmount | currency:'USD':'symbol':'1.0-4' }}-->
+<!--                            </div>-->
+<!--                        </td>-->
 
-                        <td>
-                            <div class="font-semibold text-green-500">
-                                {{ group.bcStats.approvedCount }}
-                            </div>
+<!--                        <td>-->
+<!--                            <div class="font-semibold text-green-500">-->
+<!--                                {{ group.bcStats.approvedCount }}-->
+<!--                            </div>-->
 
-                            <div class="text-xs text-green-500 whitespace-nowrap">
-                                {{ group.bcStats.approvedAmount | currency:'USD':'symbol':'1.0-4' }}
-                            </div>
-                        </td>
+<!--                            <div class="text-xs text-green-500 whitespace-nowrap">-->
+<!--                                {{ group.bcStats.approvedAmount | currency:'USD':'symbol':'1.0-4' }}-->
+<!--                            </div>-->
+<!--                        </td>-->
 
-                        <td>
-                            <div class="font-semibold text-red-500">
-                                {{ group.bcStats.rejectedCount }}
-                            </div>
+<!--                        <td>-->
+<!--                            <div class="font-semibold text-red-500">-->
+<!--                                {{ group.bcStats.rejectedCount }}-->
+<!--                            </div>-->
 
-                            <div class="text-xs text-red-500 whitespace-nowrap">
-                                {{ group.bcStats.rejectedAmount | currency:'USD':'symbol':'1.0-4' }}
-                            </div>
-                        </td>
+<!--                            <div class="text-xs text-red-500 whitespace-nowrap">-->
+<!--                                {{ group.bcStats.rejectedAmount | currency:'USD':'symbol':'1.0-4' }}-->
+<!--                            </div>-->
+<!--                        </td>-->
 
-                        <td>
-                            <p-tag
-                                severity="info"
-                                [value]="(group.bcStats.amountSharePct | number:'1.0-2') + '%'"
-                            ></p-tag>
-                        </td>
-                    </tr>
-                </ng-template>
+<!--                        <td>-->
+<!--                            <p-tag-->
+<!--                                severity="info"-->
+<!--                                [value]="(group.bcStats.amountSharePct | number:'1.0-2') + '%'"-->
+<!--                            ></p-tag>-->
+<!--                        </td>-->
+<!--                    </tr>-->
+<!--                </ng-template>-->
 
-                <ng-template #emptymessage>
-                    <tr>
-                        <td colspan="6">
-                            No bill collector statistics found.
-                        </td>
-                    </tr>
-                </ng-template>
-            </p-table>
-        </div>
+<!--                <ng-template #emptymessage>-->
+<!--                    <tr>-->
+<!--                        <td colspan="6">-->
+<!--                            No bill collector statistics found.-->
+<!--                        </td>-->
+<!--                    </tr>-->
+<!--                </ng-template>-->
+<!--            </p-table>-->
+<!--        </div>-->
 
         <!-- Bill Collections Table -->
         <p-table
