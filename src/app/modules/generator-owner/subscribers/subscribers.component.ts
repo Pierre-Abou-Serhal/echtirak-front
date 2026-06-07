@@ -180,6 +180,32 @@ export class SubscribersComponent implements OnInit {
     selectedExtraFeeIds: number[] = [];
     isExtraFeesManagerOpen = false;
 
+    // NEW
+    qrZipMode: 'GENERATOR' | 'ADDRESS' = 'GENERATOR';
+
+    qrZipModeOptions: SelectOptionStrValue[] = [
+        { label: 'Generator', value: 'GENERATOR' },
+        { label: 'Address', value: 'ADDRESS' }
+    ];
+
+    qrZipAddress: {
+        city?: string;
+        street?: string;
+        building?: string;
+    } = {
+        city: '',
+        street: '',
+        building: ''
+    };
+
+    qrCitySuggestions: string[] = [];
+    qrStreetSuggestions: string[] = [];
+    qrBuildingSuggestions: string[] = [];
+
+    qrCityLoading = false;
+    qrStreetLoading = false;
+    qrBuildingLoading = false;
+
     ngOnInit(): void {
         // Fetch generators drop down items
         this.generatorOwnerService.getGenerators().subscribe({
@@ -211,10 +237,12 @@ export class SubscribersComponent implements OnInit {
         // Fetch subscriber statuses drop down items
         this.generatorOwnerService.getLookup({ domain: LookupDomain.SUBSCRIBER_STATUS }).subscribe({
             next: (response: GetLookupResponse) => {
-                this.subscriberStatuses = response.items.map((lookup: Lookup) => ({
-                    value: lookup.code,
-                    label: lookup.description
-                }));
+                this.subscriberStatuses = response.items
+                    .filter((lookup: Lookup) => lookup.code !== SubscriberStatus.MARKED_FOR_DEACTIVATION)
+                    .map((lookup: Lookup) => ({
+                        value: lookup.code,
+                        label: lookup.description
+                    }));
             },
             error: (err) => {
                 console.log(err);
@@ -785,18 +813,28 @@ export class SubscribersComponent implements OnInit {
     }
 
     downloadSubscribersQrCodeZip() {
-        this.isDownloadingSubscribersQrCodeZip = true;
-
-        if (!this.selectedGeneratorForQrZip) {
-            this.isDownloadingSubscribersQrCodeZip = false;
+        if (!this.isQrZipDownloadValid()) {
             return;
         }
 
-        this.generatorOwnerService.getSubscribersQrCodeZip({ generatorId: this.selectedGeneratorForQrZip }).subscribe({
+        this.isDownloadingSubscribersQrCodeZip = true;
+
+        const request =
+            this.qrZipMode === 'GENERATOR'
+                ? {
+                      generatorId: this.selectedGeneratorForQrZip
+                  }
+                : {
+                      addressCity: this.qrZipAddress.city?.trim() || undefined,
+                      addressStreet: this.qrZipAddress.street?.trim() || undefined,
+                      addressBuilding: this.qrZipAddress.building?.trim() || undefined
+                  };
+
+        this.generatorOwnerService.getSubscribersQrCodeZip(request).subscribe({
             next: (response) => {
                 const blob = response.body!;
                 const contentDisposition = response.headers.get('content-disposition') ?? '';
-                let fileName = this.getFilenameFromContentDisposition(contentDisposition, 'subscribers-qr-codes.7z');
+                const fileName = this.getFilenameFromContentDisposition(contentDisposition, 'subscribers-qr-codes.7z');
 
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -873,6 +911,19 @@ export class SubscribersComponent implements OnInit {
     }
 
     openGeneratorsModal() {
+        this.qrZipMode = 'GENERATOR';
+        this.selectedGeneratorForQrZip = undefined;
+
+        this.qrZipAddress = {
+            city: '',
+            street: '',
+            building: ''
+        };
+
+        this.qrCitySuggestions = [];
+        this.qrStreetSuggestions = [];
+        this.qrBuildingSuggestions = [];
+
         this.displayGeneratorsForQrCodesDownload = true;
     }
 
@@ -1217,6 +1268,163 @@ export class SubscribersComponent implements OnInit {
 
     onExtraFeeDeleted(id: number): void {
         this.selectedExtraFeeIds = this.selectedExtraFeeIds.filter((feeId) => feeId !== id);
+    }
+
+    onQrZipModeChanged(): void {
+        this.selectedGeneratorForQrZip = undefined;
+
+        this.qrZipAddress = {
+            city: '',
+            street: '',
+            building: ''
+        };
+
+        this.qrCitySuggestions = [];
+        this.qrStreetSuggestions = [];
+        this.qrBuildingSuggestions = [];
+    }
+
+    isQrZipAddressMode(): boolean {
+        return this.qrZipMode === 'ADDRESS';
+    }
+
+    isQrZipGeneratorMode(): boolean {
+        return this.qrZipMode === 'GENERATOR';
+    }
+
+    isQrZipDownloadValid(): boolean {
+        if (this.isQrZipGeneratorMode()) {
+            if (!this.selectedGeneratorForQrZip) {
+                this.notificationService.warn('Warning', 'Please select a generator in order to proceed.');
+            }
+            return !!this.selectedGeneratorForQrZip;
+        }
+
+        const city = this.qrZipAddress.city?.trim();
+        const street = this.qrZipAddress.street?.trim();
+        const building = this.qrZipAddress.building?.trim();
+
+        if (!city) {
+            this.notificationService.warn('Warning', 'You can download by city only, city + street, or city + street + building.');
+            return false;
+        }
+
+        // building without street should not be allowed
+        if (building && !street) {
+            this.notificationService.warn('Warning', 'You can download by city only, city + street, or city + street + building.');
+            return false;
+        }
+
+        return true;
+    }
+
+    onQrCityComplete(event: any) {
+        const q = (event.query || '').trim();
+
+        if (this.citiesCache.length) {
+            this.qrCitySuggestions = this.filterValues(this.citiesCache, q);
+            return;
+        }
+
+        this.qrCityLoading = true;
+        this.qrCitySuggestions = [];
+
+        this.generatorOwnerService
+            .getCities({ country: this.COUNTRY })
+            .pipe(finalize(() => (this.qrCityLoading = false)))
+            .subscribe({
+                next: (res) => {
+                    this.citiesCache = res.values ?? [];
+                    this.qrCitySuggestions = this.filterValues(this.citiesCache, q);
+                },
+                error: () => {
+                    this.citiesCache = [];
+                    this.qrCitySuggestions = [];
+                }
+            });
+    }
+
+    onQrStreetComplete(event: any) {
+        const q = (event.query || '').trim();
+        const city = (this.qrZipAddress.city || '').trim();
+
+        if (!city) {
+            this.qrStreetSuggestions = [];
+            return;
+        }
+
+        const cached = this.streetsCacheByCity.get(city);
+        if (cached?.length) {
+            this.qrStreetSuggestions = this.filterValues(cached, q);
+            return;
+        }
+
+        this.qrStreetLoading = true;
+        this.qrStreetSuggestions = [];
+
+        this.generatorOwnerService
+            .getStreets({ country: this.COUNTRY, city })
+            .pipe(finalize(() => (this.qrStreetLoading = false)))
+            .subscribe({
+                next: (res) => {
+                    const values = res.values ?? [];
+                    this.streetsCacheByCity.set(city, values);
+                    this.qrStreetSuggestions = this.filterValues(values, q);
+                },
+                error: () => {
+                    this.streetsCacheByCity.set(city, []);
+                    this.qrStreetSuggestions = [];
+                }
+            });
+    }
+
+    onQrBuildingComplete(event: any) {
+        const q = (event.query || '').trim();
+        const city = (this.qrZipAddress.city || '').trim();
+        const street = (this.qrZipAddress.street || '').trim();
+
+        if (!city || !street) {
+            this.qrBuildingSuggestions = [];
+            return;
+        }
+
+        const key = `${city}|${street}`;
+        const cached = this.buildingsCacheByKey.get(key);
+
+        if (cached?.length) {
+            this.qrBuildingSuggestions = this.filterValues(cached, q);
+            return;
+        }
+
+        this.qrBuildingLoading = true;
+        this.qrBuildingSuggestions = [];
+
+        this.generatorOwnerService
+            .getBuildings({ country: this.COUNTRY, city, street })
+            .pipe(finalize(() => (this.qrBuildingLoading = false)))
+            .subscribe({
+                next: (res) => {
+                    const values = res.values ?? [];
+                    this.buildingsCacheByKey.set(key, values);
+                    this.qrBuildingSuggestions = this.filterValues(values, q);
+                },
+                error: () => {
+                    this.buildingsCacheByKey.set(key, []);
+                    this.qrBuildingSuggestions = [];
+                }
+            });
+    }
+
+    onQrCityChanged(): void {
+        this.qrZipAddress.street = '';
+        this.qrZipAddress.building = '';
+        this.qrStreetSuggestions = [];
+        this.qrBuildingSuggestions = [];
+    }
+
+    onQrStreetChanged(): void {
+        this.qrZipAddress.building = '';
+        this.qrBuildingSuggestions = [];
     }
 
     protected readonly BillingModel = BillingModel;

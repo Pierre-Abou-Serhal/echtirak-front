@@ -7,7 +7,7 @@ import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { WalletService } from '@/core/services/wallet.service';
 import { NotificationService } from '@/core/services/notification.service';
 
-import { SmsTemplateRole } from '@/core/enums/enum';
+import { SmsTemplateRole, SubscriberStatus } from '@/core/enums/enum';
 import { SelectOptionNumValue, SmsCampaignCreateSubscriber } from '@/core/dtos/dto';
 
 import { CreateSmsCampaignResponse, GetSmsTemplatesResponse, WalletForecastResponse, GetSubscribersResponse, GetGeneratorsResponse } from '@/core/services/api/response';
@@ -197,7 +197,8 @@ export class SmsCampaignCreateSubscribersComponent implements OnInit {
                 pageSize: this.apiPageSize,
                 smsEnabled: true,
                 keyword: this.keyword || undefined,
-                generatorId: generatorId || undefined
+                generatorId: generatorId || undefined,
+                statusCode: SubscriberStatus.ACTIVE
             })
             .pipe(
                 tap((res: GetSubscribersResponse) => {
@@ -466,6 +467,19 @@ export class SmsCampaignCreateSubscribersComponent implements OnInit {
     private syncSelectedSubscribers(): void {
         // Only keep selections that exist in the currently loaded array (current pages loaded in memory)
         this.selectedSubscribers = this.subscribers.filter((s) => this.selectedSubscriberIds.has(s.id));
+    }
+
+    getSubscriberSeverity(statusCode: string) {
+        switch (statusCode) {
+            case SubscriberStatus.INACTIVE:
+                return 'danger';
+
+            case SubscriberStatus.ACTIVE:
+                return 'success';
+
+            default:
+                return null;
+        }
     }
 
     protected readonly formatSubscriberAddress = formatSubscriberAddress;

@@ -347,6 +347,14 @@ export class BillsPreviewComponent {
         return (bill.extraFees ?? []).reduce((sum, f) => sum + (Number(f.amountLBP) || 0), 0);
     }
 
+    getBillTotalAmount(bill: BillRow): number {
+        const billAmount = Number(bill.amount) || 0;
+
+        const extraFeesTotal = bill.currencyCode === 'LBP' ? this.getExtraFeesTotalLbp(bill) : this.getExtraFeesTotalUsd(bill);
+
+        return billAmount + extraFeesTotal;
+    }
+
     private hasMissingExtraFeeAmounts(bill: BillRow): boolean {
         const fees = bill.extraFees ?? [];
         if (fees.length === 0) return false;

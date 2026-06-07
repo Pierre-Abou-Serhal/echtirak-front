@@ -4,7 +4,7 @@ import { NotFoundComponent } from '@/static/not-found/not-found.component';
 import { anonymousOnlyGuard, roleMatchGuard } from '@/core/guards/guard';
 import { UserRole } from '@/core/enums/enum';
 import { AccessDeniedComponent } from '@/static/access-denied/access-denied.component';
-import { GetBillsByCodeComponent } from '@/static/get-bills-by-code/get-bills-by-code.component/get-bills-by-code.component';
+import { GetBillsByCodeComponent } from '@/static/get-bills-by-code/get-bills-by-code.component';
 import { LandingComponent } from '@/static/landing/landing.component';
 
 export const appRoutes: Routes = [

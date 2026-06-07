@@ -387,7 +387,7 @@ export class BillsListComponent implements OnInit {
             statusCode: undefined,
             keyword: undefined,
             subscriberPhoneNumber: undefined,
-            billReference: undefined,
+            billReference: undefined
         };
 
         this.applyFilters();
@@ -643,6 +643,14 @@ export class BillsListComponent implements OnInit {
 
     getExtraFeesTotalLbp(bill: BillRow): number {
         return (bill.extraFees ?? []).reduce((sum, f) => sum + (Number(f.amountLBP) || 0), 0);
+    }
+
+    getBillTotalAmount(bill: BillRow): number {
+        const billAmount = Number(bill.amount) || 0;
+
+        const extraFeesTotal = bill.currencyCode === 'LBP' ? this.getExtraFeesTotalLbp(bill) : this.getExtraFeesTotalUsd(bill);
+
+        return billAmount + extraFeesTotal;
     }
 
     // Reports

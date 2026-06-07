@@ -339,6 +339,14 @@ export class BulkBillReportModalComponent {
         }, 0);
     }
 
+    getBillTotalAmount(bill: BillRow): number {
+        const billAmount = Number(bill.amount) || 0;
+
+        const extraFeesTotal = bill.currencyCode === 'LBP' ? this.getExtraFeesTotalLbp(bill) : this.getExtraFeesTotalUsd(bill);
+
+        return billAmount + extraFeesTotal;
+    }
+
     private toNumber(value: unknown): number {
         const n = Number(String(value ?? 0).replace(/,/g, ''));
 

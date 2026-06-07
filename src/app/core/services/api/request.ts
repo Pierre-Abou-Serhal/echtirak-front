@@ -27,6 +27,7 @@ export interface GetSubscribersQueryParams {
     modifiedBy?: string;
     keyword?: string;
     smsEnabled?: boolean;
+    statusCode?: string;
 }
 
 export interface UpsertSubscriberRequest {
@@ -73,7 +74,10 @@ export interface GetSubscribersQrCodePdfRequest {
 }
 
 export interface GetSubscribersQrCodeZipRequest {
-    generatorId: number;
+    generatorId?: number;
+    addressCity?: string;
+    addressStreet?: string;
+    addressBuilding?: string;
 }
 
 export interface GenerateBillsForSelectedSubscribersRequest {
@@ -459,4 +463,28 @@ export interface GetMonitoringSessionActivityQueryParams {
 
 export interface ForceLogoutMonitoringSessionRequest {
     reason: string;
+}
+
+// Dashboard V2
+export interface DashboardV2FilterRequest {
+    dateFrom?: string;
+    dateTo?: string;
+    dateMode?: string;
+    generatorId?: number;
+    collectorUserId?: number;
+    billingModel?: string;
+    billStatus?: string;
+    collectionStatus?: string;
+    city?: string;
+    street?: string;
+    currencyCode?: string;
+
+    // For Recent Activity
+    feedSize?: number;
+
+    // For Top Debtors
+    pageNumber?: number;
+    pageSize?: number;
+    minOutstanding?: number;
+    risk?: string;
 }

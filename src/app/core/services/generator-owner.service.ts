@@ -39,7 +39,8 @@ import {
     ApproveOrRejectBillCollectionRequest,
     PayBillsInBulkRequest,
     GetBillsByPeriodStatusQueryParam,
-    GetBulkBillReportRequest
+    GetBulkBillReportRequest,
+    DashboardV2FilterRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -85,7 +86,20 @@ import {
     ApproveOrRejectBillCollectionResponse,
     PayBillsInBulkResponse,
     GetBillsByPeriodStatusResponse,
-    GoGetBillCollectionsResponse
+    GoGetBillCollectionsResponse,
+    DashboardV2Response,
+    DashboardV2BillsResponse,
+    DashboardV2AccountingResponse,
+    DashboardV2CollectionResponse,
+    DashboardV2BillCollectorResponse,
+    DashboardV2ConsumptionResponse,
+    DashboardV2AddressResponse,
+    DashboardV2GeneratorResponse,
+    DashboardV2RecentActivityResponse,
+    DashboardV2TopDebtorsResponse,
+    DashboardV2AlertsResponse,
+    DashboardV2OverviewResponse,
+    DashboardV2SubscribersResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -368,5 +382,58 @@ export class GeneratorOwnerService {
 
     public getBulkBillReport(request: GetBulkBillReportRequest) {
         return this.apiService.postBlob('/GeneratorOwner/Bills/Report/Bulk', request);
+    }
+
+    // Dashboard V2
+    public dashboardV2(request: DashboardV2FilterRequest): Observable<DashboardV2Response> {
+        return this.apiService.post<DashboardV2Response>(`/go/dashboard`, request);
+    }
+
+    public dashboardV2Overview(request: DashboardV2FilterRequest): Observable<DashboardV2OverviewResponse> {
+        return this.apiService.post<DashboardV2OverviewResponse>(`/go/dashboard/overview`, request);
+    }
+
+    public dashboardV2Subscribers(request: DashboardV2FilterRequest): Observable<DashboardV2SubscribersResponse> {
+        return this.apiService.post<DashboardV2SubscribersResponse>(`/go/dashboard/subscribers`, request);
+    }
+
+    public dashboardV2Bills(request: DashboardV2FilterRequest): Observable<DashboardV2BillsResponse> {
+        return this.apiService.post<DashboardV2BillsResponse>(`/go/dashboard/bills`, request);
+    }
+
+    public dashboardV2Accounting(request: DashboardV2FilterRequest): Observable<DashboardV2AccountingResponse> {
+        return this.apiService.post<DashboardV2AccountingResponse>(`/go/dashboard/accounting`, request);
+    }
+
+    public dashboardV2Collections(request: DashboardV2FilterRequest): Observable<DashboardV2CollectionResponse> {
+        return this.apiService.post<DashboardV2CollectionResponse>(`/go/dashboard/collections`, request);
+    }
+
+    public dashboardV2BillCollectors(request: DashboardV2FilterRequest): Observable<DashboardV2BillCollectorResponse[]> {
+        return this.apiService.post<DashboardV2BillCollectorResponse[]>(`/go/dashboard/bill-collectors`, request);
+    }
+
+    public dashboardV2Consumption(request: DashboardV2FilterRequest): Observable<DashboardV2ConsumptionResponse> {
+        return this.apiService.post<DashboardV2ConsumptionResponse>(`/go/dashboard/consumption`, request);
+    }
+
+    public dashboardV2AddressBreakdown(request: DashboardV2FilterRequest): Observable<DashboardV2AddressResponse[]> {
+        return this.apiService.post<DashboardV2AddressResponse[]>(`/go/dashboard/address-breakdown`, request);
+    }
+
+    public dashboardV2Generators(request: DashboardV2FilterRequest): Observable<DashboardV2GeneratorResponse[]> {
+        return this.apiService.post<DashboardV2GeneratorResponse[]>(`/go/dashboard/generators`, request);
+    }
+
+    public dashboardV2RecentActivity(request: DashboardV2FilterRequest): Observable<DashboardV2RecentActivityResponse> {
+        return this.apiService.post<DashboardV2RecentActivityResponse>(`/go/dashboard/recent-activity`, request);
+    }
+
+    public dashboardV2TopDebtors(request: DashboardV2FilterRequest): Observable<DashboardV2TopDebtorsResponse> {
+        return this.apiService.post<DashboardV2TopDebtorsResponse>(`/go/dashboard/top-debtors`, request);
+    }
+
+    public dashboardV2Alerts(request: DashboardV2FilterRequest): Observable<DashboardV2AlertsResponse[]> {
+        return this.apiService.post<DashboardV2AlertsResponse[]>(`/go/dashboard/alerts`, request);
     }
 }

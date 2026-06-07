@@ -218,7 +218,10 @@
             <td>{{ subscriber.firstName }} {{ subscriber.lastName }}</td>
             <td>{{ subscriber.generatorCode }}</td>
             <td>
-                <p-tag [value]="subscriber.statusCode"></p-tag>
+                <p-tag
+                    [value]="subscriber.statusCode"
+                    [severity]="getSubscriberSeverity(subscriber.statusCode)"
+                ></p-tag>
             </td>
         </tr>
     </ng-template>

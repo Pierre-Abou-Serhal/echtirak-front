@@ -314,7 +314,7 @@
 
                 <th class="no-wrap-text" pSortableColumn="amount">
                     <div class="flex justify-between items-center gap-2">
-                        Amount
+                        Grand Total
                         <p-sortIcon field="amount" />
                     </div>
                 </th>
@@ -406,7 +406,7 @@
                     {{ bill.dueDate | date:'yyyy-MM-dd' }}
                 </td>
                 <td>
-                    {{ bill.amount | number:'1.0-4' }} {{ bill.currencyCode }}
+                    {{ getBillTotalAmount(bill) | number:'1.0-4' }} {{ bill.currencyCode }}
                 </td>
                 <td>
                     <p-tag

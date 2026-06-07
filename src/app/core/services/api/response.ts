@@ -733,3 +733,218 @@ export interface ForceLogoutMonitoringSessionResponse {
 export interface GetMonitoringUsersResponse {
     users: User[];
 }
+
+// Dashboard V2
+export interface DashboardV2Response {
+    overview: DashboardV2Overview;
+    subscribers: DashboardV2Subscribers;
+    bills: DashboardV2Bills;
+    accounting: DashboardV2Accounting;
+    collections: DashboardV2Collections;
+    consumption: DashboardV2Consumption;
+    recentActivity: DashboardV2RecentActivity;
+    topDebtors: DashboardV2TopDebtor[];
+    billCollectorBreakdown: DashboardV2BillCollectorBreakdown[];
+    alerts: DashboardV2Alert[];
+}
+
+export interface DashboardV2Overview {
+    totalSubscribers: number;
+    activeSubscribers: number;
+    inactiveSubscribers: number;
+    newSubscribersInRange: number;
+    totalGenerators: number;
+    totalBills: number;
+    paidBills: number;
+    pendingBills: number;
+    overdueBills: number;
+    invoicedAmount: number;
+    collectedAmount: number;
+    outstandingAmount: number;
+    collectionRate: number;
+    averageBillAmount: number;
+}
+
+export interface DashboardV2Subscribers {
+    active: number;
+    inactive: number;
+    smsEnabled: number;
+    smsDisabled: number;
+    fixedBillingCount: number;
+    meteredBillingCount: number;
+}
+
+export interface DashboardV2Bills {
+    cancelledBills: number;
+    invoicedAmount: number;
+    paidAmount: number;
+    pendingAmount: number;
+    overdueAmount: number;
+    totalExtraFeesAmount: number;
+    averageExtraFeesAmount: number;
+    averageBillAmount: number;
+    fixed: DashboardV2BillTypeSummary;
+    metered: DashboardV2BillTypeSummary;
+}
+
+export interface DashboardV2BillTypeSummary {
+    count: number;
+    amount: number;
+}
+
+export interface DashboardV2Accounting {
+    invoicedAmount: number;
+    collectedAmount: number;
+    outstandingAmount: number;
+    overdueAmount: number;
+    collectionRate: number;
+    collectedByGoAmount: number;
+    collectedViaBcAmount: number;
+    pendingWithCollectorsAmount: number;
+}
+
+export interface DashboardV2Collections {
+    pendingApprovalsCount: number;
+    approvedCount: number;
+    rejectedCount: number;
+    collectedByGoCount: number;
+    collectedViaBcCount: number;
+    goDirectPct: number;
+    viaBcPct: number;
+}
+
+export interface DashboardV2Consumption {
+    totalKwh: number;
+    averageKwhPerSubscriber: number;
+    totalFixedKwh: number;
+    totalMeteredKwh: number;
+    combinedKwh: number;
+    estimatedConsumptionCost: number;
+}
+
+export interface DashboardV2RecentActivity {
+    counters: DashboardV2RecentActivityCounters;
+    feed: DashboardV2RecentActivityFeedItem[];
+}
+
+export interface DashboardV2RecentActivityCounters {
+    newSubscribers: number;
+    billsGenerated: number;
+    billsPaid: number;
+    collectionsApproved: number;
+    collectionsRejected: number;
+    readingsSubmitted: number;
+    smsSent: number;
+}
+
+export interface DashboardV2RecentActivityFeedItem {
+    type: string;
+    refId: number;
+    label: string;
+    occurredAt: string;
+}
+
+export interface DashboardV2TopDebtor {
+    subscriberId: number;
+    name: string;
+    phone: string;
+    outstandingAmount: number;
+    pendingBillsCount: number;
+    overdueBillsCount: number;
+    daysOverdue: number;
+    address: string;
+    generator: string;
+    totalCount: number;
+}
+
+export interface DashboardV2BillCollectorBreakdown {
+    collectorUserId: number;
+    collectorName: string;
+    pendingApprovalsCount: number;
+    pendingApprovalAmount: number;
+    approvedCount: number;
+    rejectedCount: number;
+    averageCollectionAmount: number;
+}
+
+export interface DashboardV2Alert {
+    code: string;
+    severity: string;
+    message: string;
+    metric: number;
+}
+
+export interface DashboardV2AreaMetrics {
+    subscribersCount: number;
+    activeSubscribers: number;
+    consumption: number;
+    billsCount: number;
+    paidBills: number;
+    pendingBills: number;
+    overdueBills: number;
+    invoicedAmount: number;
+    collectedAmount: number;
+    outstandingAmount: number;
+    overdueAmount: number;
+    collectionRate: number;
+}
+
+export interface DashboardV2CitySummary extends DashboardV2AreaMetrics {
+    city: string;
+    streets: DashboardV2StreetSummary[];
+}
+
+export interface DashboardV2StreetSummary extends DashboardV2AreaMetrics {
+    street: string;
+}
+
+export interface DashboardV2Generator {
+    subscribersCount: number;
+    activeSubscribers: number;
+    consumption: number;
+    billsCount: number;
+    paidBills: number;
+    pendingBills: number;
+    overdueBills: number;
+    invoicedAmount: number;
+    collectedAmount: number;
+    outstandingAmount: number;
+    overdueAmount: number;
+    collectionRate: number;
+    generatorId: number;
+    generatorCode: string;
+    generatorName: string;
+    averageBillAmount: number;
+}
+
+export interface DashboardV2OverviewResponse extends DashboardV2Overview {}
+
+export interface DashboardV2SubscribersResponse extends DashboardV2Subscribers {}
+
+export interface DashboardV2BillsResponse extends DashboardV2Bills {}
+
+export interface DashboardV2AccountingResponse extends DashboardV2Accounting {}
+
+export interface DashboardV2CollectionResponse extends DashboardV2Collections {}
+
+export interface DashboardV2BillCollectorResponse extends DashboardV2BillCollectorBreakdown {}
+
+export interface DashboardV2ConsumptionResponse extends DashboardV2Consumption {}
+
+export interface DashboardV2AddressResponse extends DashboardV2CitySummary {}
+
+export interface DashboardV2GeneratorResponse extends DashboardV2Generator {}
+
+export interface DashboardV2RecentActivityResponse extends DashboardV2RecentActivity {}
+
+export interface DashboardV2TopDebtorsResponse {
+    items: DashboardV2TopDebtor[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface DashboardV2AlertsResponse extends DashboardV2Alert {}

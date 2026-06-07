@@ -78,7 +78,6 @@ export class BillCollectionsComponent implements OnInit {
     totalRecords = 0;
 
     billReference: number | null = null;
-    selectedCollectionStatus: string | null = null;
     selectedRecordStatus: string | null = null;
     selectedBillCollectorId: number | null = null;
 
@@ -108,24 +107,6 @@ export class BillCollectionsComponent implements OnInit {
     }
 
     private loadLookups(): void {
-        this.generatorOwnerService.getLookup({ domain: LookupDomain.BILL_COLLECTION_STATUS }).subscribe({
-            next: (response: GetLookupResponse) => {
-                this.collectionStatuses = response.items.map((lookup: Lookup) => ({
-                    value: lookup.code,
-                    label: lookup.description
-                }));
-
-                this.selectedCollectionStatus = BillCollectionStatus.COLLECTED_BY_BC;
-
-                this.isCollectionStatusesLoading = false;
-            },
-            error: (err) => {
-                console.error(err);
-
-                this.collectionStatuses = [];
-                this.isCollectionStatusesLoading = false;
-            }
-        });
 
         this.generatorOwnerService.getLookup({ domain: LookupDomain.BILL_COLLECTION_RECORD_STATUS }).subscribe({
             next: (response: GetLookupResponse) => {
@@ -183,7 +164,7 @@ export class BillCollectionsComponent implements OnInit {
             pageSize: this.serverPageSize,
             billReference: this.billReference ?? undefined,
             billCollectorId: this.selectedBillCollectorId ?? undefined,
-            collectionScope: this.selectedCollectionStatus ?? undefined,
+            collectionScope: BillCollectionStatus.COLLECTED_BY_BC,
             collectionStatus: this.selectedRecordStatus ?? undefined,
             createdFrom: this.toApiDate(this.createdFrom),
             createdTo: this.toApiDate(this.createdTo)
@@ -352,7 +333,7 @@ export class BillCollectionsComponent implements OnInit {
 
     applyFilters(): void {
         if (this.requiredFiltersMissing) {
-            this.notificationService.warn('Validation', 'Either enter a Bill Reference, or fill Bill Collector, Collection Status, Record Status, Created From, and Created To.');
+            this.notificationService.warn('Validation', 'Either enter a Bill Reference, or fill Bill Collector, Record Status, Created From, and Created To.');
             return;
         }
 
@@ -374,7 +355,6 @@ export class BillCollectionsComponent implements OnInit {
 
     resetFilters(): void {
         this.billReference = null;
-        this.selectedCollectionStatus = null;
         this.selectedBillCollectorId = null;
         this.selectedRecordStatus = null;
         this.createdFrom = null;
@@ -481,7 +461,7 @@ export class BillCollectionsComponent implements OnInit {
     }
 
     get hasActiveFilters(): boolean {
-        return this.billReference !== null || this.selectedBillCollectorId !== null || !!this.selectedCollectionStatus || !!this.selectedRecordStatus || !!this.createdFrom || !!this.createdTo;
+        return this.billReference !== null || this.selectedBillCollectorId !== null || !!this.selectedRecordStatus || !!this.createdFrom || !!this.createdTo;
     }
 
     get canApproveReject(): boolean {
@@ -521,7 +501,7 @@ export class BillCollectionsComponent implements OnInit {
             return false;
         }
 
-        return this.selectedBillCollectorId == null || !this.selectedCollectionStatus || !this.selectedRecordStatus || !this.createdFrom || !this.createdTo;
+        return this.selectedBillCollectorId == null || !this.selectedRecordStatus || !this.createdFrom || !this.createdTo;
     }
 
     get filtersInvalid(): boolean {

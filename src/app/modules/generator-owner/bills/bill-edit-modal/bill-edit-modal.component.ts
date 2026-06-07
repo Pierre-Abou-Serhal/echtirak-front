@@ -78,6 +78,8 @@ export class BillEditModalComponent implements OnInit, OnChanges {
 
     constructor(@Inject(LOCALE_ID) private locale: string) {}
 
+    private manualAmountEdited = false;
+
     ngOnInit(): void {
         this.userContext.generatorOwnerExtraFees$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((fees) => {
             this.availableExtraFees = fees;
@@ -99,6 +101,8 @@ export class BillEditModalComponent implements OnInit, OnChanges {
             if (this.visible && this.bill) {
                 this.submitted = false;
                 this.editableBill = this.clone(this.bill);
+
+                this.manualAmountEdited = false;
 
                 this.billPeriod = this.toBillPeriodDate(this.editableBill.billYear, this.editableBill.billMonth);
 
@@ -158,7 +162,7 @@ export class BillEditModalComponent implements OnInit, OnChanges {
         if (this.shouldUseCustomKwhReading) {
             if (this.isCustomCurrentKvaReadingInvalid()) return;
             this.applyCustomKwhReadingToEditableBill();
-        } else {
+        } else if (!this.manualAmountEdited) {
             this.recalculateMeteredBillAmount();
         }
 
@@ -368,12 +372,14 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     onCurrentKvaChanged(): void {
         if (this.readOnly) return;
 
+        this.manualAmountEdited = false;
         this.recalculateMeteredBillAmount();
     }
 
     onCustomCurrentKvaReadingChanged(): void {
         if (this.readOnly || !this.shouldUseCustomKwhReading) return;
 
+        this.manualAmountEdited = false;
         this.recalculateMeteredBillAmountFromCustomReading();
     }
 
@@ -482,7 +488,9 @@ export class BillEditModalComponent implements OnInit, OnChanges {
     private toNumberOrNull(v: any): number | null {
         if (v === null || v === undefined || v === '') return null;
 
-        const n = Number(v);
+        const normalized = typeof v === 'string' ? v.replace(/,/g, '').trim() : v;
+
+        const n = Number(normalized);
 
         return Number.isFinite(n) ? n : null;
     }
@@ -522,5 +530,33 @@ export class BillEditModalComponent implements OnInit, OnChanges {
                 return options?.valid;
             }
         };
+    }
+
+    getBillAmountLbp(bill: any): number {
+        const amountUsd = this.toNumberOrNull(bill?.amount) ?? 0;
+        const rate = this.toNumberOrNull(bill?.exchangeRate);
+
+        if (rate != null) {
+            return amountUsd * rate;
+        }
+
+        return this.toNumberOrNull(bill?.amountLBP) ?? 0;
+    }
+
+    getGrandTotalUsd(bill: any): number {
+        const billAmount = this.toNumberOrNull(bill?.amount) ?? 0;
+
+        return billAmount + this.getExtraFeesTotalUsd(bill);
+    }
+
+    getGrandTotalLbp(bill: any): number {
+        return this.getBillAmountLbp(bill) + this.getExtraFeesTotalLbp(bill);
+    }
+
+    onAmountChanged(value: number | null): void {
+        if (!this.editableBill) return;
+
+        this.editableBill.amount = value;
+        this.manualAmountEdited = true;
     }
 }
