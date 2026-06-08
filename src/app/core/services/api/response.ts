@@ -20,7 +20,12 @@ import {
     AdminGeneratorOwnerProfile,
     AdminAnnouncement,
     ExtraFee,
-    BillCollection
+    BillCollection,
+    ExpenseType,
+    Expense,
+    FinanceDaySummary,
+    FinanceDayDetailSummary,
+    FinanceTransaction
 } from '@/core/models/model';
 import {
     SubscriberAddress,
@@ -446,6 +451,56 @@ export interface GetExtraFeesResponse {
 
 export interface UpsertExtraFeeResponse {
     extraFee: ExtraFee;
+}
+
+export interface GetExpenseTypesResponse {
+    expenseTypes: ExpenseType[];
+}
+
+export interface UpsertExpenseTypeResponse {
+    expenseType: ExpenseType;
+}
+
+export interface GetExpensesResponse {
+    page: GetExpensesPage;
+}
+
+export interface GetExpensesPage {
+    items: Expense[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface UpsertExpenseResponse {
+    expense: Expense;
+}
+
+export interface GetFinanceDaysResponse {
+    days: FinanceDaySummary[];
+    currencyCode: string;
+    dateFrom?: string | null;
+    dateTo?: string | null;
+}
+
+export interface GetFinanceDayDetailResponse {
+    activityDate: string;
+    currencyCode: string;
+    summary: FinanceDayDetailSummary;
+    page: GetFinanceTransactionsPage;
+}
+
+export interface GetFinanceTransactionsPage {
+    items: FinanceTransaction[];
+    pageNumber: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
 }
 
 export interface ScanBillBarcodeResponse {

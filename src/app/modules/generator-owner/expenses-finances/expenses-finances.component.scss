@@ -1,0 +1,7 @@
+.finance-day-row {
+    cursor: pointer;
+}
+
+.finance-day-row:hover {
+    background: color-mix(in srgb, var(--p-primary-color) 8%, transparent);
+}

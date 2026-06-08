@@ -19,6 +19,7 @@ import { SmsCampaignCreateComponent } from '@/modules/generator-owner/sms-campai
 import { SubscriberAddressesComponent } from '@/modules/generator-owner/subscriber-addresses/subscriber-addresses.component';
 import { BillCollectionsComponent } from '@/modules/generator-owner/bills/bill-collections/bill-collections.component';
 import { GeneratorOwnerDocsComponent } from '@/modules/generator-owner/docs/generator-owner-docs.component';
+import { ExpensesFinancesComponent } from '@/modules/generator-owner/expenses-finances/expenses-finances.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -38,6 +39,7 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             { path: 'profile', component: ProfileComponent, data: { screenName: 'Generator Owner - Profile' } },
             { path: 'bill-collectors', component: BillCollectorComponent, data: { screenName: 'Generator Owner - Bill Collectors' } },
             { path: 'bill-collections', component: BillCollectionsComponent, data: { screenName: 'Generator Owner - Bill Collections' } },
+            { path: 'expenses-finances', component: ExpensesFinancesComponent, data: { screenName: 'Generator Owner - Expenses & Finances' } },
             { path: 'kva-reading-history', component: KvaReadingHistoryComponent, data: { screenName: 'Generator Owner - KWH Reading History' } },
             { path: 'sms-templates', component: SmsTemplatesComponent, data: { screenName: 'Generator Owner - SMS Templates' } },
             { path: 'bills', component: BillsComponent, data: { screenName: 'Generator Owner - Bills' } },

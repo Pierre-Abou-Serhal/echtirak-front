@@ -149,7 +149,6 @@ export interface Bill {
     extraFees?: ExtraFee[] | null;
 }
 
-
 export interface SmsCampaign {
     id: number;
     campaignName: string;
@@ -173,12 +172,12 @@ export interface SmsMessage {
     status: string;
     statusDescription: string;
     sentAt?: string;
-    deliveredAt?: string ;
+    deliveredAt?: string;
 }
 
 export interface WarningMessage {
     messageCode: string;
-    message: string
+    message: string;
 }
 
 export interface Currency {
@@ -339,6 +338,67 @@ export interface ExtraFee {
     amountLBP?: string;
     isActive?: boolean;
     createdAt?: string;
+}
+
+export interface ExpenseType {
+    id: number;
+    name: string;
+    description?: string | null;
+}
+
+export interface Expense {
+    id: number;
+    expenseTypeId: number;
+    expenseTypeName: string;
+    expenseTypeDescription?: string | null;
+    expenseDate: string;
+    amount: number;
+    currencyCode: string;
+    amountLBP?: number | null;
+    exchangeRate?: number | null;
+    notes?: string | null;
+}
+
+export type FinanceTransactionType = 'CREDIT' | 'DEBIT';
+
+export interface FinanceDaySummary {
+    activityDate: string;
+    totalCredit: number;
+    totalDebit: number;
+    creditCount: number;
+    debitCount: number;
+    netAmount: number;
+}
+
+export interface FinanceDayDetailSummary {
+    totalCredit: number;
+    totalDebit: number;
+    creditCount: number;
+    debitCount: number;
+    netAmount: number;
+}
+
+export interface FinanceTransaction {
+    trxType: FinanceTransactionType;
+    trxId: number;
+    occurredAt: string;
+    amount: number;
+    extraFeesTotal?: number | null;
+    grandTotal: number;
+    currencyCode: string;
+    amountLBP?: number | null;
+    exchangeRate?: number | null;
+    description: string;
+    billReference?: number | null;
+    subscriberFirstName?: string | null;
+    subscriberLastName?: string | null;
+    billYear?: string | null;
+    billMonth?: string | null;
+    collectionStatus?: string | null;
+    receiptNumber?: number | null;
+    expenseTypeId?: number | null;
+    expenseTypeDescription?: string | null;
+    notes?: string | null;
 }
 
 export interface BillCollection {

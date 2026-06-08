@@ -1,5 +1,5 @@
 // Auth Requests
-import { Bill, BillCollectorProfile, CurrencyRate, Generator, GeneratorOwnerProfile, SubscriptionBillingModel } from '@/core/models/model';
+import { Bill, BillCollectorProfile, CurrencyRate, FinanceTransactionType, Generator, GeneratorOwnerProfile, SubscriptionBillingModel } from '@/core/models/model';
 
 export interface SignInRequest {
     username: string;
@@ -388,6 +388,46 @@ export interface BulkUpdateAddressesRequest {
 export interface UpsertExtraFeeRequest {
     id: number;
     name: string;
+}
+
+export interface UpsertExpenseTypeRequest {
+    id?: number;
+    name: string;
+    description?: string | null;
+}
+
+export interface GetExpensesQueryParams {
+    pageNumber: number;
+    pageSize: number;
+    dateFrom?: string;
+    dateTo?: string;
+    expenseTypeId?: number;
+    currencyCode?: string;
+}
+
+export interface UpsertExpenseRequest {
+    id?: number;
+    expenseTypeId: number;
+    expenseDate: string;
+    amount: number;
+    currencyCode: string;
+    amountLBP?: number;
+    exchangeRate?: number;
+    notes?: string | null;
+}
+
+export interface GetFinanceDaysQueryParams {
+    dateFrom?: string;
+    dateTo?: string;
+    trxType?: FinanceTransactionType;
+    currencyCode?: string;
+}
+
+export interface GetFinanceDayDetailQueryParams {
+    trxType?: FinanceTransactionType;
+    currencyCode?: string;
+    pageNumber: number;
+    pageSize: number;
 }
 
 export interface GetBillReportByCodeQueryParams {

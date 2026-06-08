@@ -35,6 +35,11 @@ import {
     GetBuildingsQueryParams,
     BulkUpdateAddressesRequest,
     UpsertExtraFeeRequest,
+    UpsertExpenseTypeRequest,
+    GetExpensesQueryParams,
+    UpsertExpenseRequest,
+    GetFinanceDaysQueryParams,
+    GetFinanceDayDetailQueryParams,
     GetBillCollectionsQueryParam,
     ApproveOrRejectBillCollectionRequest,
     PayBillsInBulkRequest,
@@ -83,6 +88,12 @@ import {
     GetBuildingsResponse,
     GetExtraFeesResponse,
     UpsertExtraFeeResponse,
+    GetExpenseTypesResponse,
+    UpsertExpenseTypeResponse,
+    GetExpensesResponse,
+    UpsertExpenseResponse,
+    GetFinanceDaysResponse,
+    GetFinanceDayDetailResponse,
     ApproveOrRejectBillCollectionResponse,
     PayBillsInBulkResponse,
     GetBillsByPeriodStatusResponse,
@@ -346,6 +357,50 @@ export class GeneratorOwnerService {
 
     public deleteExtraFee(extraFeeId: number): Observable<void> {
         return this.apiService.delete<void>(`/GeneratorOwner/ExtraFees/${extraFeeId}`);
+    }
+
+    public getExpenseTypes(): Observable<GetExpenseTypesResponse> {
+        return this.apiService.get<GetExpenseTypesResponse>(`/GeneratorOwner/ExpenseTypes`);
+    }
+
+    public upsertExpenseType(request: UpsertExpenseTypeRequest): Observable<UpsertExpenseTypeResponse> {
+        return this.apiService.post<UpsertExpenseTypeResponse>(`/GeneratorOwner/ExpenseTypes`, request);
+    }
+
+    public deleteExpenseType(expenseTypeId: number): Observable<void> {
+        return this.apiService.delete<void>(`/GeneratorOwner/ExpenseTypes/${expenseTypeId}`);
+    }
+
+    public getExpenses(queryParams: GetExpensesQueryParams): Observable<GetExpensesResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetExpensesResponse>(`/GeneratorOwner/Expenses`, {
+            params: params
+        });
+    }
+
+    public upsertExpense(request: UpsertExpenseRequest): Observable<UpsertExpenseResponse> {
+        return this.apiService.post<UpsertExpenseResponse>(`/GeneratorOwner/Expenses`, request);
+    }
+
+    public deleteExpense(expenseId: number): Observable<void> {
+        return this.apiService.delete<void>(`/GeneratorOwner/Expenses/${expenseId}`);
+    }
+
+    public getFinanceDays(queryParams: GetFinanceDaysQueryParams): Observable<GetFinanceDaysResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetFinanceDaysResponse>(`/GeneratorOwner/Finances/days`, {
+            params: params
+        });
+    }
+
+    public getFinanceDayDetail(activityDate: string, queryParams: GetFinanceDayDetailQueryParams): Observable<GetFinanceDayDetailResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetFinanceDayDetailResponse>(`/GeneratorOwner/Finances/days/${activityDate}`, {
+            params: params
+        });
     }
 
     public getBillReport(billId: number): Observable<Blob> {
