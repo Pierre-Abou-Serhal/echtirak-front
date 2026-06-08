@@ -1,0 +1,28 @@
+<p-card header="Accounting">
+    @if (loading && !data) {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+                <p-skeleton height="5.5rem" borderRadius="0.75rem"></p-skeleton>
+            }
+        </div>
+    } @else if (!data) {
+        <p-message severity="info" text="No accounting data available."></p-message>
+    } @else {
+        <div class="mb-5">
+            <div class="flex justify-between text-sm font-semibold mb-2">
+                <span>Collection Rate</span>
+                <span>{{ metrics[7].value }}</span>
+            </div>
+            <p-progressBar [value]="clampPercent(data.collectionRate)" [showValue]="false"></p-progressBar>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            @for (metric of metrics; track metric.label) {
+                <div class="accounting-tile accounting-{{ metric.severity }}">
+                    <div class="text-sm text-color-secondary font-semibold">{{ metric.label }}</div>
+                    <div class="text-xl font-extrabold mt-2">{{ metric.value }}</div>
+                </div>
+            }
+        </div>
+    }
+</p-card>

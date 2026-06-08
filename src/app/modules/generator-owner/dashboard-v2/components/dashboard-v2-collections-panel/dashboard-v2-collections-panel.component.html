@@ -1,0 +1,38 @@
+<p-card header="Collections">
+    @if (loading && !data) {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+                <p-skeleton height="5.5rem" borderRadius="0.75rem"></p-skeleton>
+            }
+        </div>
+    } @else if (!data) {
+        <p-message severity="info" text="No collection data available."></p-message>
+    } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+            @for (metric of metrics; track metric.label) {
+                <div class="collection-tile collection-{{ metric.severity }}">
+                    <div class="text-sm text-color-secondary font-semibold">{{ metric.label }}</div>
+                    <div class="text-2xl font-extrabold mt-2">{{ metric.value }}</div>
+                </div>
+            }
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <div class="progress-box">
+                <div class="flex justify-between text-sm font-semibold mb-2">
+                    <span>GO Direct</span>
+                    <span>{{ formatPercent(data.goDirectPct) }}</span>
+                </div>
+                <p-progressBar [value]="clampPercent(data.goDirectPct)" [showValue]="false"></p-progressBar>
+            </div>
+
+            <div class="progress-box">
+                <div class="flex justify-between text-sm font-semibold mb-2">
+                    <span>Via Bill Collectors</span>
+                    <span>{{ formatPercent(data.viaBcPct) }}</span>
+                </div>
+                <p-progressBar [value]="clampPercent(data.viaBcPct)" [showValue]="false"></p-progressBar>
+            </div>
+        </div>
+    }
+</p-card>

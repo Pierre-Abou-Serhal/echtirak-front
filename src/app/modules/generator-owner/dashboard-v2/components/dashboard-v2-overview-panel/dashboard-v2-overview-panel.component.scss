@@ -1,0 +1,22 @@
+:host {
+    display: block;
+}
+
+.metric-tile {
+    border: 1px solid var(--surface-border);
+    border-radius: 0.85rem;
+    padding: 1rem;
+}
+
+.metric-success {
+    border-color: color-mix(in srgb, var(--p-green-500, #22c55e) 35%, var(--surface-border));
+}
+.metric-info {
+    border-color: color-mix(in srgb, var(--p-blue-500, #3b82f6) 35%, var(--surface-border));
+}
+.metric-warn {
+    border-color: color-mix(in srgb, var(--p-yellow-500, #eab308) 45%, var(--surface-border));
+}
+.metric-danger {
+    border-color: color-mix(in srgb, var(--p-red-500, #ef4444) 35%, var(--surface-border));
+}

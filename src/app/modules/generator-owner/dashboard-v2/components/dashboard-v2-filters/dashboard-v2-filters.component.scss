@@ -1,0 +1,7 @@
+:host {
+    display: block;
+}
+
+:host ::ng-deep .dashboard-v2-filter-card .p-card-body {
+    padding: 1.25rem;
+}

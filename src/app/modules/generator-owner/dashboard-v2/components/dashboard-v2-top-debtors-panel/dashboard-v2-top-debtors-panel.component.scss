@@ -1,0 +1,6 @@
+:host {
+    display: block;
+}
+:host ::ng-deep .high-risk-row td {
+    background: color-mix(in srgb, var(--p-red-500, #ef4444) 8%, transparent);
+}

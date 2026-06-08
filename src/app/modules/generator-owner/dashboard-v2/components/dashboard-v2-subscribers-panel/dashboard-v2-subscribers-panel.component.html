@@ -1,0 +1,35 @@
+<p-card header="Subscribers">
+    @if (loading && !data) {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                <p-skeleton height="5.5rem" borderRadius="0.75rem"></p-skeleton>
+            }
+        </div>
+    } @else if (!data) {
+        <p-message severity="info" text="No subscriber data available."></p-message>
+    } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            @for (metric of metrics; track metric.label) {
+                <div class="subscriber-tile subscriber-{{ metric.severity }}">
+                    <div class="text-sm text-color-secondary font-semibold">{{ metric.label }}</div>
+                    <div class="text-2xl font-extrabold mt-2">{{ metric.value }}</div>
+                </div>
+            }
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+            <div class="chart-box">
+                <div class="font-bold mb-3">Activity</div>
+                <p-chart type="doughnut" [data]="activeChartData" [options]="chartOptions" height="220px"></p-chart>
+            </div>
+            <div class="chart-box">
+                <div class="font-bold mb-3">SMS</div>
+                <p-chart type="doughnut" [data]="smsChartData" [options]="chartOptions" height="220px"></p-chart>
+            </div>
+            <div class="chart-box">
+                <div class="font-bold mb-3">Billing Model</div>
+                <p-chart type="doughnut" [data]="billingChartData" [options]="chartOptions" height="220px"></p-chart>
+            </div>
+        </div>
+    }
+</p-card>

@@ -1,0 +1,18 @@
+:host {
+    display: block;
+}
+.subscriber-tile,
+.chart-box {
+    border: 1px solid var(--surface-border);
+    border-radius: 0.85rem;
+    padding: 1rem;
+}
+.subscriber-success {
+    background: color-mix(in srgb, var(--p-green-500, #22c55e) 8%, transparent);
+}
+.subscriber-info {
+    background: color-mix(in srgb, var(--p-blue-500, #3b82f6) 8%, transparent);
+}
+.subscriber-warn {
+    background: color-mix(in srgb, var(--p-yellow-500, #eab308) 10%, transparent);
+}

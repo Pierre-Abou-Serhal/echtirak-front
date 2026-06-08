@@ -1,0 +1,114 @@
+<h1 class="text-3xl font-bold mb-4">Dashboard</h1>
+
+<div class="dashboard-v2-shell flex flex-col gap-4">
+    <app-dashboard-v2-filters
+        [filter]="filter"
+        [activeTab]="selectedTab"
+        [generators]="generatorOptions"
+        [collectors]="collectorOptions"
+        [cities]="cities"
+        [streets]="streets"
+        [billingModels]="billingModelOptions"
+        [billStatuses]="billStatusOptions"
+        [collectionStatuses]="collectionStatusOptions"
+        [loadingOptions]="loadingOptions"
+        (apply)="onApplyFilters($event)"
+        (reset)="onResetFilters()"
+    ></app-dashboard-v2-filters>
+
+    <p-card styleClass="dashboard-v2-filter-summary-card">
+        <div class="flex flex-col gap-2">
+            <div class="text-sm font-semibold text-color">Currently viewing</div>
+            <div class="flex flex-wrap gap-2">
+                @for (summary of activeFilterSummary; track $index) {
+                    <span class="dashboard-v2-filter-summary-chip">{{ summary }}</span>
+                }
+            </div>
+        </div>
+    </p-card>
+
+    @if (errorMessage) {
+        <p-message severity="error" [text]="errorMessage"></p-message>
+    }
+
+    @if (loading) {
+        <p-progressBar mode="indeterminate" [showValue]="false" styleClass="dashboard-v2-loading"></p-progressBar>
+    }
+
+    <app-dashboard-v2-alerts-banner [alerts]="alerts" (openAlerts)="openAlertsTab()"></app-dashboard-v2-alerts-banner>
+
+    <p-card styleClass="dashboard-v2-tabs-card">
+        <p-tabs [(value)]="selectedTab" (valueChange)="onTabChange($event)" scrollable>
+            <p-tablist>
+                @for (tab of tabs; track tab.value) {
+                    <p-tab [value]="tab.value">{{ tab.label }}</p-tab>
+                }
+            </p-tablist>
+
+            <p-tabpanels>
+                <p-tabpanel value="home">
+                    <div class="flex flex-col gap-4">
+                        <app-dashboard-v2-overview-panel [data]="overview" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'home'"></app-dashboard-v2-overview-panel>
+                        <app-dashboard-v2-accounting-panel [data]="accounting" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'home'"></app-dashboard-v2-accounting-panel>
+                        <app-dashboard-v2-bills-panel [data]="bills" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'home'"></app-dashboard-v2-bills-panel>
+                        <app-dashboard-v2-collections-panel [data]="collections" [loading]="loading && selectedTab === 'home'"></app-dashboard-v2-collections-panel>
+                        <app-dashboard-v2-subscribers-panel [data]="subscribers" [loading]="loading && selectedTab === 'home'"></app-dashboard-v2-subscribers-panel>
+                        <app-dashboard-v2-consumption-panel [data]="consumption" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'home'"></app-dashboard-v2-consumption-panel>
+                        <app-dashboard-v2-recent-activity-panel [data]="recentActivity" [loading]="loading && selectedTab === 'home'" [preview]="true"></app-dashboard-v2-recent-activity-panel>
+                        <app-dashboard-v2-top-debtors-panel [data]="topDebtors" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'home'" [preview]="true"></app-dashboard-v2-top-debtors-panel>
+                        <app-dashboard-v2-alerts-panel [alerts]="alerts" [loading]="loading && selectedTab === 'home'" [preview]="true"></app-dashboard-v2-alerts-panel>
+                        <app-dashboard-v2-bill-collectors-panel [data]="billCollectors" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'home'" [preview]="true"></app-dashboard-v2-bill-collectors-panel>
+                    </div>
+                </p-tabpanel>
+
+                <p-tabpanel value="overview">
+                    <app-dashboard-v2-overview-panel [data]="overview" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'overview'"></app-dashboard-v2-overview-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="accounting">
+                    <app-dashboard-v2-accounting-panel [data]="accounting" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'accounting'"></app-dashboard-v2-accounting-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="bills">
+                    <app-dashboard-v2-bills-panel [data]="bills" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'bills'"></app-dashboard-v2-bills-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="collections">
+                    <app-dashboard-v2-collections-panel [data]="collections" [loading]="loading && selectedTab === 'collections'"></app-dashboard-v2-collections-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="subscribers">
+                    <app-dashboard-v2-subscribers-panel [data]="subscribers" [loading]="loading && selectedTab === 'subscribers'"></app-dashboard-v2-subscribers-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="billCollectors">
+                    <app-dashboard-v2-bill-collectors-panel [data]="billCollectors" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'billCollectors'"></app-dashboard-v2-bill-collectors-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="topDebtors">
+                    <app-dashboard-v2-top-debtors-panel [data]="topDebtors" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'topDebtors'" (pageChange)="onTopDebtorsPageChange($event)"></app-dashboard-v2-top-debtors-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="generators">
+                    <app-dashboard-v2-generators-panel [data]="generators" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'generators'"></app-dashboard-v2-generators-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="addressBreakdown">
+                    <app-dashboard-v2-address-breakdown-panel [data]="addressBreakdown" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'addressBreakdown'"></app-dashboard-v2-address-breakdown-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="consumption">
+                    <app-dashboard-v2-consumption-panel [data]="consumption" [currencyCode]="currencyCode" [loading]="loading && selectedTab === 'consumption'"></app-dashboard-v2-consumption-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="recentActivity">
+                    <app-dashboard-v2-recent-activity-panel [data]="recentActivity" [loading]="loading && selectedTab === 'recentActivity'"></app-dashboard-v2-recent-activity-panel>
+                </p-tabpanel>
+
+                <p-tabpanel value="alerts">
+                    <app-dashboard-v2-alerts-panel [alerts]="alerts" [loading]="loading && selectedTab === 'alerts'"></app-dashboard-v2-alerts-panel>
+                </p-tabpanel>
+            </p-tabpanels>
+        </p-tabs>
+    </p-card>
+</div>

@@ -1,0 +1,114 @@
+<p-card header="Area Breakdown">
+    @if (loading && !data.length) {
+        <p-skeleton height="24rem" borderRadius="0.75rem"></p-skeleton>
+    } @else {
+        <p-table #citiesTable [value]="data" dataKey="city" [expandedRowKeys]="expandedRows" [globalFilterFields]="['city']" responsiveLayout="scroll" rowHover showGridlines stripedRows>
+            <ng-template #caption>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <p-button icon="pi pi-external-link" label="Export" (click)="exportCitiesToCsv()" />
+                    <input pInputText type="text" placeholder="Search cities" (input)="onGlobalFilter(citiesTable, $event)" />
+                </div>
+            </ng-template>
+
+            <ng-template #header>
+                <tr>
+                    <th style="width: 3rem"></th>
+                    <th pSortableColumn="city">City <p-sortIcon field="city"></p-sortIcon></th>
+                    <th pSortableColumn="subscribersCount">Subscribers <p-sortIcon field="subscribersCount"></p-sortIcon></th>
+                    <th pSortableColumn="activeSubscribers">Active Subscribers <p-sortIcon field="activeSubscribers"></p-sortIcon></th>
+                    <th pSortableColumn="consumption">Consumption <p-sortIcon field="consumption"></p-sortIcon></th>
+                    <th pSortableColumn="billsCount">Bills <p-sortIcon field="billsCount"></p-sortIcon></th>
+                    <th pSortableColumn="paidBills">Paid <p-sortIcon field="paidBills"></p-sortIcon></th>
+                    <th pSortableColumn="pendingBills">Pending <p-sortIcon field="pendingBills"></p-sortIcon></th>
+                    <th pSortableColumn="overdueBills">Overdue <p-sortIcon field="overdueBills"></p-sortIcon></th>
+                    <th pSortableColumn="invoicedAmount">Invoiced <p-sortIcon field="invoicedAmount"></p-sortIcon></th>
+                    <th pSortableColumn="collectedAmount">Collected <p-sortIcon field="collectedAmount"></p-sortIcon></th>
+                    <th pSortableColumn="outstandingAmount">Outstanding <p-sortIcon field="outstandingAmount"></p-sortIcon></th>
+                    <th pSortableColumn="collectionRate">Collection Rate <p-sortIcon field="collectionRate"></p-sortIcon></th>
+                </tr>
+            </ng-template>
+
+            <ng-template #body let-city let-expanded="expanded">
+                <tr>
+                    <td>
+                        <button pButton type="button" class="p-button-text p-button-rounded" [pRowToggler]="city" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></button>
+                    </td>
+                    <td class="font-bold">{{ city.city || '-' }}</td>
+                    <td>{{ formatNumber(city.subscribersCount) }}</td>
+                    <td>{{ formatNumber(city.activeSubscribers) }}</td>
+                    <td>{{ formatNumber(city.consumption) }}</td>
+                    <td>{{ formatNumber(city.billsCount) }}</td>
+                    <td>{{ formatNumber(city.paidBills) }}</td>
+                    <td>{{ formatNumber(city.pendingBills) }}</td>
+                    <td>{{ formatNumber(city.overdueBills) }}</td>
+                    <td>{{ formatMoney(city.invoicedAmount, currencyCode) }}</td>
+                    <td>{{ formatMoney(city.collectedAmount, currencyCode) }}</td>
+                    <td>{{ formatMoney(city.outstandingAmount, currencyCode) }}</td>
+                    <td>{{ formatPercent(city.collectionRate) }}</td>
+                </tr>
+            </ng-template>
+
+            <ng-template #expandedrow let-city>
+                <tr>
+                    <td colspan="13">
+                        <div class="p-3">
+                            <div class="font-bold mb-3">Streets in {{ city.city || 'city' }}</div>
+                            <p-table #streetsTable [value]="city.streets || []" [globalFilterFields]="['street']" responsiveLayout="scroll" showGridlines>
+                                <ng-template #caption>
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <p-button icon="pi pi-external-link" label="Export Streets" size="small" (click)="exportStreetsToCsv(city)" />
+                                        <input pInputText type="text" placeholder="Search streets" (input)="onGlobalFilter(streetsTable, $event)" />
+                                    </div>
+                                </ng-template>
+
+                                <ng-template #header>
+                                    <tr>
+                                        <th pSortableColumn="street">Street <p-sortIcon field="street"></p-sortIcon></th>
+                                        <th pSortableColumn="subscribersCount">Subscribers <p-sortIcon field="subscribersCount"></p-sortIcon></th>
+                                        <th pSortableColumn="activeSubscribers">Active <p-sortIcon field="activeSubscribers"></p-sortIcon></th>
+                                        <th pSortableColumn="consumption">Consumption <p-sortIcon field="consumption"></p-sortIcon></th>
+                                        <th pSortableColumn="billsCount">Bills <p-sortIcon field="billsCount"></p-sortIcon></th>
+                                        <th pSortableColumn="paidBills">Paid <p-sortIcon field="paidBills"></p-sortIcon></th>
+                                        <th pSortableColumn="pendingBills">Pending <p-sortIcon field="pendingBills"></p-sortIcon></th>
+                                        <th pSortableColumn="overdueBills">Overdue <p-sortIcon field="overdueBills"></p-sortIcon></th>
+                                        <th pSortableColumn="invoicedAmount">Invoiced <p-sortIcon field="invoicedAmount"></p-sortIcon></th>
+                                        <th pSortableColumn="collectedAmount">Collected <p-sortIcon field="collectedAmount"></p-sortIcon></th>
+                                        <th pSortableColumn="outstandingAmount">Outstanding <p-sortIcon field="outstandingAmount"></p-sortIcon></th>
+                                        <th pSortableColumn="collectionRate">Collection Rate <p-sortIcon field="collectionRate"></p-sortIcon></th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template #body let-street>
+                                    <tr>
+                                        <td>{{ street.street || '-' }}</td>
+                                        <td>{{ formatNumber(street.subscribersCount) }}</td>
+                                        <td>{{ formatNumber(street.activeSubscribers) }}</td>
+                                        <td>{{ formatNumber(street.consumption) }}</td>
+                                        <td>{{ formatNumber(street.billsCount) }}</td>
+                                        <td>{{ formatNumber(street.paidBills) }}</td>
+                                        <td>{{ formatNumber(street.pendingBills) }}</td>
+                                        <td>{{ formatNumber(street.overdueBills) }}</td>
+                                        <td>{{ formatMoney(street.invoicedAmount, currencyCode) }}</td>
+                                        <td>{{ formatMoney(street.collectedAmount, currencyCode) }}</td>
+                                        <td>{{ formatMoney(street.outstandingAmount, currencyCode) }}</td>
+                                        <td>{{ formatPercent(street.collectionRate) }}</td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template #emptymessage>
+                                    <tr>
+                                        <td colspan="12">No streets found for this city.</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template #emptymessage>
+                <tr>
+                    <td colspan="13">No area breakdown found.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    }
+</p-card>

@@ -1,0 +1,58 @@
+<p-card header="Generators">
+    @if (loading && !data.length) {
+        <p-skeleton height="24rem" borderRadius="0.75rem"></p-skeleton>
+    } @else {
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <p-button icon="pi pi-external-link" label="Export" (click)="exportToCsv()" />
+            <input pInputText type="text" placeholder="Search generators" (input)="onGlobalFilter(generatorTable, $event)" />
+        </div>
+
+        <p-table #generatorTable [value]="data" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" [globalFilterFields]="['generatorCode', 'generatorName']" responsiveLayout="scroll" rowHover showGridlines stripedRows>
+            <ng-template #header>
+                <tr>
+                    <th pSortableColumn="generatorCode">Code <p-sortIcon field="generatorCode"></p-sortIcon></th>
+                    <th pSortableColumn="generatorName">Name <p-sortIcon field="generatorName"></p-sortIcon></th>
+                    <th pSortableColumn="subscribersCount">Subscribers <p-sortIcon field="subscribersCount"></p-sortIcon></th>
+                    <th pSortableColumn="activeSubscribers">Active <p-sortIcon field="activeSubscribers"></p-sortIcon></th>
+                    <th pSortableColumn="consumption">Consumption <p-sortIcon field="consumption"></p-sortIcon></th>
+                    <th pSortableColumn="billsCount">Bills <p-sortIcon field="billsCount"></p-sortIcon></th>
+                    <th pSortableColumn="paidBills">Paid <p-sortIcon field="paidBills"></p-sortIcon></th>
+                    <th pSortableColumn="pendingBills">Pending <p-sortIcon field="pendingBills"></p-sortIcon></th>
+                    <th pSortableColumn="overdueBills">Overdue <p-sortIcon field="overdueBills"></p-sortIcon></th>
+                    <th pSortableColumn="invoicedAmount">Invoiced <p-sortIcon field="invoicedAmount"></p-sortIcon></th>
+                    <th pSortableColumn="collectedAmount">Collected <p-sortIcon field="collectedAmount"></p-sortIcon></th>
+                    <th pSortableColumn="outstandingAmount">Outstanding <p-sortIcon field="outstandingAmount"></p-sortIcon></th>
+                    <th pSortableColumn="overdueAmount">Overdue Amount <p-sortIcon field="overdueAmount"></p-sortIcon></th>
+                    <th pSortableColumn="collectionRate">Collection Rate <p-sortIcon field="collectionRate"></p-sortIcon></th>
+                    <th pSortableColumn="averageBillAmount">Average Bill <p-sortIcon field="averageBillAmount"></p-sortIcon></th>
+                </tr>
+            </ng-template>
+
+            <ng-template #body let-generator>
+                <tr>
+                    <td>{{ generator.generatorCode || '-' }}</td>
+                    <td>{{ generator.generatorName || '-' }}</td>
+                    <td>{{ formatNumber(generator.subscribersCount) }}</td>
+                    <td>{{ formatNumber(generator.activeSubscribers) }}</td>
+                    <td>{{ formatNumber(generator.consumption) }}</td>
+                    <td>{{ formatNumber(generator.billsCount) }}</td>
+                    <td>{{ formatNumber(generator.paidBills) }}</td>
+                    <td>{{ formatNumber(generator.pendingBills) }}</td>
+                    <td>{{ formatNumber(generator.overdueBills) }}</td>
+                    <td>{{ formatMoney(generator.invoicedAmount, currencyCode) }}</td>
+                    <td>{{ formatMoney(generator.collectedAmount, currencyCode) }}</td>
+                    <td>{{ formatMoney(generator.outstandingAmount, currencyCode) }}</td>
+                    <td>{{ formatMoney(generator.overdueAmount, currencyCode) }}</td>
+                    <td>{{ formatPercent(generator.collectionRate) }}</td>
+                    <td>{{ formatMoney(generator.averageBillAmount, currencyCode) }}</td>
+                </tr>
+            </ng-template>
+
+            <ng-template #emptymessage>
+                <tr>
+                    <td colspan="15">No generators found.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    }
+</p-card>

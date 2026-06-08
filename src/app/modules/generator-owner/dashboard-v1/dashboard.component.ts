@@ -11,13 +11,13 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { LbPhonePipe } from '@/core/pipes/pipes';
 
 @Component({
-    selector: 'app-dashboard',
+    selector: 'app-dashboard-v1',
     standalone: true,
     imports: [CommonModule, CardModule, TableModule, ButtonModule, ChartModule, SkeletonModule, LbPhonePipe],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent {
+export class DashboardV1Component {
     private readonly generatorOwnerService = inject(GeneratorOwnerService);
 
     public dashboardResponse: Signal<GetGeneratorOwnerDashboardResponse | undefined> = toSignal(this.generatorOwnerService.getDashboard());

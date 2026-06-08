@@ -1,0 +1,42 @@
+<p-card header="Bill Collectors">
+    @if (loading && !data.length) {
+        <p-skeleton height="18rem" borderRadius="0.75rem"></p-skeleton>
+    } @else {
+        <p-table #collectorsTable [value]="rows" [globalFilterFields]="['collectorName']" responsiveLayout="scroll" rowHover showGridlines stripedRows>
+            <ng-template #caption>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <p-button icon="pi pi-external-link" label="Export" (click)="exportToCsv()" />
+                    <input pInputText type="text" placeholder="Search collectors" (input)="onGlobalFilter(collectorsTable, $event)" />
+                </div>
+            </ng-template>
+
+            <ng-template #header>
+                <tr>
+                    <th pSortableColumn="collectorName">Collector Name <p-sortIcon field="collectorName"></p-sortIcon></th>
+                    <th pSortableColumn="pendingApprovalsCount">Pending Approvals <p-sortIcon field="pendingApprovalsCount"></p-sortIcon></th>
+                    <th pSortableColumn="pendingApprovalAmount">Pending Approval Amount <p-sortIcon field="pendingApprovalAmount"></p-sortIcon></th>
+                    <th pSortableColumn="approvedCount">Approved <p-sortIcon field="approvedCount"></p-sortIcon></th>
+                    <th pSortableColumn="rejectedCount">Rejected <p-sortIcon field="rejectedCount"></p-sortIcon></th>
+                    <th pSortableColumn="averageCollectionAmount">Average Collection Amount <p-sortIcon field="averageCollectionAmount"></p-sortIcon></th>
+                </tr>
+            </ng-template>
+
+            <ng-template #body let-collector>
+                <tr>
+                    <td>{{ collector.collectorName || '-' }}</td>
+                    <td>{{ formatNumber(collector.pendingApprovalsCount) }}</td>
+                    <td>{{ formatMoney(collector.pendingApprovalAmount, currencyCode) }}</td>
+                    <td>{{ formatNumber(collector.approvedCount) }}</td>
+                    <td>{{ formatNumber(collector.rejectedCount) }}</td>
+                    <td>{{ formatMoney(collector.averageCollectionAmount, currencyCode) }}</td>
+                </tr>
+            </ng-template>
+
+            <ng-template #emptymessage>
+                <tr>
+                    <td colspan="6">No bill collector data found.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    }
+</p-card>

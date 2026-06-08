@@ -1,0 +1,183 @@
+<p-card styleClass="dashboard-v2-filter-card">
+    <div class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <div class="text-lg font-bold">Filters</div>
+                <div class="text-sm text-color-secondary">Only filters applicable to the active dashboard section are shown.</div>
+            </div>
+
+            @if (showDateRange()) {
+                <div class="flex flex-wrap gap-2">
+                    <p-button label="This Month" size="small" severity="secondary" outlined (onClick)="setQuickPeriod('THIS_MONTH')"></p-button>
+                    <p-button label="Last Month" size="small" severity="secondary" outlined (onClick)="setQuickPeriod('LAST_MONTH')"></p-button>
+                    <p-button label="Last 90 Days" size="small" severity="secondary" outlined (onClick)="setQuickPeriod('LAST_90_DAYS')"></p-button>
+                    <p-button label="Year To Date" size="small" severity="secondary" outlined (onClick)="setQuickPeriod('YEAR_TO_DATE')"></p-button>
+                    <p-button label="All Time" size="small" severity="secondary" outlined (onClick)="setQuickPeriod('ALL_TIME')"></p-button>
+                </div>
+            }
+        </div>
+
+        @if (hasPrimaryFilters()) {
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+                @if (showDateRange()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">{{ dateFromLabel }}</label>
+                        <p-datepicker
+                            [(ngModel)]="dateFromValue"
+                            [view]="datePickerView"
+                            [dateFormat]="datePickerFormat"
+                            [placeholder]="usesBillPeriodPicker() ? 'Bill Month & Year' : 'Date From'"
+                            [showIcon]="true"
+                            [iconDisplay]="'input'"
+                            appendTo="body"
+                            class="w-full"
+                        ></p-datepicker>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">{{ dateToLabel }}</label>
+                        <p-datepicker
+                            [(ngModel)]="dateToValue"
+                            [view]="datePickerView"
+                            [dateFormat]="datePickerFormat"
+                            [placeholder]="usesBillPeriodPicker() ? 'Bill Month & Year' : 'Date To'"
+                            [showIcon]="true"
+                            [iconDisplay]="'input'"
+                            appendTo="body"
+                            class="w-full"
+                        ></p-datepicker>
+                    </div>
+                }
+
+                @if (showDateMode()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Date Mode</label>
+                        <p-select [(ngModel)]="localFilter.dateMode" [options]="dateModeOptions" optionLabel="label" optionValue="value"  [showClear]="true" class="w-full" placeholder="No Date Mode" (onChange)="onDateModeChanged()"></p-select>
+                    </div>
+                }
+
+                @if (showCurrency()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Currency</label>
+                        <p-select [(ngModel)]="localFilter.currencyCode" [options]="currencyOptions" optionLabel="label" optionValue="value" class="w-full"></p-select>
+                    </div>
+                }
+
+                @if (showGenerator()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Generator</label>
+                        <p-select [(ngModel)]="localFilter.generatorId" [options]="generators" optionLabel="label" optionValue="value" placeholder="All generators" [showClear]="true" [loading]="loadingOptions" class="w-full"></p-select>
+                    </div>
+                }
+            </div>
+        } @else {
+            <div class="rounded-xl border border-surface-200 p-4 text-sm text-color-secondary">This section does not use dashboard filters.</div>
+        }
+
+        @if (advancedOpen && hasAdvancedFilters()) {
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 border-t border-surface-200 pt-4">
+                @if (showCollector()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Collector</label>
+                        <p-select [(ngModel)]="localFilter.collectorUserId" [options]="collectors" optionLabel="label" optionValue="value" placeholder="All collectors" [showClear]="true" [loading]="loadingOptions" class="w-full"></p-select>
+                    </div>
+                }
+
+                @if (showBillingModel()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Billing Model</label>
+                        <p-select [(ngModel)]="localFilter.billingModel" [options]="billingModels" optionLabel="label" optionValue="value" placeholder="All models" [showClear]="true" class="w-full"></p-select>
+                    </div>
+                }
+
+                @if (showBillStatus()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Bill Status</label>
+                        <p-select [(ngModel)]="localFilter.billStatus" [options]="billStatuses" optionLabel="label" optionValue="value" placeholder="All bill statuses" [showClear]="true" class="w-full"></p-select>
+                    </div>
+                }
+
+                @if (showCollectionStatus()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Collection Status</label>
+                        <p-select [(ngModel)]="localFilter.collectionStatus" [options]="collectionStatuses" optionLabel="label" optionValue="value" placeholder="All collection statuses" [showClear]="true" class="w-full"></p-select>
+                    </div>
+                }
+
+                @if (showCityStreet()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">City</label>
+                        <p-autoComplete
+                            [(ngModel)]="localFilter.city"
+                            [suggestions]="citySuggestions"
+                            (completeMethod)="onCityComplete($event)"
+                            (onSelect)="onCityChanged()"
+                            (onClear)="onCityChanged()"
+                            [dropdown]="true"
+                            [forceSelection]="false"
+                            placeholder="All cities"
+                            class="w-full"
+                            inputStyleClass="w-full"
+                        ></p-autoComplete>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Street</label>
+                        <p-autoComplete
+                            [(ngModel)]="localFilter.street"
+                            [suggestions]="streetSuggestions"
+                            (completeMethod)="onStreetComplete($event)"
+                            [dropdown]="true"
+                            [forceSelection]="false"
+                            [disabled]="!localFilter.city"
+                            placeholder="All streets"
+                            class="w-full"
+                            inputStyleClass="w-full"
+                        ></p-autoComplete>
+                    </div>
+                }
+
+                @if (showRisk()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Risk</label>
+                        <p-select [(ngModel)]="localFilter.risk" [options]="riskOptions" optionLabel="label" optionValue="value" placeholder="All risks" [showClear]="true" class="w-full"></p-select>
+                    </div>
+                }
+
+                @if (showMinimumOutstanding()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Minimum Outstanding</label>
+                        <p-inputnumber [(ngModel)]="localFilter.minOutstanding" mode="decimal" [min]="0" [maxFractionDigits]="4" placeholder="No minimum" class="w-full"></p-inputnumber>
+                    </div>
+                }
+
+                @if (showFeedSize()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Feed Size</label>
+                        <p-inputnumber [(ngModel)]="localFilter.feedSize" [min]="1" [max]="100" [showButtons]="true" class="w-full"></p-inputnumber>
+                    </div>
+                }
+
+                @if (showPageSize()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold">Page Size</label>
+                        <p-inputnumber [(ngModel)]="localFilter.pageSize" [min]="1" [max]="100" [showButtons]="true" class="w-full"></p-inputnumber>
+                    </div>
+                }
+            </div>
+        }
+
+        <div class="flex flex-wrap justify-between gap-3">
+            @if (hasAdvancedFilters()) {
+                <p-button [label]="advancedOpen ? 'Hide Advanced Filters' : 'Show Advanced Filters'" icon="pi pi-sliders-h" severity="secondary" text (onClick)="advancedOpen = !advancedOpen"></p-button>
+            } @else {
+                <span></span>
+            }
+
+            <div class="flex flex-wrap gap-2">
+                <p-button label="Reset" icon="pi pi-filter-slash" severity="secondary" outlined (onClick)="resetFilters()"></p-button>
+                <p-button label="Apply" icon="pi pi-check" (onClick)="applyFilters()"></p-button>
+            </div>
+        </div>
+    </div>
+</p-card>

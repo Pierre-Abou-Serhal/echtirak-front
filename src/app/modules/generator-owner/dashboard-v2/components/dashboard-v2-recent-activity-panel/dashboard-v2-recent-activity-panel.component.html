@@ -1,0 +1,52 @@
+<p-card header="Recent Activity">
+    @if (loading && !data) {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
+            @for (i of [1, 2, 3, 4]; track i) {
+                <p-skeleton height="5rem" borderRadius="0.75rem"></p-skeleton>
+            }
+        </div>
+        <p-skeleton height="16rem" borderRadius="0.75rem"></p-skeleton>
+    } @else if (!data) {
+        <p-message severity="info" text="No recent activity available."></p-message>
+    } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
+            @for (counter of counters; track counter.label) {
+                <div class="activity-counter activity-{{ counter.severity }}">
+                    <div class="text-sm text-color-secondary font-semibold">{{ counter.label }}</div>
+                    <div class="text-2xl font-extrabold mt-2">{{ counter.value }}</div>
+                </div>
+            }
+        </div>
+
+        <p-table #activityTable [value]="feed" [globalFilterFields]="['type', 'label', 'occurredAt']" responsiveLayout="scroll" rowHover showGridlines stripedRows>
+            <ng-template #caption>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <p-button icon="pi pi-external-link" label="Export" (click)="exportToCsv()" />
+                    <input pInputText type="text" placeholder="Search activity" (input)="onGlobalFilter(activityTable, $event)" />
+                </div>
+            </ng-template>
+
+            <ng-template #header>
+                <tr>
+                    <th pSortableColumn="type">Type <p-sortIcon field="type"></p-sortIcon></th>
+                    <th pSortableColumn="label">Label <p-sortIcon field="label"></p-sortIcon></th>
+                    <th pSortableColumn="occurredAt">Occurred At <p-sortIcon field="occurredAt"></p-sortIcon></th>
+                </tr>
+            </ng-template>
+
+            <ng-template #body let-item>
+                <tr>
+                    <td><p-tag [value]="item.type || 'Activity'" severity="info"></p-tag></td>
+                    <td>{{ item.label || '-' }}</td>
+                    <td>{{ item.occurredAt | date: 'yyyy-MM-dd HH:mm' }}</td>
+                </tr>
+            </ng-template>
+
+            <ng-template #emptymessage>
+                <tr>
+                    <td colspan="3">No activity found.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    }
+</p-card>

@@ -1,0 +1,28 @@
+@if (alerts.length) {
+    <p-card styleClass="alerts-banner {{ hasHighSeverity ? 'alerts-banner-danger' : 'alerts-banner-info' }}">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div class="alerts-icon">
+                    <i class="pi" [ngClass]="hasHighSeverity ? 'pi-exclamation-triangle' : 'pi-info-circle'"></i>
+                </div>
+
+                <div>
+                    <div class="text-lg font-extrabold">
+                        {{ urgentCount ? urgentCount + ' urgent alert(s)' : alerts.length + ' dashboard alert(s)' }}
+                    </div>
+
+                    <div class="flex flex-col gap-1 mt-2">
+                        @for (alert of visibleAlerts; track alert.code) {
+                            <div class="flex flex-wrap items-center gap-2 text-sm">
+                                <p-tag [value]="alert.severity || 'INFO'" [severity]="getAlertSeverity(alert.severity)"></p-tag>
+                                <span>{{ alert.message }}</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <p-button label="View Alerts" icon="pi pi-arrow-right" [severity]="hasHighSeverity ? 'danger' : 'info'" (onClick)="openAlerts.emit()"></p-button>
+        </div>
+    </p-card>
+}

@@ -1,5 +1,5 @@
 import { SubscribersComponent } from '@/modules/generator-owner/subscribers/subscribers.component';
-import { DashboardComponent } from '@/modules/generator-owner/dashboard/dashboard.component';
+import { DashboardV2Component } from '@/modules/generator-owner/dashboard-v2/dashboard-v2.component';
 import { Routes } from '@angular/router';
 import { GENERATOR_OWNER_MENU } from '@/modules/generator-owner/generator-owner.menu';
 import { GeneratorsComponent } from '@/modules/generator-owner/generators/generators.component';
@@ -8,23 +8,15 @@ import { ProfileComponent } from '@/modules/generator-owner/profile/profile.comp
 import { BillCollectorComponent } from '@/modules/generator-owner/bill-collector/bill-collector.component';
 import { SmsTemplatesComponent } from '@/modules/generator-owner/sms-templates/sms-templates.component';
 import { BillsComponent } from '@/modules/generator-owner/bills/bills.component';
-import {
-    SubscriptionBillingModelComponent
-} from '@/modules/generator-owner/subscription-billing-model/subscription-billing-model.component';
+import { SubscriptionBillingModelComponent } from '@/modules/generator-owner/subscription-billing-model/subscription-billing-model.component';
 import { SmsCampaignsListComponent } from './sms-campaigns/sms-campaigns-list/sms-campaigns-list.component';
 import { SmsCampaignDetailsComponent } from './sms-campaigns/sms-campaign-details/sms-campaign-details.component';
 import { CurrencyRatesComponent } from '@/modules/generator-owner/currency-rates/currency-rates-component';
 import { WalletComponent } from '@/modules/generator-owner/wallet/wallet-component';
 import { AnnouncementsComponent } from '@/modules/generator-owner/announcements/announcements.component';
-import {
-    KvaReadingHistoryComponent
-} from '@/modules/generator-owner/kva-reading-history/kva-reading-history.component';
-import {
-    SmsCampaignCreateComponent
-} from '@/modules/generator-owner/sms-campaigns/sms-campaign-create/sms-campaign-create.component';
-import {
-    SubscriberAddressesComponent
-} from '@/modules/generator-owner/subscriber-addresses/subscriber-addresses.component';
+import { KvaReadingHistoryComponent } from '@/modules/generator-owner/kva-reading-history/kva-reading-history.component';
+import { SmsCampaignCreateComponent } from '@/modules/generator-owner/sms-campaigns/sms-campaign-create/sms-campaign-create.component';
+import { SubscriberAddressesComponent } from '@/modules/generator-owner/subscriber-addresses/subscriber-addresses.component';
 import { BillCollectionsComponent } from '@/modules/generator-owner/bills/bill-collections/bill-collections.component';
 import { GeneratorOwnerDocsComponent } from '@/modules/generator-owner/docs/generator-owner-docs.component';
 
@@ -36,7 +28,7 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             profileMenu: GENERATOR_OWNER_PROFILE_MENU
         },
         children: [
-            { path: 'dashboard', component: DashboardComponent, data: { screenName: 'Generator Owner - Dashboard' } },
+            { path: 'dashboard', component: DashboardV2Component, data: { screenName: 'Generator Owner - Dashboard' } },
             { path: 'sms-campaigns', component: SmsCampaignsListComponent, data: { screenName: 'Generator Owner - SMS Campaigns' } },
             { path: 'sms-campaigns/:id', component: SmsCampaignDetailsComponent, data: { screenName: 'Generator Owner - SMS Campaign Details' } },
             { path: 'sms-campaigns-create', component: SmsCampaignCreateComponent, data: { screenName: 'Generator Owner - Create SMS Campaign' } },

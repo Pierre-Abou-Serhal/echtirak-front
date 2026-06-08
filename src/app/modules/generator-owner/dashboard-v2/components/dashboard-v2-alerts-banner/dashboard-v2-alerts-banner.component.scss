@@ -1,0 +1,38 @@
+:host {
+    display: block;
+}
+
+:host ::ng-deep .alerts-banner .p-card-body {
+    padding: 1rem 1.25rem;
+}
+
+:host ::ng-deep .alerts-banner-danger {
+    border: 1px solid color-mix(in srgb, var(--p-red-500, #ef4444) 45%, transparent);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--p-red-500, #ef4444) 12%, transparent), var(--surface-card));
+}
+
+:host ::ng-deep .alerts-banner-info {
+    border: 1px solid color-mix(in srgb, var(--p-blue-500, #3b82f6) 35%, transparent);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--p-blue-500, #3b82f6) 10%, transparent), var(--surface-card));
+}
+
+.alerts-icon {
+    align-items: center;
+    border-radius: 999px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 1.25rem;
+    height: 2.75rem;
+    justify-content: center;
+    width: 2.75rem;
+}
+
+:host ::ng-deep .alerts-banner-danger .alerts-icon {
+    background: color-mix(in srgb, var(--p-red-500, #ef4444) 16%, transparent);
+    color: var(--p-red-600, #dc2626);
+}
+
+:host ::ng-deep .alerts-banner-info .alerts-icon {
+    background: color-mix(in srgb, var(--p-blue-500, #3b82f6) 16%, transparent);
+    color: var(--p-blue-600, #2563eb);
+}

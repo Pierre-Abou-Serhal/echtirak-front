@@ -1,0 +1,20 @@
+<p-card header="Alerts">
+    @if (loading && !alerts.length) {
+        <p-skeleton height="14rem" borderRadius="0.75rem"></p-skeleton>
+    } @else if (!rows.length) {
+        <p-message severity="success" text="No alerts requiring attention."></p-message>
+    } @else {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            @for (alert of rows; track alert.code) {
+                <div class="alert-card alert-{{ getAlertSeverity(alert.severity) }}">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <div class="font-bold">{{ alert.code || 'Alert' }}</div>
+                        <p-tag [value]="alert.severity || 'INFO'" [severity]="getAlertSeverity(alert.severity)"></p-tag>
+                    </div>
+                    <div class="text-sm text-color-secondary">{{ alert.message || '-' }}</div>
+                    <div class="text-lg font-extrabold mt-3">{{ formatNumber(alert.metric) }}</div>
+                </div>
+            }
+        </div>
+    }
+</p-card>

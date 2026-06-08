@@ -1,0 +1,21 @@
+:host {
+    display: block;
+}
+.collection-tile,
+.progress-box {
+    border: 1px solid var(--surface-border);
+    border-radius: 0.85rem;
+    padding: 1rem;
+}
+.collection-success {
+    background: color-mix(in srgb, var(--p-green-500, #22c55e) 8%, transparent);
+}
+.collection-info {
+    background: color-mix(in srgb, var(--p-blue-500, #3b82f6) 8%, transparent);
+}
+.collection-warn {
+    background: color-mix(in srgb, var(--p-yellow-500, #eab308) 10%, transparent);
+}
+.collection-danger {
+    background: color-mix(in srgb, var(--p-red-500, #ef4444) 8%, transparent);
+}

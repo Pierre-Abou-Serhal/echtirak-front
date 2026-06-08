@@ -1,0 +1,22 @@
+:host {
+    display: block;
+}
+.alert-card {
+    border: 1px solid var(--surface-border);
+    border-radius: 0.85rem;
+    padding: 1rem;
+}
+.alert-danger {
+    border-color: color-mix(in srgb, var(--p-red-500, #ef4444) 45%, var(--surface-border));
+    background: color-mix(in srgb, var(--p-red-500, #ef4444) 8%, transparent);
+}
+.alert-warn {
+    border-color: color-mix(in srgb, var(--p-yellow-500, #eab308) 45%, var(--surface-border));
+    background: color-mix(in srgb, var(--p-yellow-500, #eab308) 9%, transparent);
+}
+.alert-info {
+    border-color: color-mix(in srgb, var(--p-blue-500, #3b82f6) 35%, var(--surface-border));
+}
+.alert-success {
+    border-color: color-mix(in srgb, var(--p-green-500, #22c55e) 35%, var(--surface-border));
+}

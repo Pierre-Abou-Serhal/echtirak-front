@@ -380,8 +380,12 @@ export class GeneratorOwnerService {
         });
     }
 
-    public getBulkBillReport(request: GetBulkBillReportRequest) {
-        return this.apiService.postBlob('/GeneratorOwner/Bills/Report/Bulk', request);
+    public getBulkBillReport(request: GetBulkBillReportRequest, onlyExtension: boolean) {
+        const params = this.apiService.buildParams({ onlyExtension });
+
+        return this.apiService.postBlob('/GeneratorOwner/Bills/Report/Bulk', request, {
+            params
+        });
     }
 
     // Dashboard V2

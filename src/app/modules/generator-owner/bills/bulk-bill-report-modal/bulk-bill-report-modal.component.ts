@@ -24,6 +24,7 @@ import { GetBillsByPeriodStatusQueryParam, GetBulkBillReportRequest } from '@/co
 import { GetBillsByPeriodStatusResponse } from '@/core/services/api/response';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
+import { Checkbox } from 'primeng/checkbox';
 
 export function getBillYearMonth(billPeriod: Date | null): { billYear: string; billMonth: string } | null {
     if (!billPeriod) return null;
@@ -37,7 +38,7 @@ export function getBillYearMonth(billPeriod: Date | null): { billYear: string; b
 @Component({
     selector: 'app-bulk-bill-report-modal',
     standalone: true,
-    imports: [FormsModule, Dialog, Button, ButtonDirective, DatePicker, Select, TableModule, Tag, DatePipe, DecimalPipe, CurrencyPipe, NgClass, Tooltip, InputText, IconField, InputIcon],
+    imports: [FormsModule, Dialog, Button, ButtonDirective, DatePicker, Select, TableModule, Tag, DatePipe, DecimalPipe, CurrencyPipe, NgClass, Tooltip, InputText, IconField, InputIcon, Checkbox],
     templateUrl: './bulk-bill-report-modal.component.html'
 })
 export class BulkBillReportModalComponent {
@@ -82,6 +83,8 @@ export class BulkBillReportModalComponent {
     private expandedExtraFees = new Set<number>();
 
     keyword = '';
+
+    onlyExtension: boolean = false;
 
     onDialogShow(): void {
         this.setDefaultDates();
@@ -207,7 +210,7 @@ export class BulkBillReportModalComponent {
         this.printing = true;
 
         this.generatorOwnerService
-            .getBulkBillReport(request)
+            .getBulkBillReport(request, this.onlyExtension)
             .pipe(finalize(() => (this.printing = false)))
             .subscribe({
                 next: (response: Blob | { body?: Blob | null }) => {

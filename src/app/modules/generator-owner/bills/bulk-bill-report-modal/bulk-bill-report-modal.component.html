@@ -114,7 +114,11 @@
                         }
                     </div>
 
-                    <div class="flex gap-2 justify-end">
+                    <div class="flex gap-2 justify-end items-center">
+
+                        <p-checkbox inputId="extensionsOnlyCheck" [binary]="true" [(ngModel)]="onlyExtension" />
+                        <label for="extensionsOnlyCheck" class="ml-2"> Extensions Only </label>
+
                         <p-button
                             label="Reload"
                             icon="pi pi-refresh"
