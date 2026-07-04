@@ -674,14 +674,14 @@ export class ExpensesFinancesComponent implements OnInit {
     }
 
     private ensureDayDetailDataFor(targetIndex: number): void {
-        if (targetIndex < this.dayDetailTransactions.length) return;
+        if (targetIndex <= this.dayDetailTransactions.length) return;
         if (!this.hasMoreDayDetailFromServer || this.isDayDetailLoadingMore) return;
 
-        const nextPageNumber = this.currentDayDetailApiPage < 0 ? 0 : this.currentDayDetailApiPage + 1;
+        const nextPageNumber = this.currentDayDetailApiPage < 1 ? 1 : this.currentDayDetailApiPage + 1;
 
         this.fetchFinanceDayDetailPage(nextPageNumber).subscribe({
             next: () => {
-                if (targetIndex >= this.dayDetailTransactions.length && this.hasMoreDayDetailFromServer) {
+                if (targetIndex > this.dayDetailTransactions.length && this.hasMoreDayDetailFromServer) {
                     this.ensureDayDetailDataFor(targetIndex);
                 }
             },
@@ -721,9 +721,9 @@ export class ExpensesFinancesComponent implements OnInit {
     }
 
     isDayDetailLastPage(): boolean {
-        const atEndOfLoadedData = this.dayDetailFirst + this.dayDetailRows >= this.dayDetailTransactions.length;
+        if (!this.dayDetailTotalRecords) return true;
 
-        return atEndOfLoadedData && !this.hasMoreDayDetailFromServer;
+        return this.dayDetailFirst + this.dayDetailRows >= this.dayDetailTotalRecords;
     }
 
     isDayDetailFirstPage(): boolean {
@@ -851,5 +851,9 @@ export class ExpensesFinancesComponent implements OnInit {
         const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
         return { from, to };
+    }
+
+    get visibleDayDetailTransactions(): FinanceTransaction[] {
+        return this.dayDetailTransactions.slice(this.dayDetailFirst, this.dayDetailFirst + this.dayDetailRows);
     }
 }

@@ -25,7 +25,8 @@ import {
     Expense,
     FinanceDaySummary,
     FinanceDayDetailSummary,
-    FinanceTransaction
+    FinanceTransaction,
+    BuildingBox
 } from '@/core/models/model';
 import {
     SubscriberAddress,
@@ -44,7 +45,8 @@ import {
     DashboardBillCollectorBreakdown,
     DashboardCollectionChannelSplit,
     DashboardTopDebtor,
-    DashboardAccounting
+    DashboardAccounting,
+    AddressHint
 } from '@/core/dtos/dto';
 
 // Auth Response
@@ -426,7 +428,7 @@ export interface GetBillsForSmsResponse {
 }
 
 export interface GetAddressHintsResponse {
-    hints: SubscriberAddress[];
+    hints: AddressHint[];
 }
 
 export interface GetCountriesResponse {
@@ -442,7 +444,7 @@ export interface GetStreetsResponse {
 }
 
 export interface GetBuildingsResponse {
-    values: string[];
+    items: BuildingBox[];
 }
 
 export interface GetExtraFeesResponse {
@@ -1003,3 +1005,66 @@ export interface DashboardV2TopDebtorsResponse {
 }
 
 export interface DashboardV2AlertsResponse extends DashboardV2Alert {}
+
+// Building Boxes
+export interface GetSubscribersByBuildingBoxTokenResponse {
+    box: BuildingBox;
+    subscribers: Subscriber[];
+}
+
+export interface UpdateSubscriberBuildingBoxOrderResponse {
+    updatedCount: number;
+    subscribers: Subscriber[];
+}
+
+export interface BulkKvaReadingResponse {
+    boxImage: boolean;
+    submittedCount: number;
+    successCount: number;
+    failureCount: number;
+    sharedImageUrl?: string | null;
+    results: BulkKvaReadingResult[];
+}
+
+export interface BulkKvaReadingResult {
+    subscriberId: number;
+    success: boolean;
+    reading?: BulkKvaReadingReading | null;
+    errorMessage?: string | null;
+}
+
+export interface BulkKvaReadingReading {
+    id: number;
+    billCollectorUserId: number;
+    subscriberId: number;
+    subscriberFirstName: string;
+    subscriberLastName: string;
+    subscriberPhoneNumber: string;
+
+    address?: SubscriberAddress | null;
+
+    addressCountry: string;
+    addressCity: string;
+    addressStreet: string;
+    addressBuilding: string;
+    addressFloor: string;
+
+    electricMeterNumber: string;
+
+    generatorId: number;
+    generatorCode: string;
+
+    kvaReading: number;
+    kvaPrevious: number;
+    kvaCurrent: number;
+    kvaReadingUrl?: string | null;
+
+    status: string;
+    statusDomain: string;
+
+    createdAt: string;
+    createdBy: string;
+
+    modifiedAt?: string | null;
+    modifiedBy?: string | null;
+}

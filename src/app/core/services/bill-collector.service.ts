@@ -1,8 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
-import { GetBillCollectionsQueryParam, GetSubscribersQueryParams, ScanBillBarcodeRequest, UpsertKVAReadingRequest } from '@/core/services/api/request';
+import { BulkKvaReadingRequest, GetBillCollectionsQueryParam, GetSubscribersQueryParams, ScanBillBarcodeRequest, UpdateSubscriberBuildingBoxOrderRequest, UpsertKVAReadingRequest } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
-import { BCGetBillCollectionsResponse, GetKvaReadingPerBillCollectorResponse, GetSubscribersResponse, ScanBillBarcodeResponse, UpsertKVAReadingResponse } from '@/core/services/api/response';
+import {
+    BCGetBillCollectionsResponse,
+    BulkKvaReadingResponse,
+    GetKvaReadingPerBillCollectorResponse,
+    GetSubscribersByBuildingBoxTokenResponse,
+    GetSubscribersResponse,
+    ScanBillBarcodeResponse,
+    UpdateSubscriberBuildingBoxOrderResponse,
+    UpsertKVAReadingResponse
+} from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
 export class BillCollectorService {
@@ -47,5 +56,35 @@ export class BillCollectorService {
         return this.apiService.get<BCGetBillCollectionsResponse>(`/BillCollector/BillCollections`, {
             params: params
         });
+    }
+
+    // Building Boxes
+    public getSubscribersByBuildingBoxToken(token: string): Observable<GetSubscribersByBuildingBoxTokenResponse> {
+        return this.apiService.get<GetSubscribersByBuildingBoxTokenResponse>(`/BillCollector/building-boxes/${token}/subscribers`);
+    }
+
+    public updateSubscriberBuildingBoxOrder(token: string, request: UpdateSubscriberBuildingBoxOrderRequest): Observable<UpdateSubscriberBuildingBoxOrderResponse> {
+        return this.apiService.put<UpdateSubscriberBuildingBoxOrderResponse>(`/BillCollector/building-boxes/${token}/subscriber-order`, request);
+    }
+
+    public bulkKvaReadings(token: string, request: BulkKvaReadingRequest): Observable<BulkKvaReadingResponse> {
+        const form = new FormData();
+
+        form.append('boxImage', String(request.boxImage));
+
+        if (request.boxImage && request.boxImageFile) {
+            form.append('boxImageFile', request.boxImageFile, request.boxImageFile.name);
+        }
+
+        request.kvaReadings.forEach((reading, index) => {
+            form.append(`KvaReading[${index}].SubscriberId`, String(reading.subscriberId));
+            form.append(`KvaReading[${index}].Reading`, String(reading.reading));
+
+            if (!request.boxImage && reading.picture) {
+                form.append(`KvaReading[${index}].Picture`, reading.picture, reading.picture.name);
+            }
+        });
+
+        return this.apiService.post<BulkKvaReadingResponse>(`/BillCollector/building-boxes/${token}/kva-readings/bulk`, form);
     }
 }

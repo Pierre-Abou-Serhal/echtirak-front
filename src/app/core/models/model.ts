@@ -37,6 +37,10 @@ export class Subscriber {
     publicViewUrl?: string;
     subscriberBillCode?: string;
     extraFees?: ExtraFee[];
+    boxSortOrder?: number | null = null;
+    pendingReadingId?: number | null = null;
+    pendingKvaReading?: number | null = null;
+    pendingReadingStatus?: string | null = null;
 }
 
 // TODO: `capacityUnit` is mandatory if `capacity` is provided
@@ -412,4 +416,14 @@ export interface BillCollection {
     statusCode: string;
     collectionStatus: string;
     createdAt: string;
+}
+
+export interface BuildingBox {
+    qrToken: string;
+    country: string;
+    city: string;
+    street: string;
+    building: string;
+    meteredSubscriberCount: number;
+    pendingReadingsCount: number;
 }

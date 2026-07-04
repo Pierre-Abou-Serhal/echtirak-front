@@ -5,7 +5,7 @@ import { IconField } from 'primeng/iconfield';
 import { FormsModule } from '@angular/forms';
 import { Button, ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { ExtraFee, Forecast, Generator, Lookup, Subscriber, SubscriptionBillingModel } from '@/core/models/model';
+import { BuildingBox, ExtraFee, Forecast, Generator, Lookup, Subscriber, SubscriptionBillingModel } from '@/core/models/model';
 import { GeneratorOwnerService } from '@/core/services/generator-owner.service';
 import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -1053,7 +1053,7 @@ export class SubscribersComponent implements OnInit {
             .pipe(finalize(() => (this.buildingLoading = false)))
             .subscribe({
                 next: (res) => {
-                    const values = res.values ?? [];
+                    const values = res.items.map((buildingItem: BuildingBox) => buildingItem.building) ?? [];
                     this.buildingsCacheByKey.set(key, values);
                     this.buildingSuggestions = this.filterValues(values, q);
                 },
@@ -1404,7 +1404,7 @@ export class SubscribersComponent implements OnInit {
             .pipe(finalize(() => (this.qrBuildingLoading = false)))
             .subscribe({
                 next: (res) => {
-                    const values = res.values ?? [];
+                    const values = res.items.map((buildingItem: BuildingBox) => buildingItem.building) ?? [];
                     this.buildingsCacheByKey.set(key, values);
                     this.qrBuildingSuggestions = this.filterValues(values, q);
                 },

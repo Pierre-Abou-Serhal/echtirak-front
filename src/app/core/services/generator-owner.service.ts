@@ -45,7 +45,9 @@ import {
     PayBillsInBulkRequest,
     GetBillsByPeriodStatusQueryParam,
     GetBulkBillReportRequest,
-    DashboardV2FilterRequest
+    DashboardV2FilterRequest,
+    UpdateSubscriberBuildingBoxOrderRequest,
+    GetBuildingBoxQrCodeRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -110,7 +112,9 @@ import {
     DashboardV2TopDebtorsResponse,
     DashboardV2AlertsResponse,
     DashboardV2OverviewResponse,
-    DashboardV2SubscribersResponse
+    DashboardV2SubscribersResponse,
+    GetSubscribersByBuildingBoxTokenResponse,
+    UpdateSubscriberBuildingBoxOrderResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -494,5 +498,27 @@ export class GeneratorOwnerService {
 
     public dashboardV2Alerts(request: DashboardV2FilterRequest): Observable<DashboardV2AlertsResponse[]> {
         return this.apiService.post<DashboardV2AlertsResponse[]>(`/go/dashboard/alerts`, request);
+    }
+
+    // Building Boxes
+    public getSubscribersByBuildingBoxToken(token: string): Observable<GetSubscribersByBuildingBoxTokenResponse> {
+        return this.apiService.get<GetSubscribersByBuildingBoxTokenResponse>(`/GeneratorOwner/building-boxes/${token}/subscribers`);
+    }
+
+    public updateSubscriberBuildingBoxOrder(token: string, request: UpdateSubscriberBuildingBoxOrderRequest): Observable<UpdateSubscriberBuildingBoxOrderResponse> {
+        return this.apiService.put<UpdateSubscriberBuildingBoxOrderResponse>(`/GeneratorOwner/building-boxes/${token}/subscriber-order`, request);
+    }
+
+    public getBuildingBoxQrCode(token: string): Observable<Blob> {
+        const path = `/GeneratorOwner/building-boxes/${token}/QrCode`;
+        return this.apiService.getBlob(path);
+    }
+
+    public getBuildingBoxQrCodePdf(request: GetBuildingBoxQrCodeRequest) {
+        return this.apiService.postBlob('/GeneratorOwner/building-boxes/QrCodePdf', request);
+    }
+
+    public getBuildingBoxQrCodeZip(request: GetBuildingBoxQrCodeRequest) {
+        return this.apiService.postBlob('/GeneratorOwner/building-boxes/QrCodeZip', request);
     }
 }

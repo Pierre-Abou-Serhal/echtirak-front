@@ -1,0 +1,316 @@
+<p-dialog
+    [(visible)]="visible"
+    header="Building Box"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '1500px', maxWidth: '97vw' }"
+    [breakpoints]="{ '1200px': '94vw', '960px': '96vw', '640px': '98vw' }"
+    (onShow)="onDialogShow()"
+    (onHide)="close()"
+>
+    <ng-template #content>
+        <div class="building-box-modal">
+
+            <div class="box-header">
+                @if (loading && !box) {
+                    <div class="w-full">
+                        <p-skeleton height="5rem" borderRadius="1rem"></p-skeleton>
+                    </div>
+                } @else if (box) {
+                    <div class="box-info">
+                        <div class="box-icon">
+                            <i class="pi pi-box"></i>
+                        </div>
+
+                        <div class="min-w-0">
+                            <div class="text-xl font-extrabold">
+                                {{ box.city }}, {{ box.street }}, {{ box.building }}
+                            </div>
+
+                            <div class="text-sm text-color-secondary mt-1">
+                                {{ box.country }}
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <p-tag
+                                    severity="secondary"
+                                    [value]="subscribers.length + ' total subscriber(s)'"
+                                ></p-tag>
+
+                                <p-tag
+                                    [severity]="box.pendingReadingsCount > 0 ? 'warn' : 'success'"
+                                    [value]="box.pendingReadingsCount + ' pending reading(s)'"
+                                ></p-tag>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box-actions">
+                        <p-button
+                            label="Download QR"
+                            icon="pi pi-qrcode"
+                            outlined
+                            [loading]="downloadingQr"
+                            (click)="downloadQrCode()"
+                        ></p-button>
+
+                        <p-button
+                            icon="pi pi-refresh"
+                            severity="secondary"
+                            text
+                            pTooltip="Reload box subscribers"
+                            tooltipPosition="top"
+                            [disabled]="loading || savingOrder"
+                            (click)="loadBox()"
+                        ></p-button>
+                    </div>
+                }
+            </div>
+
+            <div class="toolbar flex items-center justify-between gap-4 flex-wrap">
+                <p-iconfield
+                    iconPosition="left"
+                    class="w-full md:flex-1 md:min-w-[360px] md:max-w-[900px]"
+                >
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+
+                    <input
+                        pInputText
+                        type="text"
+                        class="w-full"
+                        [(ngModel)]="keyword"
+                        placeholder="Search by subscriber, phone, meter, or generator"
+                    />
+                </p-iconfield>
+
+                <div class="w-full md:flex-1 md:min-w-[320px] flex md:justify-end">
+                    @if (keyword.trim()) {
+                        <p-message
+                            severity="info"
+                            text="Clear search to swap subscribers."
+                        ></p-message>
+                    } @else {
+                        <span class="text-sm text-color-secondary">
+                Drag a subscriber onto another slot to swap their physical meter positions.
+            </span>
+                    }
+                </div>
+            </div>
+
+            @if (dirty) {
+                <p-message
+                    severity="warn"
+                    text="You changed the slot order. Click Save Order to apply the new box sort order."
+                ></p-message>
+            }
+
+            @if (loading && !hasSubscribers) {
+                <div class="box-slot-grid">
+                    @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+                        <p-skeleton height="10rem" borderRadius="1rem"></p-skeleton>
+                    }
+                </div>
+            } @else if (!loading && !hasSubscribers) {
+                <div class="empty-state">
+                    <i class="pi pi-inbox"></i>
+                    <div class="font-bold mt-3">No subscribers in this box</div>
+                    <div class="text-sm text-color-secondary mt-1">
+                        This building box does not contain any subscriber yet.
+                    </div>
+                </div>
+            } @else {
+                <div class="box-slot-grid">
+                    @for (view of displayedSlotViews; track view.index) {
+                        @let subscriber = view.subscriber;
+
+                        <div
+                            class="meter-slot"
+                            cdkDropList
+                            [id]="getSlotDropListId(view.index)"
+                            [cdkDropListData]="view.index"
+                            [cdkDropListConnectedTo]="dropListIds"
+                            [cdkDropListDisabled]="reorderDisabled"
+                            [cdkDropListSortingDisabled]="true"
+                            (cdkDropListDropped)="dropInSlot($event, view.index)"
+                        >
+                            <div class="slot-header">
+                                <span>Slot {{ view.index + 1 }}</span>
+
+                                <span class="slot-meter">
+                                    {{ subscriber.electricMeterNumber || 'No meter #' }}
+                                </span>
+                            </div>
+
+                            <div
+                                class="subscriber-card"
+                                cdkDrag
+                                [cdkDragData]="subscriber"
+                                [cdkDragDisabled]="reorderDisabled"
+                            >
+                                <div class="drag-placeholder" *cdkDragPlaceholder></div>
+
+                                <div class="subscriber-card-inner">
+
+                                    <div class="order-column">
+                                        <button
+                                            type="button"
+                                            class="drag-handle"
+                                            cdkDragHandle
+                                            [disabled]="reorderDisabled"
+                                            pTooltip="Drag to swap slot"
+                                            tooltipPosition="top"
+                                        >
+                                            <i class="pi pi-arrows-alt"></i>
+                                        </button>
+
+                                        <div class="order-number">
+                                            {{ view.index + 1 }}
+                                        </div>
+
+                                        <div class="move-buttons">
+                                            <p-button
+                                                icon="pi pi-chevron-up"
+                                                size="small"
+                                                text
+                                                [disabled]="reorderDisabled || view.index === 0"
+                                                (click)="moveSubscriber(view.index, -1)"
+                                            ></p-button>
+
+                                            <p-button
+                                                icon="pi pi-chevron-down"
+                                                size="small"
+                                                text
+                                                [disabled]="reorderDisabled || view.index === subscribers.length - 1"
+                                                (click)="moveSubscriber(view.index, 1)"
+                                            ></p-button>
+                                        </div>
+                                    </div>
+
+                                    <div class="subscriber-main">
+                                        <div class="subscriber-title-row">
+                                            <div class="min-w-0">
+                                                <div class="subscriber-name">
+                                                    {{ getSubscriberName(subscriber) }}
+                                                </div>
+
+                                                <div class="subscriber-subtitle">
+                                                    {{ getSubscriberAddress(subscriber) || 'No address' }}
+                                                </div>
+                                            </div>
+
+                                            <div class="tags">
+                                                <p-tag
+                                                    [value]="subscriber.billingModel || 'N/A'"
+                                                    [severity]="getBillingSeverity(subscriber.billingModel)"
+                                                ></p-tag>
+
+                                                @if (subscriber.pendingReadingStatus) {
+                                                    <p-tag
+                                                        [value]="subscriber.pendingReadingStatus"
+                                                        [severity]="getReadingStatusSeverity(subscriber.pendingReadingStatus)"
+                                                    ></p-tag>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div class="subscriber-details">
+                                            <div class="detail">
+                                                <span>Phone</span>
+                                                <strong>{{ (subscriber.phoneNumber || '—') | lbPhone }}</strong>
+                                            </div>
+
+                                            <div class="detail">
+                                                <span>Meter #</span>
+                                                <strong>{{ subscriber.electricMeterNumber || '—' }}</strong>
+                                            </div>
+
+                                            <div class="detail">
+                                                <span>Generator</span>
+                                                <strong>{{ subscriber.generatorCode || '—' }}</strong>
+                                            </div>
+
+                                            <div class="detail">
+                                                <span>Previous KWH</span>
+                                                <strong>{{ subscriber.previousKva | number:'1.0-4' }}</strong>
+                                            </div>
+
+                                            <div class="detail">
+                                                <span>Current KWH</span>
+                                                <strong>{{ subscriber.currentKva | number:'1.0-4' }}</strong>
+                                            </div>
+
+                                            <div class="detail">
+                                                <span>Pending Reading</span>
+                                                <strong>
+                                                    @if (subscriber.pendingKvaReading != null) {
+                                                        {{ subscriber.pendingKvaReading | number:'1.0-4' }}
+                                                    } @else {
+                                                        —
+                                                    }
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (keyword.trim() && displayedSlotViews.length === 0) {
+                    <div class="empty-state small">
+                        <i class="pi pi-search"></i>
+                        <div class="font-bold mt-3">No matching subscribers</div>
+                        <div class="text-sm text-color-secondary mt-1">
+                            Try another name, phone, meter number, or generator.
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <div class="dialog-footer">
+            <div class="text-sm text-color-secondary">
+                @if (dirty) {
+                    Unsaved slot changes
+                } @else if (hasSubscribers) {
+                    Slot order is up to date
+                }
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <p-button
+                    label="Reset"
+                    icon="pi pi-undo"
+                    severity="secondary"
+                    outlined
+                    [disabled]="loading || savingOrder || !dirty"
+                    (click)="resetOrder()"
+                ></p-button>
+
+                <p-button
+                    label="Save Order"
+                    icon="pi pi-save"
+                    severity="primary"
+                    [loading]="savingOrder"
+                    [disabled]="loading || !dirty || !!keyword.trim()"
+                    (click)="saveOrder()"
+                ></p-button>
+
+                <p-button
+                    label="Close"
+                    icon="pi pi-times"
+                    text
+                    [disabled]="savingOrder"
+                    (click)="close()"
+                ></p-button>
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>

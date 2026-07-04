@@ -662,7 +662,8 @@
         </div>
 
         <p-table
-            [value]="dayDetailTransactions"
+            [value]="visibleDayDetailTransactions"
+            [lazy]="true"
             dataKey="trxId"
             [rows]="dayDetailRows"
             [totalRecords]="dayDetailTotalRecords"

@@ -1,0 +1,426 @@
+<div class="bc-box-page">
+
+    <!-- Header -->
+    <div class="bc-header">
+        @if (loading && !box) {
+            <p-skeleton height="4.5rem" borderRadius="1rem"></p-skeleton>
+        } @else if (box) {
+            <div class="min-w-0">
+                <div class="box-title">
+                    {{ box.building }}
+                </div>
+
+                <div class="box-subtitle">
+                    {{ box.street }}, {{ box.city }}
+                </div>
+
+                <div class="box-tags">
+                    <p-tag severity="secondary" [value]="rows.length + ' Subscriber(s)'"></p-tag>
+                </div>
+            </div>
+
+            <p-button
+                icon="pi pi-refresh"
+                text
+                rounded
+                severity="secondary"
+                [disabled]="loading || submitting || savingOrder"
+                (click)="loadBox()"
+            ></p-button>
+        }
+    </div>
+
+    <!-- Fast Tools -->
+    <div class="fast-tools">
+        <div class="fast-search">
+            <i class="pi pi-search"></i>
+
+            <input
+                pInputText
+                type="text"
+                [(ngModel)]="keyword"
+                placeholder="Search"
+                class="w-full"
+                [disabled]="reorderMode"
+            />
+        </div>
+
+        <div class="quick-row">
+            <p-button
+                [icon]="reorderMode ? 'pi pi-pencil' : 'pi pi-sort-alt'"
+                severity="secondary"
+                outlined
+                size="small"
+                styleClass="mode-switch-button"
+                [class.is-reorder-mode]="reorderMode"
+                [disabled]="submitting || savingOrder"
+                (click)="toggleReorderMode()"
+            ></p-button>
+
+            @if (!reorderMode) {
+                <p-selectbutton
+                    [options]="photoModeOptions"
+                    [(ngModel)]="photoMode"
+                    optionLabel="label"
+                    optionValue="value"
+                    [allowEmpty]="false"
+                    class="photo-toggle"
+                    (onChange)="onPhotoModeChanged()"
+                ></p-selectbutton>
+            }
+
+            <div
+                class="mini-counter"
+                [class.has-errors]="invalidTouchedRowsCount > 0"
+            >
+                <span class="mini-counter-group mini-counter-ready">
+                    <span class="mini-counter-value">{{ readyRowsCount }}</span>
+                    <i class="pi pi-check"></i>
+                </span>
+
+                @if (invalidTouchedRowsCount > 0) {
+                    <span class="mini-counter-separator"></span>
+
+                    <span class="mini-counter-group mini-counter-invalid">
+                        <span class="mini-counter-value">{{ invalidTouchedRowsCount }}</span>
+                        <i class="pi pi-exclamation-triangle"></i>
+                    </span>
+                }
+            </div>
+        </div>
+
+        @if (!reorderMode && photoMode === 'SHARED') {
+            <div
+                class="shared-photo-compact"
+                [class.has-photo]="!!sharedImageFile"
+                [class.is-loading]="compressingSharedImage"
+            >
+                <input
+                    #sharedImageInput
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    hidden
+                    (change)="onSharedImageSelected($event)"
+                />
+
+                <button
+                    type="button"
+                    class="shared-photo-button"
+                    [class.has-photo]="!!sharedImageFile"
+                    [disabled]="compressingSharedImage || submitting"
+                    (click)="sharedImageInput.click()"
+                >
+                    @if (compressingSharedImage) {
+                        <i class="pi pi-spin pi-spinner"></i>
+                    } @else if (sharedImageFile) {
+                        <i class="pi pi-check-circle"></i>
+                    } @else {
+                        <i class="pi pi-camera"></i>
+                    }
+
+                    <span>Box Photo</span>
+                </button>
+
+                @if (sharedImagePreviewUrl) {
+                    <button
+                        type="button"
+                        class="icon-view"
+                        (click)="openImagePreview(sharedImagePreviewUrl, 'Box Photo')"
+                    >
+                        <i class="pi pi-eye"></i>
+                    </button>
+                }
+
+                @if (sharedImageFile) {
+                    <button
+                        type="button"
+                        class="icon-danger"
+                        (click)="clearSharedImage()"
+                    >
+                        <i class="pi pi-times"></i>
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    @if (orderDirty) {
+        <div class="tiny-alert warn">
+            <i class="pi pi-save"></i>
+            <span>Save order</span>
+        </div>
+    }
+
+    @if (bulkResponse) {
+        <div
+            class="tiny-alert"
+            [class.ok]="failureCount === 0"
+            [class.warn]="failureCount > 0"
+        >
+            <i [class]="failureCount === 0 ? 'pi pi-check-circle' : 'pi pi-exclamation-triangle'"></i>
+            <span>{{ successCount }} OK / {{ failureCount }} Failed</span>
+        </div>
+    }
+
+    <!-- Loading -->
+    @if (loading && rows.length === 0) {
+        <div class="meter-grid">
+            @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                <p-skeleton height="8rem" borderRadius="1rem"></p-skeleton>
+            }
+        </div>
+    }
+
+    @else if (!loading && rows.length === 0) {
+        <div class="empty-state">
+            <i class="pi pi-inbox"></i>
+            <div class="font-bold mt-3">No subscribers</div>
+        </div>
+    }
+
+    @else if (reorderMode) {
+        <div class="reorder-grid">
+            @for (row of rows; track row.subscriber.id; let i = $index) {
+                @let subscriber = row.subscriber;
+
+                <button
+                    type="button"
+                    class="reorder-tile"
+                    [class.is-selected]="selectedSwapIndex === i"
+                    [class.is-dirty]="orderDirty"
+                    (click)="onReorderTileTap(i)"
+                >
+                    <span class="reorder-number">{{ i + 1 }}</span>
+
+                    <span class="reorder-meter">
+                        {{ subscriber.electricMeterNumber || '—' }}
+                    </span>
+
+                    <span class="reorder-name">
+                        {{ getSubscriberName(subscriber) }}
+                    </span>
+                </button>
+            }
+        </div>
+    }
+
+    @else {
+        <div class="meter-grid">
+            @for (row of filteredRows; track row.subscriber.id; let i = $index) {
+                @let subscriber = row.subscriber;
+                @let state = getRowState(row);
+
+                <article
+                    class="meter-card"
+                    [class.state-empty]="state === 'empty'"
+                    [class.state-active]="state === 'active'"
+                    [class.state-ready]="state === 'ready'"
+                    [class.state-error]="state === 'error'"
+                    [class.state-saved]="state === 'saved'"
+                    [class.state-failed]="state === 'failed'"
+                >
+                    <div class="meter-card-top">
+                        <div class="slot-chip">
+                            {{ subscriber.boxSortOrder ?? i + 1 }}
+                        </div>
+
+                        <div class="meter-title">
+                            <strong>{{ getSubscriberName(subscriber) }}</strong>
+
+                            <div class="meter-meta-line">
+                                <span class="meter-number">
+                                    {{ subscriber.electricMeterNumber || 'No meter' }}
+                                </span>
+
+                                <span class="meter-phone">
+                                    {{ (subscriber.phoneNumber || 'No phone') | lbPhone }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="state-icon">
+                            <i [class]="getRowIcon(row)"></i>
+                        </div>
+                    </div>
+
+                    <div class="kva-context-grid">
+                        <div class="kva-context-box">
+                            <span>Previous</span>
+                            <strong>{{ subscriber.previousKva | number:'1.0-4' }}</strong>
+                        </div>
+
+                        <div class="kva-context-box">
+                            <span>Current</span>
+                            <strong>{{ getMinAllowedReading(row) | number:'1.0-4' }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="reading-fast-row">
+                        <p-floatlabel
+                            variant="on"
+                            class="reading-floatlabel"
+                        >
+                            <p-inputnumber
+                                [(ngModel)]="row.reading"
+                                [inputId]="'reading-' + subscriber.id"
+                                mode="decimal"
+                                locale="en-US"
+                                [useGrouping]="true"
+                                [minFractionDigits]="0"
+                                [maxFractionDigits]="4"
+                                [min]="0"
+                                [max]="maxReading"
+                                styleClass="reading-number"
+                                inputStyleClass="reading-input"
+                                [style]="{ width: '100%' }"
+                                (onFocus)="markRowTouched(row)"
+                                (onBlur)="blurRow(row)"
+                                (ngModelChange)="onReadingChanged(row)"
+                            ></p-inputnumber>
+
+                            <label [attr.for]="'reading-' + subscriber.id">
+                                Reading
+                            </label>
+                        </p-floatlabel>
+                    </div>
+
+                    @if (photoMode === 'PER_METER') {
+                        <div class="meter-photo-actions" [class.has-preview]="!!row.picturePreviewUrl">
+                            <input
+                                #rowImageInput
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                hidden
+                                (change)="onRowImageSelected(row, $event)"
+                            />
+
+                            <button
+                                type="button"
+                                class="photo-action-button"
+                                [class.has-photo]="!!row.picture"
+                                [disabled]="compressingRowImageSubscriberId === subscriber.id || submitting"
+                                (click)="markRowTouched(row); rowImageInput.click()"
+                            >
+                                @if (compressingRowImageSubscriberId === subscriber.id) {
+                                    <i class="pi pi-spin pi-spinner"></i>
+                                    <span>Photo</span>
+                                } @else if (row.picture) {
+                                    <i class="pi pi-check-circle"></i>
+                                    <span>Photo</span>
+                                } @else {
+                                    <i class="pi pi-camera"></i>
+                                    <span>Photo</span>
+                                }
+                            </button>
+
+                            @if (row.picturePreviewUrl) {
+                                <button
+                                    type="button"
+                                    class="icon-view"
+                                    (click)="openImagePreview(row.picturePreviewUrl, getSubscriberName(subscriber))"
+                                >
+                                    <i class="pi pi-eye"></i>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="icon-danger"
+                                    (click)="clearRowImage(row)"
+                                >
+                                    <i class="pi pi-times"></i>
+                                </button>
+                            }
+                        </div>
+                    }
+
+                    @if (row.error && row.touched) {
+                        <div class="compact-error">
+                            <i class="pi pi-exclamation-triangle"></i>
+                            <span>{{ row.error }}</span>
+                        </div>
+                    }
+                </article>
+            }
+        </div>
+
+        @if (keyword.trim() && filteredRows.length === 0) {
+            <div class="empty-state small">
+                <i class="pi pi-search"></i>
+                <div class="font-bold mt-3">No results</div>
+            </div>
+        }
+    }
+
+    <!-- Bottom Bar -->
+    <div class="bottom-action-bar compact">
+        @if (reorderMode) {
+            <p-button
+                icon="pi pi-undo"
+                severity="secondary"
+                outlined
+                [disabled]="savingOrder || !orderDirty"
+                (click)="resetOrder()"
+            ></p-button>
+
+            <div class="footer-status">
+                @if (selectedSwapIndex !== null) {
+                    <strong>#{{ selectedSwapIndex + 1 }}</strong>
+                    <span>target</span>
+                } @else {
+                    <strong>{{ rows.length }}</strong>
+                    <span>meters</span>
+                }
+            </div>
+
+            <p-button
+                label="Save"
+                icon="pi pi-save"
+                [loading]="savingOrder"
+                [disabled]="!orderDirty"
+                (click)="saveOrder()"
+            ></p-button>
+        } @else {
+            <div
+                class="footer-status"
+                [class.has-errors]="invalidTouchedRowsCount > 0"
+            >
+                <strong>{{ readyRowsCount }}</strong>
+                <span>ready</span>
+            </div>
+
+            <p-button
+                label="Submit"
+                icon="pi pi-send"
+                [loading]="submitting"
+                [disabled]="submitting"
+                (click)="submitReadings()"
+            ></p-button>
+        }
+    </div>
+
+    <!-- Image Preview -->
+    <p-dialog
+        [(visible)]="previewDialogVisible"
+        [modal]="true"
+        [draggable]="false"
+        [resizable]="false"
+        [style]="{ width: '96vw', maxWidth: '560px' }"
+        (onHide)="closeImagePreview()"
+    >
+        <ng-template pTemplate="header">
+            <div class="font-bold">
+                {{ previewImageTitle }}
+            </div>
+        </ng-template>
+
+        @if (previewImageUrl) {
+            <img
+                [src]="previewImageUrl"
+                class="preview-image"
+                alt="Preview"
+            />
+        }
+    </p-dialog>
+</div>

@@ -224,7 +224,7 @@ export interface UpsertKVAReadingRequest {
     subscriberId: number;
     kvaReading: number;
     status: string;
-    imageFile?: File;
+    imageFile?: File | null;
 }
 
 export interface GetDashboardQueryParams {
@@ -527,4 +527,34 @@ export interface DashboardV2FilterRequest {
     pageSize?: number;
     minOutstanding?: number;
     risk?: string;
+}
+
+// Building Boxes
+export interface UpdateSubscriberBuildingBoxOrderRequest {
+    items: UpdateSubscriberBuildingBoxOrderRequestItem[];
+}
+
+export interface UpdateSubscriberBuildingBoxOrderRequestItem {
+    subscriberId: number;
+    sortOrder: number;
+}
+
+export interface GetBuildingBoxQrCodeRequest {
+    generatorId?: number;
+    addressCountry?: string;
+    addressCity?: string;
+    addressStreet?: string;
+    addressBuilding?: string;
+}
+
+export interface BulkKvaReadingRequest {
+    boxImage: boolean;
+    boxImageFile?: File | null;
+    kvaReadings: BulkKvaReadingItemRequest[];
+}
+
+export interface BulkKvaReadingItemRequest {
+    subscriberId: number;
+    reading: number;
+    picture?: File | null;
 }

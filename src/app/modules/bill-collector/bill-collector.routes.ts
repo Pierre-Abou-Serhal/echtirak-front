@@ -6,6 +6,7 @@ import { AddKvaReadingComponent } from '@/modules/bill-collector/subscribers/add
 import { KvaReadingsComponent } from '@/modules/bill-collector/kva-readings/kva-readings.component';
 import { BillCollectionsComponent } from '@/modules/bill-collector/bill-collections/bill-collections.component';
 import { BillCollectorDocsComponent } from '@/modules/bill-collector/docs/bill-collector-docs.component';
+import { BuildingBoxesComponent } from '@/modules/bill-collector/building-boxes/building-boxes.component';
 
 export const BILL_COLLECTOR_ROUTES: Routes = [
     {
@@ -19,7 +20,8 @@ export const BILL_COLLECTOR_ROUTES: Routes = [
             { path: 'subscribers/add-kva-reading/:id', component: AddKvaReadingComponent, data: { screenName: 'Bill Collector - Add KWH Reading' } },
             { path: 'kva-readings', component: KvaReadingsComponent, data: { screenName: 'Bill Collector - KWH Readings' } },
             { path: 'bill-collections', component: BillCollectionsComponent, data: { screenName: 'Bill Collector - Bill Collections' } },
-            { path: 'docs', component: BillCollectorDocsComponent, data: { screenName: 'Docs' } }
+            { path: 'docs', component: BillCollectorDocsComponent, data: { screenName: 'Bill Collector - Docs' } },
+            { path: 'boxes/:token', component: BuildingBoxesComponent, data: { screenName: 'Bill Collector - Building Box' } }
         ]
     }
 ] as Routes;

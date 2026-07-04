@@ -1,13 +1,20 @@
-<div class="mb-4">
+<div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <h1 class="text-3xl font-bold">Subscriber Addresses</h1>
+
+    <p-button
+        label="Download QR Codes"
+        icon="pi pi-qrcode"
+        severity="primary"
+        (click)="openQrCodesDownloadDialog()"
+    ></p-button>
 </div>
 
 <!-- Bulk Update Panel -->
 <div class="card mb-4">
 
-    <!-- Row 1: Field to update -->
     <div class="mb-4">
         <label class="block text-sm font-semibold mb-2">Field to update</label>
+
         <p-selectbutton
             [options]="fieldOptions"
             [(ngModel)]="bulk.fieldName"
@@ -20,13 +27,12 @@
         ></p-selectbutton>
     </div>
 
-    <!-- Row 2: 5-column grid (collapses left when some fields hidden) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
 
         @if (bulk.fieldName === 'Street' || bulk.fieldName === 'Building') {
-            <!-- Context City -->
             <div>
                 <label class="block text-sm font-semibold mb-2">City (context)</label>
+
                 <p-autoComplete
                     [(ngModel)]="bulk.city"
                     [suggestions]="contextCitySuggestions"
@@ -36,11 +42,13 @@
                     placeholder="Select city"
                     class="w-full"
                     inputStyleClass="w-full"
+                    appendTo="body"
                 >
                     <ng-template #empty>
                         <div class="p-2 text-color-secondary flex items-center gap-2">
                             @if (contextCityLoading) {
-                                <i class="pi pi-spin pi-spinner"></i><span>Loading...</span>
+                                <i class="pi pi-spin pi-spinner"></i>
+                                <span>Loading...</span>
                             } @else {
                                 <span>No results</span>
                             }
@@ -51,9 +59,9 @@
         }
 
         @if (bulk.fieldName === 'Building') {
-            <!-- Context Street -->
             <div>
                 <label class="block text-sm font-semibold mb-2">Street (context)</label>
+
                 <p-autoComplete
                     [(ngModel)]="bulk.street"
                     [suggestions]="contextStreetSuggestions"
@@ -63,11 +71,13 @@
                     placeholder="Select street"
                     class="w-full"
                     inputStyleClass="w-full"
+                    appendTo="body"
                 >
                     <ng-template #empty>
                         <div class="p-2 text-color-secondary flex items-center gap-2">
                             @if (contextStreetLoading) {
-                                <i class="pi pi-spin pi-spinner"></i><span>Loading...</span>
+                                <i class="pi pi-spin pi-spinner"></i>
+                                <span>Loading...</span>
                             } @else {
                                 <span>No results</span>
                             }
@@ -77,9 +87,11 @@
             </div>
         }
 
-        <!-- Old value -->
         <div>
-            <label class="block text-sm font-semibold mb-2">Old {{bulk.fieldName}}</label>
+            <label class="block text-sm font-semibold mb-2">
+                Old {{ bulk.fieldName }}
+            </label>
+
             <p-autoComplete
                 [(ngModel)]="bulk.oldValue"
                 [suggestions]="oldValueSuggestions"
@@ -88,11 +100,13 @@
                 placeholder="Pick existing value"
                 class="w-full"
                 inputStyleClass="w-full"
+                appendTo="body"
             >
                 <ng-template #empty>
                     <div class="p-2 text-color-secondary flex items-center gap-2">
                         @if (oldValueLoading) {
-                            <i class="pi pi-spin pi-spinner"></i><span>Loading...</span>
+                            <i class="pi pi-spin pi-spinner"></i>
+                            <span>Loading...</span>
                         } @else {
                             <span>No results</span>
                         }
@@ -101,9 +115,11 @@
             </p-autoComplete>
         </div>
 
-        <!-- New value -->
         <div>
-            <label class="block text-sm font-semibold mb-2">New {{bulk.fieldName}}</label>
+            <label class="block text-sm font-semibold mb-2">
+                New {{ bulk.fieldName }}
+            </label>
+
             <input
                 pInputText
                 [(ngModel)]="bulk.newValue"
@@ -112,7 +128,6 @@
             />
         </div>
 
-        <!-- Buttons -->
         <div class="flex gap-2 justify-start">
             <p-button
                 label="Reset"
@@ -136,9 +151,7 @@
         <i class="pi pi-info-circle mr-2"></i>
         Tip: click a row in the table to auto-fill context + old value.
     </div>
-
 </div>
-
 
 <!-- Addresses Table -->
 <div class="card">
@@ -165,7 +178,7 @@
         (onRowSelect)="onRowSelect($event)"
     >
         <ng-template #caption>
-            <div class="flex justify-between items-center flex-column sm:flex-row gap-3 pb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4">
                 <div class="flex items-center gap-2">
                     <p-button
                         icon="pi pi-refresh"
@@ -184,10 +197,11 @@
                     ></button>
                 </div>
 
-                <p-iconfield iconPosition="left" class="ml-auto w-full sm:w-80">
+                <p-iconfield iconPosition="left" class="w-full sm:w-96">
                     <p-inputicon>
                         <i class="pi pi-search"></i>
                     </p-inputicon>
+
                     <input
                         #searchInput
                         pInputText
@@ -202,6 +216,8 @@
 
         <ng-template #header>
             <tr>
+                <th style="width: 5rem">Box</th>
+
                 <th pSortableColumn="city" style="min-width: 12rem">
                     <div class="flex justify-between items-center gap-2">
                         City
@@ -235,8 +251,20 @@
         <ng-template #body let-address>
             <tr
                 [pSelectableRow]="address"
-                [pRowToggler]="address"
-                class="cursor-pointer" (click)="pickAddress(address)">
+                class="cursor-pointer"
+                (click)="pickAddress(address)"
+            >
+                <td>
+                    <p-button
+                        icon="pi pi-box"
+                        styleClass="p-button-sm"
+                        severity="primary"
+                        rounded
+                        pTooltip="Open building box"
+                        tooltipPosition="top"
+                        (click)="$event.stopPropagation(); openBuildingBox(address.qrToken)"
+                    />
+                </td>
 
                 <td>{{ address.city }}</td>
                 <td>{{ address.street }}</td>
@@ -246,11 +274,224 @@
         </ng-template>
 
         <ng-template #emptymessage>
-            <tr><td colspan="7">No addresses found.</td></tr>
+            <tr>
+                <td colspan="5">No addresses found.</td>
+            </tr>
         </ng-template>
 
         <ng-template #loadingbody>
-            <tr><td colspan="7">Loading addresses data. Please wait.</td></tr>
+            <tr>
+                <td colspan="5">Loading addresses data. Please wait.</td>
+            </tr>
         </ng-template>
     </p-table>
 </div>
+
+<!-- Download QR Codes Popup -->
+<p-dialog
+    [(visible)]="displayQrCodesDownloadDialog"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '560px', maxWidth: '95vw' }"
+>
+    <ng-template pTemplate="header">
+        <div class="flex items-center gap-2">
+            <i class="pi pi-qrcode"></i>
+            <span class="font-bold">Download QR Codes</span>
+        </div>
+    </ng-template>
+
+    <div class="flex flex-col gap-4">
+
+        <div>
+            <label class="block text-sm font-semibold mb-2">
+                Download By
+            </label>
+
+            <p-select
+                [(ngModel)]="qrDownloadMode"
+                [options]="qrDownloadModeOptions"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="w-full"
+                appendTo="body"
+                (onChange)="onQrDownloadModeChanged()"
+            ></p-select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold mb-2">
+                File Type
+            </label>
+
+            <p-select
+                [(ngModel)]="qrDownloadFormat"
+                [options]="qrDownloadFormatOptions"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="w-full"
+                appendTo="body"
+            ></p-select>
+        </div>
+
+        @if (isQrDownloadGeneratorMode()) {
+            <div>
+                <label class="block text-sm font-semibold mb-2">
+                    Generator <span class="text-red-500">*</span>
+                </label>
+
+                @if (!generatorsLoading) {
+                    <p-listbox
+                        [options]="generatorOptions"
+                        [(ngModel)]="selectedGeneratorForQrDownload"
+                        optionLabel="label"
+                        optionValue="value"
+                        class="w-full"
+                        styleClass="w-full"
+                        listStyleClass="max-h-72"
+                        [invalid]="!selectedGeneratorForQrDownload"
+                    ></p-listbox>
+                } @else {
+                    <div class="flex flex-col gap-2">
+                        @for (i of [1, 2, 3, 4]; track i) {
+                            <p-skeleton height="2.75rem" borderRadius=".75rem"></p-skeleton>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        @if (isQrDownloadAddressMode()) {
+            <div class="border border-surface-200 rounded-xl p-4">
+                <div class="grid grid-cols-1 gap-3">
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">
+                            City <span class="text-red-500">*</span>
+                        </label>
+
+                        <p-autoComplete
+                            [(ngModel)]="qrAddress.city"
+                            [suggestions]="qrCitySuggestions"
+                            (completeMethod)="onQrCityComplete($event)"
+                            (onSelect)="onQrCityChanged()"
+                            (onBlur)="qrAddress.city = (qrAddress.city || '').trim()"
+                            [forceSelection]="false"
+                            [dropdown]="true"
+                            placeholder="Type city"
+                            class="w-full"
+                            inputStyleClass="w-full"
+                            appendTo="body"
+                        >
+                            <ng-template #empty>
+                                <div class="p-2 flex items-center gap-2 text-color-secondary">
+                                    @if (qrCityLoading) {
+                                        <i class="pi pi-spin pi-spinner"></i>
+                                        <span>Loading...</span>
+                                    } @else {
+                                        <span>No results found</span>
+                                    }
+                                </div>
+                            </ng-template>
+                        </p-autoComplete>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">
+                            Street
+                        </label>
+
+                        <p-autoComplete
+                            [(ngModel)]="qrAddress.street"
+                            [suggestions]="qrStreetSuggestions"
+                            (completeMethod)="onQrStreetComplete($event)"
+                            (onSelect)="onQrStreetChanged()"
+                            (onBlur)="qrAddress.street = (qrAddress.street || '').trim()"
+                            [forceSelection]="false"
+                            [dropdown]="true"
+                            placeholder="Optional: type street"
+                            class="w-full"
+                            inputStyleClass="w-full"
+                            [disabled]="!qrAddress.city"
+                            appendTo="body"
+                        >
+                            <ng-template #empty>
+                                <div class="p-2 flex items-center gap-2 text-color-secondary">
+                                    @if (qrStreetLoading) {
+                                        <i class="pi pi-spin pi-spinner"></i>
+                                        <span>Loading...</span>
+                                    } @else {
+                                        <span>No results found</span>
+                                    }
+                                </div>
+                            </ng-template>
+                        </p-autoComplete>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">
+                            Building
+                        </label>
+
+                        <p-autoComplete
+                            [(ngModel)]="qrAddress.building"
+                            [suggestions]="qrBuildingSuggestions"
+                            (completeMethod)="onQrBuildingComplete($event)"
+                            (onBlur)="onQrBuildingBlur()"
+                            [forceSelection]="false"
+                            [dropdown]="true"
+                            placeholder="Optional: type building"
+                            class="w-full"
+                            inputStyleClass="w-full"
+                            [disabled]="!qrAddress.city || !qrAddress.street"
+                            appendTo="body"
+                        >
+                            <ng-template #empty>
+                                <div class="p-2 flex items-center gap-2 text-color-secondary">
+                                    @if (qrBuildingLoading) {
+                                        <i class="pi pi-spin pi-spinner"></i>
+                                        <span>Loading...</span>
+                                    } @else {
+                                        <span>No results found</span>
+                                    }
+                                </div>
+                            </ng-template>
+                        </p-autoComplete>
+                    </div>
+
+                    <small class="text-color-secondary">
+                        You can download by city only, city + street, or city + street + building.
+                    </small>
+                </div>
+            </div>
+        }
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+            <p-button
+                label="Cancel"
+                icon="pi pi-times"
+                severity="secondary"
+                text
+                [disabled]="isDownloadingQrCodes"
+                (click)="displayQrCodesDownloadDialog = false"
+            ></p-button>
+
+            <p-button
+                label="Download"
+                icon="pi pi-download"
+                severity="primary"
+                [loading]="isDownloadingQrCodes"
+                (click)="downloadQrCodes()"
+            ></p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<app-building-box-simulator-modal
+    [(visible)]="buildingBoxDialogVisible"
+    [token]="selectedBuildingBoxToken"
+    (orderUpdated)="onBuildingBoxOrderUpdated($event)"
+></app-building-box-simulator-modal>

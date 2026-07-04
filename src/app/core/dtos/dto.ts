@@ -488,3 +488,10 @@ export interface SubscriberAddress {
     building: string;
     floor?: string;
 }
+
+export interface AddressHint extends SubscriberAddress {
+    qrToken: string;
+    meteredSubscriberCount: number;
+    activeSubscriberCount: number;
+}
+

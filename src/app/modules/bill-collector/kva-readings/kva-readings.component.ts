@@ -17,6 +17,7 @@ import { KvaReadingStatus } from '@/core/enums/enum';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Skeleton } from 'primeng/skeleton';
 import { LbPhonePipe } from '@/core/pipes/pipes';
+import { ImageCompressionService } from '@/core/services/image-compression.service';
 
 @Component({
     selector: 'app-kva-readings.component',
@@ -27,6 +28,7 @@ import { LbPhonePipe } from '@/core/pipes/pipes';
 export class KvaReadingsComponent implements OnInit {
     private readonly billCollectorService = inject(BillCollectorService);
     private readonly notificationService = inject(NotificationService);
+    private readonly imageCompressionService = inject(ImageCompressionService);
     private readonly destroyRef = inject(DestroyRef);
 
     loading = false;
@@ -40,7 +42,6 @@ export class KvaReadingsComponent implements OnInit {
     pendingCount = 0;
     skeletonItems = [1, 2, 3];
 
-    // update dialog state
     updateOpen = false;
     selected: KvaReading | null = null;
 
@@ -114,10 +115,21 @@ export class KvaReadingsComponent implements OnInit {
         this.hasExistingImage = false;
         this.clearPreviewUrl();
         this.imagePreviewUrl = null;
+        this.loadingImagePreview = false;
 
         this.updateOpen = true;
 
-        this.loadExistingReadingImage(r.id);
+        if (this.hasKvaReadingImage(r)) {
+            this.loadExistingReadingImage(r.id);
+        }
+    }
+
+    private hasKvaReadingImage(reading: KvaReading): boolean {
+        const item = reading as KvaReading & {
+            kvaReadingUrl?: string | null;
+        };
+
+        return !!item.kvaReadingUrl?.trim();
     }
 
     private loadExistingReadingImage(recordId: number): void {
@@ -125,10 +137,23 @@ export class KvaReadingsComponent implements OnInit {
 
         this.billCollectorService
             .getKvaReadingImage(recordId)
-            .pipe(finalize(() => (this.loadingImagePreview = false)))
+            .pipe(
+                finalize(() => (this.loadingImagePreview = false)),
+                takeUntilDestroyed(this.destroyRef)
+            )
             .subscribe({
                 next: (blob) => {
+                    if (!this.selected || this.selected.id !== recordId) {
+                        return;
+                    }
+
                     this.clearPreviewUrl();
+
+                    if (!blob || blob.size === 0) {
+                        this.imagePreviewUrl = null;
+                        this.hasExistingImage = false;
+                        return;
+                    }
 
                     this.previewObjectUrl = URL.createObjectURL(blob);
                     this.imagePreviewUrl = this.previewObjectUrl;
@@ -136,6 +161,7 @@ export class KvaReadingsComponent implements OnInit {
                     this.hasExistingImage = true;
                 },
                 error: () => {
+                    this.clearPreviewUrl();
                     this.imagePreviewUrl = null;
                     this.hasExistingImage = false;
                 }
@@ -156,6 +182,7 @@ export class KvaReadingsComponent implements OnInit {
         this.editKvaReading = null;
         this.imageFile = undefined;
         this.compressingImage = false;
+        this.loadingImagePreview = false;
 
         this.clearPreviewUrl();
         this.imagePreviewUrl = null;
@@ -183,7 +210,7 @@ export class KvaReadingsComponent implements OnInit {
         this.compressingImage = true;
 
         try {
-            const compressedFile = await this.compressImageToTargetSize(file, 400);
+            const compressedFile = await this.imageCompressionService.compressImageToTargetSize(file, 400);
 
             this.imageFile = compressedFile;
 
@@ -209,128 +236,6 @@ export class KvaReadingsComponent implements OnInit {
         }
     }
 
-    private async compressImageToTargetSize(file: File, targetSizeKb = 400): Promise<File> {
-        const attempts = [
-            { maxWidth: 1200, maxHeight: 1200, quality: 0.7 },
-            { maxWidth: 1000, maxHeight: 1000, quality: 0.65 },
-            { maxWidth: 900, maxHeight: 900, quality: 0.6 },
-            { maxWidth: 800, maxHeight: 800, quality: 0.55 },
-            { maxWidth: 700, maxHeight: 700, quality: 0.5 },
-            { maxWidth: 600, maxHeight: 600, quality: 0.45 }
-        ];
-
-        let bestFile = file;
-
-        for (const attempt of attempts) {
-            const compressed = await this.compressImage(file, {
-                maxWidth: attempt.maxWidth,
-                maxHeight: attempt.maxHeight,
-                quality: attempt.quality,
-                outputType: 'image/jpeg'
-            });
-
-            bestFile = compressed;
-
-            if (compressed.size / 1024 <= targetSizeKb) {
-                return compressed;
-            }
-        }
-
-        return bestFile;
-    }
-
-    private compressImage(
-        file: File,
-        options: {
-            maxWidth: number;
-            maxHeight: number;
-            quality: number;
-            outputType: 'image/jpeg' | 'image/webp';
-        }
-    ): Promise<File> {
-        return new Promise((resolve, reject) => {
-            const image = new Image();
-            const objectUrl = URL.createObjectURL(file);
-
-            image.onload = () => {
-                URL.revokeObjectURL(objectUrl);
-
-                const { width, height } = this.calculateImageSize(image.width, image.height, options.maxWidth, options.maxHeight);
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-
-                const ctx = canvas.getContext('2d');
-
-                if (!ctx) {
-                    reject(new Error('Could not create canvas context.'));
-                    return;
-                }
-
-                // White background prevents transparent PNGs from becoming black in JPEG.
-                if (options.outputType === 'image/jpeg') {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, width, height);
-                }
-
-                ctx.drawImage(image, 0, 0, width, height);
-
-                canvas.toBlob(
-                    (blob) => {
-                        if (!blob) {
-                            reject(new Error('Image compression failed.'));
-                            return;
-                        }
-
-                        const extension = options.outputType === 'image/webp' ? 'webp' : 'jpg';
-                        const fileName = this.replaceFileExtension(file.name, extension);
-
-                        const compressedFile = new File([blob], fileName, {
-                            type: options.outputType,
-                            lastModified: Date.now()
-                        });
-
-                        resolve(compressedFile);
-                    },
-                    options.outputType,
-                    options.quality
-                );
-            };
-
-            image.onerror = () => {
-                URL.revokeObjectURL(objectUrl);
-                reject(new Error('Could not load image.'));
-            };
-
-            image.src = objectUrl;
-        });
-    }
-
-    private calculateImageSize(originalWidth: number, originalHeight: number, maxWidth: number, maxHeight: number): { width: number; height: number } {
-        let width = originalWidth;
-        let height = originalHeight;
-
-        if (width <= maxWidth && height <= maxHeight) {
-            return { width, height };
-        }
-
-        const widthRatio = maxWidth / width;
-        const heightRatio = maxHeight / height;
-        const ratio = Math.min(widthRatio, heightRatio);
-
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-
-        return { width, height };
-    }
-
-    private replaceFileExtension(fileName: string, extension: string): string {
-        const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, '');
-
-        return `${nameWithoutExtension}.${extension}`;
-    }
-
     clearImage(): void {
         this.imageFile = undefined;
 
@@ -338,12 +243,13 @@ export class KvaReadingsComponent implements OnInit {
 
         this.imagePreviewUrl = null;
         this.hasExistingImage = false;
+        this.loadingImagePreview = false;
     }
 
     submitUpdate(): void {
         this.submitted = true;
 
-        if (!this.selected || !this.editKvaReadingValid() || !this.isImageValid() || this.saving || this.compressingImage) {
+        if (!this.selected || !this.editKvaReadingValid() || this.saving || this.compressingImage) {
             return;
         }
 
@@ -357,7 +263,10 @@ export class KvaReadingsComponent implements OnInit {
                 status: KvaReadingStatus.PENDING,
                 imageFile: this.imageFile
             })
-            .pipe(finalize(() => (this.saving = false)))
+            .pipe(
+                finalize(() => (this.saving = false)),
+                takeUntilDestroyed(this.destroyRef)
+            )
             .subscribe({
                 next: (res) => {
                     const updated = res?.reading;
@@ -399,10 +308,6 @@ export class KvaReadingsComponent implements OnInit {
             default:
                 return 'secondary';
         }
-    }
-
-    isImageValid(): boolean {
-        return !!this.imageFile || this.hasExistingImage;
     }
 
     protected readonly KvaReadingStatus = KvaReadingStatus;

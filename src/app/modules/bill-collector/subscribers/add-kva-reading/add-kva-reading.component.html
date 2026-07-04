@@ -133,7 +133,7 @@
 
             <!-- Image -->
             <div>
-                <label class="block text-sm font-semibold mb-2">Reading Image *</label>
+                <label class="block text-sm font-semibold mb-2">Reading Image</label>
 
                 <input
                     #cameraInput
@@ -202,10 +202,6 @@
                             ></p-button>
                         </div>
                     </div>
-                }
-
-                @if (submitted && !imageFile && !compressingImage) {
-                    <small class="text-red-500">Image is required.</small>
                 }
             </div>
 

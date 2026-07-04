@@ -27,6 +27,7 @@ import { GetSubscribersResponse } from '@/core/services/api/response';
 
 import { LbPhonePipe } from '@/core/pipes/pipes';
 import { formatSubscriberAddress } from '@/core/utils/utils';
+import { BillCollectorQrNavigationService } from '@/core/services/bill-collector-qr-navigation.service';
 
 type QrTarget = { type: 'kwh-reading'; subscriberId: number } | { type: 'bill-collection'; billId: number };
 
@@ -42,6 +43,7 @@ export class SubscribersComponent implements OnInit {
     private readonly billCollectorService = inject(BillCollectorService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly notificationService = inject(NotificationService);
+    private readonly qrNavigationService = inject(BillCollectorQrNavigationService);
     private readonly router = inject(Router);
     private readonly route = inject(ActivatedRoute);
 
@@ -178,131 +180,10 @@ export class SubscribersComponent implements OnInit {
     async onQrScanned(value: string): Promise<void> {
         this.isQrDialogOpen = false;
 
-        const target = this.parseQrTarget(value);
+        const target = await this.qrNavigationService.handleScannedValue(value);
 
         if (!target) {
-            this.notificationService.warn('Invalid QR', 'This QR code is not recognized. Please search manually.');
-            return;
-        }
-
-        if (target.type === 'kwh-reading') {
-            const isValid = await this.isParsedSubIdValid(target.subscriberId);
-
-            if (!isValid) {
-                this.notificationService.warn('Failure', 'Something went wrong reading the QR code. Try to search for subscriber manually.');
-                return;
-            }
-
-            this.router.navigate(['add-kva-reading', target.subscriberId], {
-                relativeTo: this.route
-            });
-
-            return;
-        }
-
-        if (target.type === 'bill-collection') {
-            this.router.navigate(['/app', 'bill-collector', 'bill-collections'], {
-                queryParams: {
-                    collectBillId: target.billId
-                }
-            });
-        }
-    }
-
-    private parseQrTarget(value: string): QrTarget | null {
-        const url = this.toUrl(value);
-
-        if (!url) return null;
-
-        const path = url.pathname.toLowerCase();
-
-        const subscriberId = this.getNumberQueryParam(url, ['subscriberId', 'subscriber', 'subId']) ?? (this.isKwhReadingPath(path) ? this.getLastNumberFromPath(url.pathname) : null);
-
-        if (subscriberId && this.isKwhReadingPath(path)) {
-            return {
-                type: 'kwh-reading',
-                subscriberId
-            };
-        }
-
-        const billId = this.getNumberQueryParam(url, ['collectBillId', 'billId', 'billReference']) ?? (this.isBillCollectionPath(path) ? this.getLastNumberFromPath(url.pathname) : null);
-
-        if (billId && this.isBillCollectionPath(path)) {
-            return {
-                type: 'bill-collection',
-                billId
-            };
-        }
-
-        return null;
-    }
-
-    private toUrl(value: string): URL | null {
-        const raw = (value ?? '').trim();
-
-        if (!raw) return null;
-
-        try {
-            return new URL(raw);
-        } catch {
-            try {
-                return new URL(raw, window.location.origin);
-            } catch {
-                return null;
-            }
-        }
-    }
-
-    private isKwhReadingPath(path: string): boolean {
-        return path.includes('add-kva-reading') || path.includes('kva-reading');
-    }
-
-    private isBillCollectionPath(path: string): boolean {
-        return path.includes('bill-collections') || path.includes('bill-collection');
-    }
-
-    private getNumberQueryParam(url: URL, names: string[]): number | null {
-        for (const name of names) {
-            const value = url.searchParams.get(name);
-
-            if (!value) continue;
-
-            const id = Number(value);
-
-            if (Number.isInteger(id) && id > 0) return id;
-        }
-
-        return null;
-    }
-
-    private getLastNumberFromPath(pathname: string): number | null {
-        const segments = pathname.split('/').filter(Boolean);
-
-        for (let i = segments.length - 1; i >= 0; i--) {
-            const id = Number(segments[i]);
-
-            if (Number.isInteger(id) && id > 0) return id;
-        }
-
-        return null;
-    }
-
-    private async isParsedSubIdValid(parsedSubId: number): Promise<boolean> {
-        try {
-            const res: GetSubscribersResponse = await firstValueFrom(
-                this.billCollectorService.getSubs({
-                    pageNumber: 1,
-                    pageSize: 1,
-                    keyword: parsedSubId.toString()
-                })
-            );
-
-            const items = res?.page?.items ?? [];
-
-            return items.length === 1 && items[0].id === parsedSubId;
-        } catch (error) {
-            console.error(error);
-            return false;
+            this.notificationService.warn('Invalid QR', 'This QR code is not recognized. Please try again or search manually.');
         }
     }
 
