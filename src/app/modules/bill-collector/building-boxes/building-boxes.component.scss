@@ -951,3 +951,112 @@
         grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 }
+
+.billing-period-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem 0.85rem;
+
+    border: 1px solid var(--bb-border);
+    border-radius: 1rem;
+
+    background: var(--bb-card-bg);
+    color: var(--bb-text);
+    box-shadow: var(--bb-shadow);
+
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease;
+}
+
+.billing-period-card.is-warning {
+    background: var(--bb-warning-bg);
+    border-color: var(--bb-warning-border);
+}
+
+.billing-period-main {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+}
+
+.billing-period-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.8rem;
+
+    color: var(--bb-primary);
+    background: color-mix(
+        in srgb,
+        var(--bb-primary) 12%,
+        var(--bb-card-bg)
+    );
+
+    i {
+        font-size: 1rem;
+    }
+}
+
+.billing-period-card.is-warning .billing-period-icon {
+    color: var(--bb-orange);
+    background: color-mix(
+        in srgb,
+        var(--bb-orange) 16%,
+        var(--bb-card-bg)
+    );
+}
+
+.billing-period-label {
+    color: var(--bb-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.billing-period-value {
+    margin-top: 0.15rem;
+
+    color: var(--bb-text);
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.billing-period-hint {
+    margin-top: 0.2rem;
+
+    color: var(--bb-muted);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+:host ::ng-deep .billing-period-change-button {
+    min-height: 2.35rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 420px) {
+    .billing-period-card {
+        align-items: flex-start;
+        padding: 0.7rem;
+    }
+
+    .billing-period-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+    }
+
+    :host ::ng-deep .billing-period-change-button {
+        padding-inline: 0.65rem;
+    }
+}

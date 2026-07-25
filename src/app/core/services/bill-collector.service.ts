@@ -1,6 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
-import { BulkKvaReadingRequest, GetBillCollectionsQueryParam, GetSubscribersQueryParams, ScanBillBarcodeRequest, UpdateSubscriberBuildingBoxOrderRequest, UpsertKVAReadingRequest } from '@/core/services/api/request';
+import {
+    BulkKvaReadingRequest,
+    GetBillCollectionsQueryParam,
+    GetBillCollectorBillsQueryParams,
+    GetPendingWorkQueryParams,
+    GetSubscribersQueryParams,
+    ScanBillBarcodeRequest,
+    UpdateSubscriberBuildingBoxOrderRequest,
+    UpsertKVAReadingRequest
+} from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
     BCGetBillCollectionsResponse,
@@ -10,8 +19,12 @@ import {
     GetSubscribersResponse,
     ScanBillBarcodeResponse,
     UpdateSubscriberBuildingBoxOrderResponse,
-    UpsertKVAReadingResponse
+    UpsertKVAReadingResponse,
+    NeedReading,
+    CollectionPending,
+    GetBillCollectorBillsResponse
 } from '@/core/services/api/response';
+import { PendingWorkAction } from '@/core/enums/enum';
 
 @Injectable({ providedIn: 'root' })
 export class BillCollectorService {
@@ -36,6 +49,14 @@ export class BillCollectorService {
         form.append('Status', req.status);
         if (req.imageFile) {
             form.append('ImageFile', req.imageFile, req.imageFile.name);
+        }
+
+        if (req.billYear) {
+            form.append('billYear', String(req.billYear));
+        }
+
+        if (req.billMonth) {
+            form.append('billMonth', String(req.billMonth));
         }
 
         return this.apiService.post<UpsertKVAReadingResponse>('/BillCollector/upsertKVAReading', form);
@@ -76,6 +97,14 @@ export class BillCollectorService {
             form.append('boxImageFile', request.boxImageFile, request.boxImageFile.name);
         }
 
+        if (request.billYear) {
+            form.append('billYear', String(request.billYear));
+        }
+
+        if (request.billMonth) {
+            form.append('billMonth', String(request.billMonth));
+        }
+
         request.kvaReadings.forEach((reading, index) => {
             form.append(`KvaReading[${index}].SubscriberId`, String(reading.subscriberId));
             form.append(`KvaReading[${index}].Reading`, String(reading.reading));
@@ -86,5 +115,32 @@ export class BillCollectorService {
         });
 
         return this.apiService.post<BulkKvaReadingResponse>(`/BillCollector/building-boxes/${token}/kva-readings/bulk`, form);
+    }
+
+    public getNeedReading(queryParams: GetPendingWorkQueryParams): Observable<NeedReading> {
+        queryParams.action = PendingWorkAction.NEEDS_READING;
+
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<NeedReading>('/BillCollector/PendingWork', { params: params });
+    }
+
+    public getCollectionPending(queryParams: GetPendingWorkQueryParams): Observable<CollectionPending> {
+        queryParams.action = PendingWorkAction.COLLECTION_PENDING;
+
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<CollectionPending>('/BillCollector/PendingWork', { params: params });
+    }
+
+    public getBills(queryParams: GetBillCollectorBillsQueryParams): Observable<GetBillCollectorBillsResponse> {
+        let params = this.apiService.buildParams(queryParams);
+
+        return this.apiService.get<GetBillCollectorBillsResponse>('/BillCollector/Bills', { params: params });
+    }
+
+    public getBillReport(billId: number): Observable<Blob> {
+        const path = `/BillCollector/Bills/${billId}/Report`;
+        return this.apiService.getBlob(path);
     }
 }

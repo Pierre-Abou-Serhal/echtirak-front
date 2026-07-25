@@ -1,5 +1,5 @@
 import { UserRole } from '@/core/enums/enum';
-import { Bill, SmsMessage, SmsTemplate } from '@/core/models/model';
+import { Bill, ExtraFee, KvaReading, SmsMessage, SmsTemplate } from '@/core/models/model';
 
 export interface TokenPair {
     accessToken: string;
@@ -12,6 +12,23 @@ export interface AuthSession {
     role: UserRole;
     accessToken: string;
     refreshToken: string;
+}
+
+export interface AppJwtClaims {
+    sub: string;
+    preferred_username: string;
+    jti: string;
+
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier': string;
+    'http://schemas.microsoft.com/ws/2008/06/identity/claims/role': UserRole;
+
+    user_session_id: string;
+    bc_auto_bill_on_reading?: 'true' | 'false';
+
+    nbf: number;
+    exp: number;
+    iss: string;
+    aud: string;
 }
 
 export interface SelectOptionNumValue {
@@ -495,3 +512,78 @@ export interface AddressHint extends SubscriberAddress {
     activeSubscriberCount: number;
 }
 
+export interface AssignedGenerator {
+    generatorId: number;
+    generatorCode: string;
+}
+
+export interface NeedReadingItem {
+    subscriberId: number;
+    firstName: string;
+    lastName: string;
+    generatorId: number;
+    generatorCode: string;
+    addressCountry: string;
+    addressCity: string;
+    addressStreet: string;
+    addressBuilding: string;
+    addressFloor: string;
+    pendingReadingId: number | null;
+    pendingReadingStatus: string | null;
+}
+
+export interface BillSummary {
+    id: number;
+    subscriberId: number;
+    subscriberFirstName: string;
+    subscriberLastName: string;
+    generatorOwnerUserId: number;
+    generatorId: number;
+    generatorCode: string;
+    billDate: string;
+    billYear: string;
+    billMonth: string;
+    dueDate: string;
+    amount: number;
+    currencyCode: string;
+    statusCode: string;
+    statusDescription: string;
+    subscriberPhoneNumber: string;
+    billIssuedSmsStatus: string;
+    billOverdueSmsStatus: string;
+    billPaidSmsStatus: string;
+    previousKva: number;
+    currentKva: number;
+    subscriptionAmps: number;
+    kvaFee: number;
+    subscriptionFeeVar: number;
+    subscriptionFeeFixed: number;
+    notes: string;
+    generatedFrom: number;
+    hasDuplicateBill: boolean;
+    amountPerKva: number;
+    billingModel: string;
+    billingModelName: string;
+    amountLBP: string;
+    exchangeRate: number;
+    paidAt: string;
+    billReference: number;
+    collectionStatus: string;
+    barcodeValue: string;
+    extraFees: ExtraFee[];
+    extraFeesTotal: number;
+    grandTotal: number;
+    extraFeesTotalLBP: string;
+    grandTotalLBP: string;
+}
+
+export interface UpsertKvaReadingResult {
+    readingId: number;
+    billId: number;
+    billStatus: string;
+    billCreated: boolean;
+    billAmended: boolean;
+    cancelledBillId: number;
+    cancelledReadingId: number;
+    reading: KvaReading;
+}

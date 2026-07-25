@@ -30,6 +30,67 @@
         }
     </div>
 
+    <!-- Billing Period -->
+    @if (autoBillOnReading()) {
+        <section
+            class="billing-period-card"
+            [class.is-warning]="
+            !billingPeriodService.configured() ||
+            !billingPeriodService.isCurrentMonth()
+        "
+        >
+            <div class="billing-period-main">
+                <div class="billing-period-icon">
+                    <i class="pi pi-calendar"></i>
+                </div>
+
+                <div class="min-w-0">
+                    <div class="billing-period-label">
+                        Billing Period
+                    </div>
+
+                    <div class="billing-period-value">
+                        @if (billingPeriodService.configured()) {
+                            {{ billingPeriodService.label() }}
+                        } @else {
+                            Not selected
+                        }
+                    </div>
+
+                    @if (
+                        billingPeriodService.configured() &&
+                        !billingPeriodService.isCurrentMonth()
+                        ) {
+                        <div class="billing-period-hint">
+                            This is not the current month.
+                        </div>
+                    }
+
+                    @if (!billingPeriodService.configured()) {
+                        <div class="billing-period-hint">
+                            Required before submitting readings.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <p-button
+                [label]="
+                billingPeriodService.configured()
+                    ? 'Change'
+                    : 'Set Period'
+            "
+                icon="pi pi-pencil"
+                severity="secondary"
+                outlined
+                size="small"
+                styleClass="billing-period-change-button"
+                [disabled]="submitting || savingOrder"
+                (click)="openBillingPeriodDialog()"
+            ></p-button>
+        </section>
+    }
+
     <!-- Fast Tools -->
     <div class="fast-tools">
         <div class="fast-search">

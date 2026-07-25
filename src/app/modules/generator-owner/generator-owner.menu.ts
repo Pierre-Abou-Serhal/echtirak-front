@@ -12,6 +12,7 @@ export const GENERATOR_OWNER_MENU: MenuItem[] = [
             { label: 'Billing Models', icon: 'pi pi-credit-card', routerLink: ['/app/generator-owner/subscription-billing-model'], badge: undefined },
             { label: 'Bill Collections', icon: 'pi pi-list-check', routerLink: ['/app/generator-owner/bill-collections'], badge: undefined },
             { label: 'Bills', icon: 'pi pi-money-bill', routerLink: ['/app/generator-owner/bills'], badge: undefined },
+            { label: 'Invoice Templates', icon: 'pi pi-file-arrow-up', routerLink: ['/app/generator-owner/invoice-templates'], badge: undefined },
             { label: 'Expenses & Finances', icon: 'pi pi-chart-line', routerLink: ['/app/generator-owner/expenses-finances'], badge: undefined },
             { label: 'KWH Readings', icon: 'pi pi-book', routerLink: ['/app/generator-owner/kva-reading-history'], badge: undefined },
             { label: 'SMS Templates', icon: 'pi pi-envelope', routerLink: ['/app/generator-owner/sms-templates'], badge: undefined },

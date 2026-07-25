@@ -1,0 +1,914 @@
+<div class="min-h-screen bg-surface-50 p-4 dark:bg-surface-950 lg:p-6">
+    <div class="mx-auto max-w-[1600px]">
+        <!-- Header -->
+        <header
+            class="mb-6 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between"
+        >
+            <div>
+                <h1 class="m-0 text-3xl font-bold">
+                    Invoice Templates
+                </h1>
+
+                <p
+                    class="mt-2 max-w-3xl text-color-secondary"
+                >
+                    Choose how subscriber bills are formatted,
+                    select the document language, and preview a
+                    sample before saving.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+                @if (preference && !loading) {
+                    <div
+                        class="hidden rounded-xl border border-surface-200 bg-surface-0 px-4 py-2 text-sm dark:border-surface-700 dark:bg-surface-900 md:block"
+                    >
+                        <span class="text-color-secondary">
+                            Current:
+                        </span>
+
+                        <span class="ml-1 font-semibold">
+                            {{
+                                savedTemplate?.name ||
+                                preference.billTemplateCode
+                            }}
+                        </span>
+                    </div>
+                }
+
+                <p-button
+                    label="Refresh"
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    outlined
+                    [loading]="loading"
+                    [disabled]="saving || previewing"
+                    (onClick)="loadTemplates()"
+                ></p-button>
+            </div>
+        </header>
+
+        <!-- Loading -->
+        @if (loading) {
+            <div
+                class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]"
+            >
+                <section>
+                    <div class="mb-4">
+                        <p-skeleton
+                            width="13rem"
+                            height="1.6rem"
+                        ></p-skeleton>
+
+                        <p-skeleton
+                            width="25rem"
+                            height="1rem"
+                            class="mt-2"
+                        ></p-skeleton>
+                    </div>
+
+                    <div
+                        class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3"
+                    >
+                        @for (
+                            item of skeletonTemplates;
+                            track item
+                            ) {
+                            <div
+                                class="overflow-hidden rounded-2xl border border-surface-200 bg-surface-0 dark:border-surface-700 dark:bg-surface-900"
+                            >
+                                <p-skeleton
+                                    height="13rem"
+                                    borderRadius="0"
+                                ></p-skeleton>
+
+                                <div class="p-4">
+                                    <p-skeleton
+                                        width="70%"
+                                        height="1.3rem"
+                                    ></p-skeleton>
+
+                                    <p-skeleton
+                                        width="100%"
+                                        height="0.9rem"
+                                        class="mt-3"
+                                    ></p-skeleton>
+
+                                    <p-skeleton
+                                        width="85%"
+                                        height="0.9rem"
+                                        class="mt-2"
+                                    ></p-skeleton>
+
+                                    <div
+                                        class="mt-4 flex gap-2"
+                                    >
+                                        <p-skeleton
+                                            width="5rem"
+                                            height="1.5rem"
+                                            borderRadius="999px"
+                                        ></p-skeleton>
+
+                                        <p-skeleton
+                                            width="6rem"
+                                            height="1.5rem"
+                                            borderRadius="999px"
+                                        ></p-skeleton>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <aside
+                    class="rounded-2xl border border-surface-200 bg-surface-0 p-5 dark:border-surface-700 dark:bg-surface-900"
+                >
+                    <p-skeleton
+                        width="65%"
+                        height="1.5rem"
+                    ></p-skeleton>
+
+                    <p-skeleton
+                        height="5rem"
+                        class="mt-5"
+                    ></p-skeleton>
+
+                    <p-skeleton
+                        height="4rem"
+                        class="mt-4"
+                    ></p-skeleton>
+
+                    <p-skeleton
+                        height="5rem"
+                        class="mt-4"
+                    ></p-skeleton>
+
+                    <p-skeleton
+                        height="3rem"
+                        class="mt-6"
+                    ></p-skeleton>
+
+                    <p-skeleton
+                        height="3rem"
+                        class="mt-3"
+                    ></p-skeleton>
+                </aside>
+            </div>
+        }
+
+        @else if (loadFailed) {
+            <section
+                class="rounded-2xl border border-red-200 bg-red-50 p-10 text-center dark:border-red-800 dark:bg-red-950/30"
+            >
+                <div
+                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-300"
+                >
+                    <i
+                        class="pi pi-exclamation-triangle text-2xl"
+                    ></i>
+                </div>
+
+                <h2 class="mt-4 text-xl font-bold">
+                    Could not load invoice templates
+                </h2>
+
+                <p class="mt-2 text-color-secondary">
+                    Check your connection and try again.
+                </p>
+
+                <p-button
+                    label="Try Again"
+                    icon="pi pi-refresh"
+                    class="mt-5"
+                    (onClick)="loadTemplates()"
+                ></p-button>
+            </section>
+        }
+
+        @else if (templates.length === 0) {
+            <section
+                class="rounded-2xl border border-surface-200 bg-surface-0 p-10 text-center dark:border-surface-700 dark:bg-surface-900"
+            >
+                <div
+                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-surface-100 text-color-secondary dark:bg-surface-800"
+                >
+                    <i class="pi pi-file text-2xl"></i>
+                </div>
+
+                <h2 class="mt-4 text-xl font-bold">
+                    No templates available
+                </h2>
+
+                <p class="mt-2 text-color-secondary">
+                    There are currently no invoice templates
+                    in the catalog.
+                </p>
+            </section>
+        }
+
+        @else {
+            <div
+                class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_390px]"
+            >
+                <!-- Marketplace -->
+                <main class="min-w-0">
+                    <div class="mb-4">
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-3"
+                        >
+                            <div>
+                                <h2 class="m-0 text-xl font-bold">
+                                    Template catalog
+                                </h2>
+
+                                <p
+                                    class="mt-1 text-sm text-color-secondary"
+                                >
+                                    Select a layout to configure
+                                    and preview it.
+                                </p>
+                            </div>
+
+                            <p-tag
+                                [value]="
+                                    templates.length +
+                                    ' templates'
+                                "
+                                severity="secondary"
+                                rounded
+                            ></p-tag>
+                        </div>
+                    </div>
+
+                    <div
+                        class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3"
+                    >
+                        @for (
+                            template of templates;
+                            track template.code
+                            ) {
+                            <button
+                                type="button"
+                                class="group relative overflow-hidden rounded-2xl border bg-surface-0 text-left shadow-sm transition-all duration-200 dark:bg-surface-900"
+                                [class.border-primary]="
+                                    isDraftSelected(template)
+                                "
+                                [class.ring-2]="
+                                    isDraftSelected(template)
+                                "
+                                [class.ring-primary-200]="
+                                    isDraftSelected(template)
+                                "
+                                [class.shadow-lg]="
+                                    isDraftSelected(template)
+                                "
+                                [class.border-surface-200]="
+                                    !isDraftSelected(template)
+                                "
+                                [class.dark:border-surface-700]="
+                                    !isDraftSelected(template)
+                                "
+                                [class.opacity-60]="
+                                    !template.isActive
+                                "
+                                [class.cursor-not-allowed]="
+                                    !template.isActive
+                                "
+                                [disabled]="
+                                    !template.isActive ||
+                                    saving ||
+                                    previewing
+                                "
+                                (click)="
+                                    selectTemplate(template)
+                                "
+                            >
+                                <!-- Selection indicator -->
+                                <div
+                                    class="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border shadow-sm"
+                                    [class.border-primary]="
+                                        isDraftSelected(template)
+                                    "
+                                    [class.bg-primary]="
+                                        isDraftSelected(template)
+                                    "
+                                    [class.text-primary-contrast]="
+                                        isDraftSelected(template)
+                                    "
+                                    [class.border-surface-200]="
+                                        !isDraftSelected(template)
+                                    "
+                                    [class.bg-surface-0]="
+                                        !isDraftSelected(template)
+                                    "
+                                    [class.text-color-secondary]="
+                                        !isDraftSelected(template)
+                                    "
+                                    [class.dark:border-surface-700]="
+                                        !isDraftSelected(template)
+                                    "
+                                    [class.dark:bg-surface-900]="
+                                        !isDraftSelected(template)
+                                    "
+                                >
+                                    <i
+                                        class="pi"
+                                        [class.pi-check]="
+                                            isDraftSelected(
+                                                template
+                                            )
+                                        "
+                                        [class.pi-circle]="
+                                            !isDraftSelected(
+                                                template
+                                            )
+                                        "
+                                    ></i>
+                                </div>
+
+                                <!-- Image -->
+                                <div
+                                    class="relative flex h-56 items-center justify-center overflow-hidden border-b border-surface-200 bg-surface-100 p-4 dark:border-surface-700 dark:bg-surface-800"
+                                >
+                                    @if (
+                                        hasPreviewImage(template)
+                                        ) {
+                                        <img
+                                            [src]="
+                                                template.previewImageUrl
+                                            "
+                                            [alt]="
+                                                template.name +
+                                                ' preview'
+                                            "
+                                            class="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+                                            loading="lazy"
+                                            (error)="
+                                                onPreviewImageError(
+                                                    template.code
+                                                )
+                                            "
+                                        />
+                                    } @else {
+                                        <div
+                                            class="text-center text-color-secondary"
+                                        >
+                                            <i
+                                                class="pi pi-file-pdf text-5xl"
+                                            ></i>
+
+                                            <div
+                                                class="mt-3 text-sm font-semibold"
+                                            >
+                                                PDF template
+                                            </div>
+
+                                            <div
+                                                class="mt-1 text-xs"
+                                            >
+                                                Use Sample Preview
+                                                to inspect it
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (
+                                        isSavedSelection(
+                                            template
+                                        )
+                                        ) {
+                                        <div
+                                            class="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white shadow"
+                                        >
+                                            <i
+                                                class="pi pi-bookmark-fill"
+                                            ></i>
+                                            <span>
+                                                Currently active
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Information -->
+                                <div class="p-4">
+                                    <div
+                                        class="flex items-start justify-between gap-3"
+                                    >
+                                        <div class="min-w-0">
+                                            <div
+                                                class="break-words text-lg font-bold"
+                                            >
+                                                {{
+                                                    template.name
+                                                }}
+                                            </div>
+
+                                            <div
+                                                class="mt-1 text-xs font-semibold text-color-secondary"
+                                            >
+                                                {{
+                                                    template.code
+                                                }}
+                                            </div>
+                                        </div>
+
+                                        <p-tag
+                                            [value]="
+                                                template.isActive
+                                                    ? 'Available'
+                                                    : 'Unavailable'
+                                            "
+                                            [severity]="
+                                                getAvailabilitySeverity(
+                                                    template
+                                                )
+                                            "
+                                            rounded
+                                        ></p-tag>
+                                    </div>
+
+                                    <p
+                                        class="mt-3 min-h-10 text-sm leading-5 text-color-secondary"
+                                    >
+                                        {{
+                                            template.description
+                                        }}
+                                    </p>
+
+                                    <div
+                                        class="mt-4 rounded-xl border border-surface-100 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800"
+                                    >
+                                        <div
+                                            class="flex items-center gap-2 text-sm"
+                                        >
+                                            <i
+                                                class="pi pi-desktop text-primary"
+                                            ></i>
+
+                                            <span
+                                                class="font-semibold"
+                                            >
+                                                {{
+                                                    getTemplateFeatureText(
+                                                        template
+                                                    )
+                                                }}
+                                            </span>
+                                        </div>
+
+                                        <div
+                                            class="mt-2 flex items-center gap-2 text-xs text-color-secondary"
+                                        >
+                                            <i
+                                                class="pi pi-arrows-alt"
+                                            ></i>
+
+                                            <span>
+                                                {{
+                                                    getPageDimensions(
+                                                        template
+                                                    )
+                                                }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="mt-4 flex flex-wrap gap-2"
+                                    >
+                                        <p-tag
+                                            [value]="
+                                                isMiniTemplate(
+                                                    template.code
+                                                )
+                                                    ? 'Mini'
+                                                    : 'Full'
+                                            "
+                                            [severity]="
+                                                isMiniTemplate(
+                                                    template.code
+                                                )
+                                                    ? 'info'
+                                                    : 'secondary'
+                                            "
+                                            rounded
+                                        ></p-tag>
+
+                                        @if (
+                                            template.supportsArabic
+                                            ) {
+                                            <p-tag
+                                                value="Arabic"
+                                                severity="secondary"
+                                                rounded
+                                            ></p-tag>
+                                        }
+
+                                        <p-tag
+                                            [value]="
+                                                getExtensionType(
+                                                    template
+                                                )
+                                            "
+                                            severity="secondary"
+                                            rounded
+                                        ></p-tag>
+                                    </div>
+                                </div>
+                            </button>
+                        }
+                    </div>
+                </main>
+
+                <!-- Settings -->
+                <aside
+                    class="rounded-2xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-700 dark:bg-surface-900 xl:sticky xl:top-[5rem]"
+                >
+                    <div
+                        class="border-b border-surface-200 p-5 dark:border-surface-700"
+                    >
+                        <div
+                            class="flex items-start justify-between gap-3"
+                        >
+                            <div>
+                                <div
+                                    class="text-xs font-semibold uppercase tracking-wide text-color-secondary"
+                                >
+                                    Configure selection
+                                </div>
+
+                                <h2
+                                    class="mt-1 text-xl font-bold"
+                                >
+                                    {{
+                                        selectedTemplate?.name ||
+                                        'Select a template'
+                                    }}
+                                </h2>
+
+                                @if (selectedTemplate) {
+                                    <div
+                                        class="mt-1 text-xs text-color-secondary"
+                                    >
+                                        {{
+                                            selectedTemplate.code
+                                        }}
+                                    </div>
+                                }
+                            </div>
+
+                            @if (hasUnsavedChanges) {
+                                <p-tag
+                                    value="Unsaved"
+                                    severity="warn"
+                                    rounded
+                                ></p-tag>
+                            } @else {
+                                <p-tag
+                                    value="Saved"
+                                    severity="success"
+                                    rounded
+                                ></p-tag>
+                            }
+                        </div>
+                    </div>
+
+                    @if (selectedTemplate) {
+                        <div
+                            class="flex flex-col gap-5 p-5"
+                        >
+                            <!-- Summary -->
+                            <section
+                                class="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-800"
+                            >
+                                <div
+                                    class="flex items-center gap-3"
+                                >
+                                    <div
+                                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary dark:bg-primary-950/40"
+                                    >
+                                        <i
+                                            class="pi pi-file-pdf text-lg"
+                                        ></i>
+                                    </div>
+
+                                    <div class="min-w-0">
+                                        <div class="font-bold">
+                                            {{
+                                                getTemplateFormat(
+                                                    selectedTemplate
+                                                )
+                                            }}
+                                        </div>
+
+                                        <div
+                                            class="mt-0.5 text-xs text-color-secondary"
+                                        >
+                                            {{
+                                                getPageDimensions(
+                                                    selectedTemplate
+                                                )
+                                            }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="mt-3 text-sm text-color-secondary"
+                                >
+                                    {{
+                                        isMiniTemplate(
+                                            selectedTemplate.code
+                                        )
+                                            ? 'Compact invoice containing essential billing information without LBP values.'
+                                            : 'Complete invoice containing the full billing breakdown and available currency values.'
+                                    }}
+                                </div>
+                            </section>
+
+                            <!-- Language -->
+                            <section>
+                                <label
+                                    class="mb-2 block text-sm font-semibold"
+                                >
+                                    Invoice language
+                                </label>
+
+                                <p-selectbutton
+                                    [options]="languageOptions"
+                                    [(ngModel)]="languageCode"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    optionDisabled="disabled"
+                                    [allowEmpty]="false"
+                                    class="w-full"
+                                    (onChange)="
+                                        onLanguageChanged()
+                                    "
+                                ></p-selectbutton>
+
+                                <div
+                                    class="mt-2 flex items-start gap-2 text-xs text-color-secondary"
+                                >
+                                    <i
+                                        class="pi pi-language mt-0.5"
+                                    ></i>
+
+                                    <span>
+                                        {{
+                                            languageCode === 'ar'
+                                                ? 'Arabic invoices use right-to-left document formatting.'
+                                                : 'The invoice will be generated in English.'
+                                        }}
+                                    </span>
+                                </div>
+                            </section>
+
+                            <!-- Extension -->
+                            @if (
+                                selectedTemplate.supportsExtension
+                                ) {
+                                <section
+                                    class="rounded-xl border border-surface-200 p-4 dark:border-surface-700"
+                                >
+                                    <div
+                                        class="flex items-start justify-between gap-4"
+                                    >
+                                        <label
+                                            for="includeBillCollectorExtension"
+                                            class="cursor-pointer"
+                                        >
+                                            <span
+                                                class="block text-sm font-semibold"
+                                            >
+                                                {{
+                                                    extensionTitle
+                                                }}
+                                            </span>
+
+                                            <span
+                                                class="mt-1 block text-xs leading-5 text-color-secondary"
+                                            >
+                                                {{
+                                                    extensionDescription
+                                                }}
+                                            </span>
+                                        </label>
+
+                                        <p-toggleswitch
+                                            inputId="includeBillCollectorExtension"
+                                            [(ngModel)]="
+                                                includeBillCollectorExtension
+                                            "
+                                        ></p-toggleswitch>
+                                    </div>
+                                </section>
+                            } @else {
+                                <section
+                                    class="rounded-xl border border-surface-200 bg-surface-50 p-4 text-sm text-color-secondary dark:border-surface-700 dark:bg-surface-800"
+                                >
+                                    <div
+                                        class="flex items-start gap-2"
+                                    >
+                                        <i
+                                            class="pi pi-info-circle mt-0.5"
+                                        ></i>
+
+                                        <span>
+                                            This template does not
+                                            support a bill-collector
+                                            extension.
+                                        </span>
+                                    </div>
+                                </section>
+                            }
+
+                            <!-- Preview configuration -->
+                            <section
+                                class="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30"
+                            >
+                                <div
+                                    class="mb-3 flex items-center gap-2 font-semibold text-blue-700 dark:text-blue-300"
+                                >
+                                    <i
+                                        class="pi pi-info-circle"
+                                    ></i>
+                                    <span>
+                                        Preview configuration
+                                    </span>
+                                </div>
+
+                                <dl
+                                    class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm"
+                                >
+                                    <dt
+                                        class="text-color-secondary"
+                                    >
+                                        Template
+                                    </dt>
+
+                                    <dd
+                                        class="m-0 text-right font-semibold"
+                                    >
+                                        {{
+                                            selectedTemplate.name
+                                        }}
+                                    </dd>
+
+                                    <dt
+                                        class="text-color-secondary"
+                                    >
+                                        Language
+                                    </dt>
+
+                                    <dd
+                                        class="m-0 text-right font-semibold"
+                                    >
+                                        {{
+                                            languageCode ===
+                                            'ar'
+                                                ? 'Arabic'
+                                                : 'English'
+                                        }}
+                                    </dd>
+
+                                    <dt
+                                        class="text-color-secondary"
+                                    >
+                                        Extension
+                                    </dt>
+
+                                    <dd
+                                        class="m-0 text-right font-semibold"
+                                    >
+                                        {{
+                                            effectiveIncludeExtension
+                                                ? getExtensionType(
+                                                    selectedTemplate
+                                                )
+                                                : 'Not included'
+                                        }}
+                                    </dd>
+                                </dl>
+                            </section>
+
+                            <!-- Actions -->
+                            <div
+                                class="grid grid-cols-2 gap-3"
+                            >
+                                <p-button
+                                    label="Sample Preview"
+                                    icon="pi pi-eye"
+                                    severity="secondary"
+                                    outlined
+                                    styleClass="w-full"
+                                    [loading]="previewing"
+                                    [disabled]="
+                                        saving ||
+                                        !selectedTemplate.isActive
+                                    "
+                                    (onClick)="
+                                        previewSample()
+                                    "
+                                ></p-button>
+
+                                <p-button
+                                    label="Save Template"
+                                    icon="pi pi-check"
+                                    styleClass="w-full"
+                                    [loading]="saving"
+                                    [disabled]="!canSave"
+                                    (onClick)="
+                                        savePreference()
+                                    "
+                                ></p-button>
+                            </div>
+
+                            @if (hasUnsavedChanges) {
+                                <p-button
+                                    label="Discard Changes"
+                                    icon="pi pi-undo"
+                                    severity="secondary"
+                                    text
+                                    styleClass="w-full"
+                                    [disabled]="
+                                        saving || previewing
+                                    "
+                                    (onClick)="
+                                        resetChanges()
+                                    "
+                                ></p-button>
+                            }
+                        </div>
+                    }
+                </aside>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- PDF Preview -->
+<p-dialog
+    [(visible)]="previewDialogVisible"
+    header="Invoice Template Sample"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{
+        width: '94vw',
+        maxWidth: '1100px'
+    }"
+    [contentStyle]="{
+        padding: '0',
+        overflow: 'hidden'
+    }"
+    (onHide)="closePreview()"
+>
+    <ng-template #content>
+        @if (previewUrl) {
+            <iframe
+                [src]="previewUrl"
+                title="Invoice template sample PDF"
+                class="block h-[75vh] w-full border-0 bg-surface-100 dark:bg-surface-800"
+            ></iframe>
+        } @else {
+            <div
+                class="flex h-[60vh] items-center justify-center"
+            >
+                <div
+                    class="text-center text-color-secondary"
+                >
+                    <i
+                        class="pi pi-file-pdf text-4xl"
+                    ></i>
+
+                    <div class="mt-3">
+                        Preview unavailable
+                    </div>
+                </div>
+            </div>
+        }
+    </ng-template>
+
+    <ng-template #footer>
+        <div
+            class="flex w-full justify-end gap-2"
+        >
+            <p-button
+                label="Close"
+                severity="secondary"
+                outlined
+                (onClick)="closePreview()"
+            ></p-button>
+
+            <p-button
+                label="Download PDF"
+                icon="pi pi-download"
+                [disabled]="!previewUrl"
+                (onClick)="downloadPreview()"
+            ></p-button>
+        </div>
+    </ng-template>
+</p-dialog>

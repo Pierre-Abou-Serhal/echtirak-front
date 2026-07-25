@@ -1,0 +1,94 @@
+<div class="flex flex-col gap-4">
+    <div class="flex items-start gap-3">
+        <div
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary dark:bg-primary-950"
+        >
+            <i class="pi pi-calendar text-lg"></i>
+        </div>
+
+        <div>
+            <div class="font-semibold">
+                Select the active billing period
+            </div>
+
+            <div class="mt-1 text-sm text-color-secondary">
+                This period will be reused when creating bills from KWH
+                readings.
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <label
+            for="billCollectorBillingPeriod"
+            class="mb-2 block text-sm font-semibold"
+        >
+            Bill month and year
+        </label>
+
+        <p-datepicker
+            [(ngModel)]="selectedDate"
+            inputId="billCollectorBillingPeriod"
+            view="month"
+            dateFormat="yy/mm"
+            placeholder="Select billing period"
+            [showIcon]="true"
+            [readonlyInput]="true"
+            appendTo="body"
+            class="w-full"
+            inputStyleClass="w-full"
+        ></p-datepicker>
+    </div>
+
+    <div
+        class="rounded-xl border p-3"
+        [class.border-primary-200]="isSelectedPeriodCurrentMonth"
+        [class.bg-primary-50]="isSelectedPeriodCurrentMonth"
+        [class.dark:border-primary-800]="isSelectedPeriodCurrentMonth"
+        [class.dark:bg-primary-950]="isSelectedPeriodCurrentMonth"
+        [class.border-orange-200]="!isSelectedPeriodCurrentMonth"
+        [class.bg-orange-50]="!isSelectedPeriodCurrentMonth"
+        [class.dark:border-orange-800]="!isSelectedPeriodCurrentMonth"
+        [class.dark:bg-orange-950]="!isSelectedPeriodCurrentMonth"
+    >
+    <div class="flex items-start gap-2">
+        <i
+            class="mt-0.5 pi"
+            [class.pi-check-circle]="isSelectedPeriodCurrentMonth"
+            [class.text-primary]="isSelectedPeriodCurrentMonth"
+            [class.pi-exclamation-triangle]="!isSelectedPeriodCurrentMonth"
+            [class.text-orange-500]="!isSelectedPeriodCurrentMonth"
+        ></i>
+
+        <div>
+            <div class="font-semibold">
+                {{ selectedPeriodLabel }}
+            </div>
+
+            @if (!isSelectedPeriodCurrentMonth) {
+                <div class="mt-1 text-xs text-color-secondary">
+                    This is not the current month. Verify the period before
+                    saving.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-2 pt-2">
+    <p-button
+        label="Cancel"
+        severity="secondary"
+        outlined
+        styleClass="w-full min-h-12"
+        (onClick)="cancel()"
+    ></p-button>
+
+    <p-button
+        label="Use Period"
+        icon="pi pi-check"
+        styleClass="w-full min-h-12"
+        (onClick)="save()"
+    ></p-button>
+</div>
+</div>

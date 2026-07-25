@@ -17,7 +17,7 @@ import { DatePicker } from 'primeng/datepicker';
 import { Dialog } from 'primeng/dialog';
 import { NotificationService } from '@/core/services/notification.service';
 import { WalletService } from '@/core/services/wallet.service';
-import { WalletForecastRequest } from '@/core/services/api/request';
+import { GetBillsForSmsQueryParams, WalletForecastRequest } from '@/core/services/api/request';
 import { Tooltip } from 'primeng/tooltip';
 import { LbPhonePipe } from '@/core/pipes/pipes';
 
@@ -36,7 +36,8 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
 
     smsTemplateRoles: SelectOptionStrValue[] = [
         { value: SmsTemplateRole.BILL_ISSUANCE, label: 'Bill Issuance' },
-        { value: SmsTemplateRole.OVERDUE_BILL, label: 'Bill Overdue' }
+        { value: SmsTemplateRole.OVERDUE_BILL, label: 'Bill Overdue' },
+        { value: SmsTemplateRole.BILL_PAID, label: 'Bill Paid' }
     ];
 
     smsTemplatesDropDown: SelectOptionNumValue[] = [];
@@ -59,6 +60,8 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
     keyword = '';
     billPeriod: Date | null = null;
 
+    paidBillPeriod: Date | null = null;
+
     // Preview SMS Template variables
     showTemplatePreviewDialog = false;
     previewTemplate: SmsTemplate | null = null;
@@ -76,13 +79,34 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
 
     constructor() {
         this.smsCampaignCreateBill = {};
+        this.paidBillPeriod = this.createCurrentMonth();
     }
 
     ngOnInit(): void {}
 
-    onBillTypeChange() {
-        if (!this.smsCampaignCreateBill.role) {
+    onBillTypeChange(): void {
+        const role = this.smsCampaignCreateBill.role;
+
+        this.selectedBills = [];
+        this.bills = [];
+        this.expandedRows = {};
+        this.first = 0;
+
+        // Clear the local table filter when changing role.
+        this.billPeriod = null;
+
+        if (!role) {
+            this.smsTemplatesDropDown = [];
+            this.templates = [];
             return;
+        }
+
+        /*
+         * BILL_PAID always requires a server billing period.
+         * Default to the current month if one has not been selected.
+         */
+        if (this.isPaidBillType && !this.paidBillPeriod) {
+            this.paidBillPeriod = this.createCurrentMonth();
         }
 
         this.loadTemplates();
@@ -115,23 +139,58 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
     }
 
     loadBills(): void {
+        const role = this.smsCampaignCreateBill.role;
+
+        if (!role) {
+            this.bills = [];
+            this.selectedBills = [];
+            return;
+        }
+
+        if (this.isPaidBillType && !this.paidBillPeriod) {
+            this.bills = [];
+            this.selectedBills = [];
+            return;
+        }
+
+        const queryParams: GetBillsForSmsQueryParams = {
+            role
+        };
+
+        if (this.isPaidBillType && this.paidBillPeriod) {
+            queryParams.billYear = String(this.paidBillPeriod.getFullYear());
+
+            queryParams.billMonth = String(this.paidBillPeriod.getMonth() + 1).padStart(2, '0');
+        }
+
+        /*
+         * Prevent bills selected for an earlier role or period
+         * from remaining selected.
+         */
         this.selectedBills = [];
+        this.expandedRows = {};
+        this.extraFeesExpanded = {};
+        this.first = 0;
 
         this.isBillsLoading = true;
 
-        this.generatorOwnerService.getBillsForSms({ role: this.smsCampaignCreateBill.role! }).subscribe({
+        this.generatorOwnerService.getBillsForSms(queryParams).subscribe({
             next: (response: GetBillsForSmsResponse) => {
-                this.bills = response.bills.map((b) => ({
-                    ...b,
-                    billPeriodKey: `${b.billYear}-${b.billMonth}`
+                this.bills = (response.bills ?? []).map((bill) => ({
+                    ...bill,
+                    billPeriodKey: `${bill.billYear}-` + `${String(bill.billMonth).padStart(2, '0')}`
                 }));
 
                 this.isBillsLoading = false;
             },
-            error: (err) => {
-                console.log(err);
+            error: (error) => {
+                console.error(error);
+
                 this.bills = [];
+                this.selectedBills = [];
                 this.isBillsLoading = false;
+
+                this.notificationService.error('Loading Failed', this.isPaidBillType ? `Failed to load paid bills for ${this.paidBillPeriodLabel}.` : 'Failed to load bills.');
             }
         });
     }
@@ -140,30 +199,39 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
         const { role, templateId, campaignName } = this.smsCampaignCreateBill;
 
         const hasRole = typeof role === 'string' && role.trim().length > 0;
+
         const hasTemplate = typeof templateId === 'number' && templateId > 0;
+
         const hasName = typeof campaignName === 'string' && campaignName.trim().length > 0;
+
         const hasBills = this.selectedBills.length > 0;
 
-        return hasRole && hasTemplate && hasName && hasBills;
+        const hasRequiredPeriod = !this.isPaidBillType || this.paidBillPeriod !== null;
+
+        return hasRole && hasTemplate && hasName && hasBills && hasRequiredPeriod;
     }
 
     onCreateClick(): void {
         this.submitted = true;
 
         const roleValid = !!this.smsCampaignCreateBill.role?.trim();
+
         const nameValid = !!this.smsCampaignCreateBill.campaignName?.trim();
+
         const templateValid = !!this.smsCampaignCreateBill.templateId && this.smsCampaignCreateBill.templateId > 0;
 
-        // If any input is invalid -> just show inline errors (no toast)
-        if (!roleValid || !nameValid || !templateValid) return;
+        const paidPeriodValid = !this.isPaidBillType || this.paidBillPeriod !== null;
 
-        // Bills: ONLY toast notification
-        if (!this.selectedBills?.length) {
-            this.notificationService.warn('Warning', 'Please select at least one bill');
+        if (!roleValid || !nameValid || !templateValid || !paidPeriodValid) {
             return;
         }
 
-        // all good
+        if (!this.selectedBills?.length) {
+            this.notificationService.warn('Warning', 'Please select at least one bill');
+
+            return;
+        }
+
         this.forecastSmsCampaign();
     }
 
@@ -388,5 +456,52 @@ export class SmsCampaignCreateBillsComponent implements OnInit {
         const extraFeesTotal = bill.currencyCode === 'LBP' ? this.getExtraFeesTotalLbp(bill) : this.getExtraFeesTotalUsd(bill);
 
         return billAmount + extraFeesTotal;
+    }
+
+    get isPaidBillType(): boolean {
+        return this.smsCampaignCreateBill.role === SmsTemplateRole.BILL_PAID;
+    }
+
+    get paidBillPeriodLabel(): string {
+        if (!this.paidBillPeriod) {
+            return 'Not selected';
+        }
+
+        const year = this.paidBillPeriod.getFullYear();
+        const month = String(this.paidBillPeriod.getMonth() + 1).padStart(2, '0');
+
+        return `${year}/${month}`;
+    }
+
+    get isCurrentPaidBillPeriod(): boolean {
+        if (!this.paidBillPeriod) {
+            return false;
+        }
+
+        const current = new Date();
+
+        return this.paidBillPeriod.getFullYear() === current.getFullYear() && this.paidBillPeriod.getMonth() === current.getMonth();
+    }
+
+    private createCurrentMonth(): Date {
+        const current = new Date();
+
+        return new Date(current.getFullYear(), current.getMonth(), 1);
+    }
+
+    onPaidBillPeriodChange(): void {
+        if (!this.isPaidBillType || !this.paidBillPeriod) {
+            return;
+        }
+
+        this.loadBills();
+    }
+
+    useCurrentPaidBillPeriod(): void {
+        this.paidBillPeriod = this.createCurrentMonth();
+
+        if (this.isPaidBillType) {
+            this.loadBills();
+        }
     }
 }

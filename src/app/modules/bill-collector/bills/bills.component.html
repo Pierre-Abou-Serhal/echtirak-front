@@ -1,0 +1,725 @@
+<div class="min-h-screen bg-surface-0 dark:bg-surface-900">
+    <div class="mx-auto max-w-3xl p-3 pb-24 sm:p-4">
+        <!-- Header -->
+        <div class="relative mb-4 flex items-center justify-center">
+            <div class="px-12 text-center">
+                <div class="text-2xl font-semibold">
+                    Bills
+                </div>
+
+                <div class="mt-1 text-sm text-color-secondary">
+                    View and open subscriber bills
+                </div>
+            </div>
+
+            <p-button
+                icon="pi pi-refresh"
+                severity="secondary"
+                rounded
+                class="absolute right-0"
+                aria-label="Refresh bills"
+                [loading]="loading"
+                (onClick)="reload()"
+            ></p-button>
+        </div>
+
+        <!-- Period filter -->
+        <section
+            class="mb-4 rounded-2xl border border-surface-200 bg-surface-0 p-4 shadow-sm dark:border-surface-700 dark:bg-surface-900"
+        >
+            <div class="mb-3 flex items-start gap-3">
+                <div
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary dark:bg-primary-950"
+                >
+                    <i class="pi pi-calendar"></i>
+                </div>
+
+                <div class="min-w-0">
+                    <div class="font-semibold">
+                        Bill Period
+                    </div>
+
+                    <div class="mt-0.5 text-sm text-color-secondary">
+                        Choose a month or display bills from every period
+                    </div>
+                </div>
+            </div>
+
+            <p-datepicker
+                [(ngModel)]="billPeriod"
+                view="month"
+                dateFormat="yy/mm"
+                placeholder="Select bill month"
+                [showIcon]="true"
+                [readonlyInput]="true"
+                appendTo="body"
+                class="w-full"
+                inputStyleClass="w-full"
+                (onSelect)="onPeriodSelected()"
+            ></p-datepicker>
+
+            <div class="mt-3 grid grid-cols-2 gap-2">
+                <p-button
+                    label="This Month"
+                    icon="pi pi-calendar"
+                    severity="secondary"
+                    [outlined]="!isCurrentMonthSelected"
+                    styleClass="w-full min-h-11"
+                    [disabled]="loading"
+                    (onClick)="showCurrentMonth()"
+                ></p-button>
+
+                <p-button
+                    label="All Bills"
+                    icon="pi pi-list"
+                    severity="secondary"
+                    [outlined]="billPeriod !== null"
+                    styleClass="w-full min-h-11"
+                    [disabled]="loading"
+                    (onClick)="showAllBills()"
+                ></p-button>
+            </div>
+
+            <div
+                class="mt-3 flex items-center gap-2 rounded-xl border border-primary-200 bg-primary-50 p-3 text-sm text-primary dark:border-primary-800 dark:bg-primary-950/30"
+            >
+                <i
+                    class="pi"
+                    [class.pi-calendar]="billPeriod"
+                    [class.pi-list]="!billPeriod"
+                ></i>
+
+                <span class="font-semibold">
+                    Showing: {{ periodLabel }}
+                </span>
+            </div>
+        </section>
+
+        <!-- Search -->
+        <section
+            class="mb-4 rounded-2xl border border-surface-200 bg-surface-0 p-3 shadow-sm dark:border-surface-700 dark:bg-surface-900"
+        >
+            <div class="flex items-center gap-2">
+                <p-iconfield
+                    iconPosition="left"
+                    class="flex-1"
+                >
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+
+                    <input
+                        pInputText
+                        type="search"
+                        class="w-full"
+                        placeholder="Search subscriber, bill or generator..."
+                        [ngModel]="keyword"
+                        (ngModelChange)="onSearch($event)"
+                    />
+                </p-iconfield>
+
+                <p-button
+                    icon="pi pi-times"
+                    severity="secondary"
+                    rounded
+                    aria-label="Clear search"
+                    [disabled]="!keyword"
+                    (onClick)="clearSearch()"
+                ></p-button>
+            </div>
+
+            @if (!loading && !loadFailed) {
+                <div class="mt-2 text-xs text-color-secondary">
+                    {{ filteredBills.length }} bill(s) found
+                </div>
+            }
+        </section>
+
+        <!-- Loading -->
+        @if (loading) {
+            <div class="flex flex-col gap-4">
+                @for (item of skeletonItems; track item) {
+                    <div
+                        class="rounded-2xl border border-surface-200 bg-surface-0 p-4 shadow-sm dark:border-surface-700 dark:bg-surface-900"
+                    >
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p-skeleton
+                                    width="70%"
+                                    height="1.3rem"
+                                    class="mb-2"
+                                ></p-skeleton>
+
+                                <p-skeleton
+                                    width="45%"
+                                    height="0.9rem"
+                                ></p-skeleton>
+                            </div>
+
+                            <p-skeleton
+                                width="5rem"
+                                height="1.5rem"
+                                borderRadius="999px"
+                            ></p-skeleton>
+                        </div>
+
+                        <p-skeleton
+                            height="6rem"
+                            class="mt-4"
+                        ></p-skeleton>
+
+                        <div class="mt-3 grid grid-cols-2 gap-2">
+                            <p-skeleton height="4rem"></p-skeleton>
+                            <p-skeleton height="4rem"></p-skeleton>
+                        </div>
+
+                        <p-skeleton
+                            height="3rem"
+                            class="mt-4"
+                        ></p-skeleton>
+                    </div>
+                }
+            </div>
+        }
+
+        @else if (loadFailed) {
+            <div
+                class="rounded-2xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-800 dark:bg-red-950/30"
+            >
+                <div
+                    class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-300"
+                >
+                    <i class="pi pi-exclamation-triangle text-xl"></i>
+                </div>
+
+                <div class="mt-3 text-lg font-semibold">
+                    Could not load bills
+                </div>
+
+                <div class="mt-1 text-sm text-color-secondary">
+                    Check your connection and try again.
+                </div>
+
+                <p-button
+                    label="Try Again"
+                    icon="pi pi-refresh"
+                    class="mt-4"
+                    (onClick)="reload()"
+                ></p-button>
+            </div>
+        }
+
+        @else if (filteredBills.length === 0) {
+            <div
+                class="rounded-2xl border border-surface-200 bg-surface-0 p-6 text-center shadow-sm dark:border-surface-700 dark:bg-surface-900"
+            >
+                <div
+                    class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-surface-100 text-color-secondary dark:bg-surface-800"
+                >
+                    <i class="pi pi-receipt text-xl"></i>
+                </div>
+
+                <div class="mt-3 text-lg font-semibold">
+                    @if (keyword) {
+                        No matching bills
+                    } @else {
+                        No bills found
+                    }
+                </div>
+
+                <div class="mt-1 text-sm text-color-secondary">
+                    @if (keyword) {
+                        Try another search keyword.
+                    } @else if (billPeriod) {
+                        There are no bills for {{ periodLabel }}.
+                    } @else {
+                        There are no bills available.
+                    }
+                </div>
+
+                @if (keyword) {
+                    <p-button
+                        label="Clear Search"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        outlined
+                        class="mt-4"
+                        (onClick)="clearSearch()"
+                    ></p-button>
+                }
+            </div>
+        }
+
+        @else {
+            <div class="flex flex-col gap-4">
+                @for (bill of visibleBills; track bill.id) {
+                    <article
+                        class="rounded-2xl border border-surface-200 bg-surface-0 p-4 shadow-md dark:border-surface-700 dark:bg-surface-900"
+                    >
+                        <!-- Subscriber -->
+                        <div class="min-w-0">
+                            <div class="mb-1 text-xs text-color-secondary">
+                                Subscriber
+                            </div>
+
+                            <div class="break-words text-xl font-bold">
+                                {{ bill.subscriberFirstName }}
+                                {{ bill.subscriberLastName }}
+                            </div>
+
+                            @if (bill.subscriberPhoneNumber) {
+                                <div
+                                    class="mt-1 flex items-center gap-2 text-sm text-color-secondary"
+                                >
+                                    <i class="pi pi-phone text-xs"></i>
+
+                                    <span>
+                                        {{ bill.subscriberPhoneNumber | lbPhone }}
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Statuses -->
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <p-tag
+                                [value]="
+                                    bill.statusDescription ||
+                                    formatStatus(bill.statusCode)
+                                "
+                                [severity]="
+                                    getBillStatusSeverity(
+                                        bill.statusCode
+                                    )
+                                "
+                                rounded
+                            ></p-tag>
+
+                            <p-tag
+                                [value]="
+                                    formatStatus(
+                                        bill.collectionStatus
+                                    )
+                                "
+                                [severity]="
+                                    getCollectionSeverity(
+                                        bill.collectionStatus
+                                    )
+                                "
+                                rounded
+                            ></p-tag>
+
+                            @if (
+                                bill.billingModelName ||
+                                bill.billingModel
+                                ) {
+                                <p-tag
+                                    [value]="
+                                        bill.billingModelName ||
+                                        formatStatus(
+                                            bill.billingModel
+                                        )
+                                    "
+                                    severity="secondary"
+                                    rounded
+                                ></p-tag>
+                            }
+                        </div>
+
+                        <!-- Duplicate warning -->
+                        @if (bill.hasDuplicateBill) {
+                            <div
+                                class="mt-3 flex items-start gap-2 rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-700 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-300"
+                            >
+                                <i
+                                    class="pi pi-exclamation-triangle mt-0.5"
+                                ></i>
+
+                                <span>
+                                    A duplicate bill exists for this subscriber.
+                                </span>
+                            </div>
+                        }
+
+                        <!-- Grand total -->
+                        <div
+                            class="mt-4 rounded-xl border border-primary-200 bg-primary-50 p-4 dark:border-primary-800 dark:bg-primary-950/30"
+                        >
+                            <div
+                                class="text-xs font-semibold text-color-secondary"
+                            >
+                                Grand Total
+                            </div>
+
+                            <div
+                                class="mt-1 text-2xl font-extrabold text-primary"
+                            >
+                                {{
+                                    bill.grandTotal
+                                        | number:'1.0-2'
+                                }}
+
+                                <span class="text-base">
+                                    {{ bill.currencyCode }}
+                                </span>
+                            </div>
+
+                            @if (
+                                bill.grandTotalLBP &&
+                                bill.currencyCode !== 'LBP'
+                                ) {
+                                <div
+                                    class="mt-1 text-sm font-semibold text-color-secondary"
+                                >
+                                    {{ bill.grandTotalLBP }} LBP
+                                </div>
+                            }
+
+                            @if (
+                                (bill.extraFees.length) > 0
+                                ) {
+                                <div
+                                    class="mt-2 flex items-center gap-2 text-xs text-color-secondary"
+                                >
+                                    <i class="pi pi-plus-circle"></i>
+
+                                    <span>
+                                        Includes
+                                        {{
+                                            getExtraFeesTotal(bill)
+                                                | number:'1.0-2'
+                                        }}
+                                        {{ bill.currencyCode }}
+                                        in extra fees
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Expandable extra fees -->
+                        @if (
+                            (bill.extraFees.length) > 0
+                            ) {
+                            <section
+                                class="mt-3 overflow-hidden rounded-xl border border-surface-200 bg-surface-0 dark:border-surface-700 dark:bg-surface-900"
+                            >
+                                <!-- Expand/collapse button -->
+                                <button
+                                    type="button"
+                                    class="flex min-h-14 w-full items-center gap-3 p-3 text-left"
+                                    [attr.aria-expanded]="
+                                        isExtraFeesExpanded(
+                                            bill.id
+                                        )
+                                    "
+                                    [attr.aria-controls]="
+                                        'bill-extra-fees-' +
+                                        bill.id
+                                    "
+                                    (click)="
+                                        toggleExtraFees(bill.id)
+                                    "
+                                >
+                                    <div
+                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300"
+                                    >
+                                        <i class="pi pi-tags"></i>
+                                    </div>
+
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-semibold">
+                                            Extra Fees
+                                        </div>
+
+                                        <div
+                                            class="mt-0.5 text-xs text-color-secondary"
+                                        >
+                                            {{
+                                                bill.extraFees.length
+                                            }}
+
+                                            {{
+                                                bill.extraFees
+                                                    .length === 1
+                                                    ? 'fee'
+                                                    : 'fees'
+                                            }}
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="shrink-0 text-right"
+                                    >
+                                        <div
+                                            class="text-sm font-bold"
+                                        >
+                                            {{
+                                                getExtraFeesTotal(
+                                                    bill
+                                                )
+                                                    | number:
+                                                    '1.0-2'
+                                            }}
+
+                                            {{
+                                                bill.currencyCode
+                                            }}
+                                        </div>
+
+                                        @if (
+                                            getExtraFeesTotalLbp(
+                                                bill
+                                            );
+                                            as totalLbp
+                                            ) {
+                                            <div
+                                                class="mt-0.5 text-xs text-color-secondary"
+                                            >
+                                                {{ totalLbp }}
+                                                LBP
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <i
+                                        class="pi shrink-0 text-color-secondary"
+                                        [class.pi-chevron-up]="
+                                            isExtraFeesExpanded(
+                                                bill.id
+                                            )
+                                        "
+                                        [class.pi-chevron-down]="
+                                            !isExtraFeesExpanded(
+                                                bill.id
+                                            )
+                                        "
+                                    ></i>
+                                </button>
+
+                                <!-- Expanded fee rows -->
+                                @if (
+                                    isExtraFeesExpanded(bill.id)
+                                    ) {
+                                    <div
+                                        [id]="
+                                            'bill-extra-fees-' +
+                                            bill.id
+                                        "
+                                        class="border-t border-surface-200 p-3 dark:border-surface-700"
+                                    >
+                                        <div
+                                            class="flex flex-col gap-2"
+                                        >
+                                            @for (
+                                                fee of bill.extraFees;
+                                                track
+                                                fee.id ??
+                                                fee.extraFeeId ??
+                                                $index
+                                                ) {
+                                                <div
+                                                    class="flex items-start justify-between gap-3 rounded-xl bg-surface-50 p-3 dark:bg-surface-800"
+                                                >
+                                                    <div
+                                                        class="flex min-w-0 items-start gap-2"
+                                                    >
+                                                        <i
+                                                            class="pi pi-tag mt-0.5 shrink-0 text-xs text-primary"
+                                                        ></i>
+
+                                                        <div
+                                                            class="break-words text-sm font-semibold"
+                                                        >
+                                                            {{
+                                                                getExtraFeeName(
+                                                                    fee
+                                                                )
+                                                            }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div
+                                                        class="shrink-0 text-right"
+                                                    >
+                                                        <div
+                                                            class="whitespace-nowrap text-sm font-bold"
+                                                        >
+                                                            {{
+                                                                (fee.amount ??
+                                                                    0)
+                                                                    | number:
+                                                                    '1.0-2'
+                                                            }}
+
+                                                            {{
+                                                                bill.currencyCode
+                                                            }}
+                                                        </div>
+
+                                                        @if (
+                                                            fee.amountLBP
+                                                            ) {
+                                                            <div
+                                                                class="mt-0.5 whitespace-nowrap text-xs text-color-secondary"
+                                                            >
+                                                                {{
+                                                                    fee.amountLBP
+                                                                }}
+                                                                LBP
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </section>
+                        }
+
+                        <!-- Bill information -->
+                        <div class="mt-3 grid grid-cols-2 gap-2">
+                            <!-- Generator -->
+                            <div
+                                class="rounded-xl border border-surface-100 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800"
+                            >
+                                <div
+                                    class="mb-1 flex items-center gap-2 text-xs text-color-secondary"
+                                >
+                                    <i class="pi pi-bolt"></i>
+                                    <span>Generator</span>
+                                </div>
+
+                                <div class="break-words font-bold">
+                                    {{
+                                        bill.generatorCode ||
+                                        '—'
+                                    }}
+                                </div>
+                            </div>
+
+                            <!-- Bill reference -->
+                            <div
+                                class="rounded-xl border border-surface-100 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800"
+                            >
+                                <div
+                                    class="mb-1 flex items-center gap-2 text-xs text-color-secondary"
+                                >
+                                    <i class="pi pi-receipt"></i>
+                                    <span>Bill Reference</span>
+                                </div>
+
+                                <div class="break-words font-bold">
+                                    {{
+                                        bill.billReference ||
+                                        bill.id
+                                    }}
+                                </div>
+                            </div>
+
+                            <!-- Bill period -->
+                            <div
+                                class="rounded-xl border border-surface-100 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800"
+                            >
+                                <div
+                                    class="mb-1 flex items-center gap-2 text-xs text-color-secondary"
+                                >
+                                    <i class="pi pi-calendar"></i>
+                                    <span>Bill Period</span>
+                                </div>
+
+                                <div class="font-bold">
+                                    {{ bill.billYear }}/{{
+                                        bill.billMonth
+                                    }}
+                                </div>
+                            </div>
+
+                            <!-- Due date -->
+                            <div
+                                class="rounded-xl border border-surface-100 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800"
+                            >
+                                <div
+                                    class="mb-1 flex items-center gap-2 text-xs text-color-secondary"
+                                >
+                                    <i class="pi pi-clock"></i>
+                                    <span>Due Date</span>
+                                </div>
+
+                                <div class="text-sm font-bold">
+                                    {{
+                                        (
+                                            bill.dueDate
+                                                | date:
+                                                'dd MMM yyyy'
+                                        ) || '—'
+                                    }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        @if (bill.notes) {
+                            <div
+                                class="mt-3 rounded-xl border border-surface-100 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800"
+                            >
+                                <div
+                                    class="mb-1 flex items-center gap-2 text-xs text-color-secondary"
+                                >
+                                    <i class="pi pi-file-edit"></i>
+                                    <span>Notes</span>
+                                </div>
+
+                                <div class="break-words text-sm">
+                                    {{ bill.notes }}
+                                </div>
+                            </div>
+                        }
+
+                        <!-- PDF action -->
+                        <div
+                            class="mt-4 border-t border-surface-200 pt-4 dark:border-surface-700"
+                        >
+                            <p-button
+                                label="Print"
+                                icon="pi pi-print"
+                                styleClass="w-full min-h-12"
+                                [loading]="
+                                    isPrintingBill(bill.id)
+                                "
+                                [disabled]="
+                                    printingBillId !== null &&
+                                    !isPrintingBill(bill.id)
+                                "
+                                (onClick)="openBillPdf(bill)"
+                            ></p-button>
+                        </div>
+                    </article>
+                }
+            </div>
+
+            <!-- Load more -->
+            @if (hasMoreBills) {
+                <div class="mt-4">
+                    <p-button
+                        label="Load More Bills"
+                        icon="pi pi-chevron-down"
+                        severity="secondary"
+                        outlined
+                        styleClass="w-full min-h-12"
+                        (onClick)="loadMore()"
+                    ></p-button>
+
+                    <div
+                        class="mt-2 text-center text-xs text-color-secondary"
+                    >
+                        Showing
+                        {{ visibleBills.length }}
+                        of
+                        {{ filteredBills.length }}
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

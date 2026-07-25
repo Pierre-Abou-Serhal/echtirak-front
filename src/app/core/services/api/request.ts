@@ -1,5 +1,6 @@
 // Auth Requests
-import { Bill, BillCollectorProfile, CurrencyRate, FinanceTransactionType, Generator, GeneratorOwnerProfile, SubscriptionBillingModel } from '@/core/models/model';
+import { Bill, CurrencyRate, FinanceTransactionType, Generator, GeneratorOwnerProfile, SubscriptionBillingModel } from '@/core/models/model';
+import { PendingWorkAction } from '@/core/enums/enum';
 
 export interface SignInRequest {
     username: string;
@@ -17,7 +18,10 @@ export interface GetSubscribersQueryParams {
     phoneNumber?: string;
     firstName?: string;
     lastName?: string;
-    address?: string;
+    addressCountry?: string;
+    addressCity?: string;
+    addressStreet?: string;
+    addressBuilding?: string;
     generatorId?: number;
     subscriberId?: number;
     currentKva?: number;
@@ -56,9 +60,15 @@ export interface UpsertGeneratorRequest extends Generator {}
 
 export interface UpdateGeneratorOwnerProfileRequest extends GeneratorOwnerProfile {}
 
-export interface UpsertBillCollectorRequest extends BillCollectorProfile {
+export interface UpsertBillCollectorRequest {
+    id: number;
+    username: string;
     password?: string;
-    confirmPassword?: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    autoBillOnReading: boolean;
+    generatorIds: number[];
 }
 
 export interface GetSubscriptionBillingModelQueryParams {
@@ -180,6 +190,7 @@ export interface UpdateBillRequest {
     subscriptionAmps: number;
     statusCode: string;
     status: string;
+    sendPaidSms: boolean;
 }
 
 export interface GetBillsByCodeQueryParams {
@@ -225,6 +236,8 @@ export interface UpsertKVAReadingRequest {
     kvaReading: number;
     status: string;
     imageFile?: File | null;
+    billYear?: string;
+    billMonth?: string;
 }
 
 export interface GetDashboardQueryParams {
@@ -358,6 +371,8 @@ export interface GetGoSmsTemplatesQueryParams {
 
 export interface GetBillsForSmsQueryParams {
     role: string;
+    billYear?: string;
+    billMonth?: string;
 }
 
 export interface GetAddressHintsQueryParams {
@@ -454,10 +469,12 @@ export interface GetBillCollectionsQueryParam {
 export interface ApproveOrRejectBillCollectionRequest {
     collectionIds: number[];
     approve: boolean;
+    sendPaidSms: boolean;
 }
 
 export interface PayBillsInBulkRequest {
     billIds: number[];
+    sendPaidSms: boolean;
 }
 
 export interface GetBillsByPeriodStatusQueryParam {
@@ -551,10 +568,35 @@ export interface BulkKvaReadingRequest {
     boxImage: boolean;
     boxImageFile?: File | null;
     kvaReadings: BulkKvaReadingItemRequest[];
+    billYear?: string;
+    billMonth?: string;
 }
 
 export interface BulkKvaReadingItemRequest {
     subscriberId: number;
     reading: number;
     picture?: File | null;
+}
+
+export interface GetPendingWorkQueryParams {
+    billYear: string;
+    billMonth: string;
+    action: PendingWorkAction;
+}
+
+export interface GetBillCollectorBillsQueryParams {
+    billYear?: string;
+    billMonth?: string;
+}
+
+export interface UpdateInvoiceTemplateRequest {
+    billTemplateCode: string;
+    languageCode: string;
+    includeBillCollectorExtension: boolean;
+}
+
+export interface GetInvoiceTemplateSampleRequest {
+    billTemplateCode: string;
+    languageCode: string;
+    includeBillCollectorExtension: boolean;
 }

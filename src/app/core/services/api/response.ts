@@ -26,7 +26,9 @@ import {
     FinanceDaySummary,
     FinanceDayDetailSummary,
     FinanceTransaction,
-    BuildingBox
+    BuildingBox,
+    InvoiceTemplatePreference,
+    InvoiceTemplate
 } from '@/core/models/model';
 import {
     SubscriberAddress,
@@ -46,7 +48,10 @@ import {
     DashboardCollectionChannelSplit,
     DashboardTopDebtor,
     DashboardAccounting,
-    AddressHint
+    AddressHint,
+    NeedReadingItem,
+    BillSummary,
+    UpsertKvaReadingResult,
 } from '@/core/dtos/dto';
 
 // Auth Response
@@ -282,7 +287,7 @@ export interface GetKvaReadingPerBillCollectorResponse {
 }
 
 export interface UpsertKVAReadingResponse {
-    reading: KvaReading;
+    result: UpsertKvaReadingResult;
 }
 
 export interface GetDashboardResponse {
@@ -1067,4 +1072,30 @@ export interface BulkKvaReadingReading {
 
     modifiedAt?: string | null;
     modifiedBy?: string | null;
+}
+
+export interface NeedReading {
+    items: NeedReadingItem[];
+}
+
+export interface CollectionPending {
+    bills: BillSummary[];
+}
+
+export interface GetBillCollectorBillsResponse {
+    bills: BillSummary[];
+}
+
+export interface GetInvoiceTemplatesResponse {
+    screen: {
+        preference: InvoiceTemplatePreference;
+        templates: InvoiceTemplate[];
+    };
+}
+
+export interface UpdateInvoiceTemplateResponse {
+    screen: {
+        preference: InvoiceTemplatePreference;
+        templates: InvoiceTemplate[];
+    };
 }

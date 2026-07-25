@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, take } from 'rxjs';
 
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -22,6 +22,12 @@ import { BulkKvaReadingRequest, UpdateSubscriberBuildingBoxOrderRequest } from '
 import { LbPhonePipe } from '@/core/pipes/pipes';
 import { FloatLabel } from 'primeng/floatlabel';
 import { PrimeTemplate } from 'primeng/api';
+import { AuthService } from '@/core/services/auth.service';
+import { BillCollectorBillingPeriodService } from '@/core/services/bill-collector-billing-period.service';
+import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
+import {
+    BillingPeriodDialogComponent
+} from '@/modules/bill-collector/billing-period-dialog/billing-period-dialog.component';
 
 interface BillCollectorBoxReadingVm {
     subscriber: Subscriber;
@@ -39,15 +45,18 @@ type RowVisualState = 'empty' | 'active' | 'ready' | 'error' | 'saved' | 'failed
 @Component({
     selector: 'app-building-boxes.component',
     standalone: true,
-    imports: [CommonModule, FormsModule, Button, InputText, SelectButton, Tag, Skeleton, Dialog, InputNumber, LbPhonePipe, FloatLabel, PrimeTemplate],
+    imports: [CommonModule, FormsModule, Button, InputText, SelectButton, Tag, Skeleton, Dialog, InputNumber, LbPhonePipe, FloatLabel, PrimeTemplate, DynamicDialogModule],
     templateUrl: './building-boxes.component.html',
-    styleUrl: './building-boxes.component.scss'
+    styleUrl: './building-boxes.component.scss',
+    providers: [DialogService]
 })
 export class BuildingBoxesComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly billCollectorService = inject(BillCollectorService);
     private readonly notificationService = inject(NotificationService);
     private readonly imageCompressionService = inject(ImageCompressionService);
+    private readonly authService = inject(AuthService);
+    readonly billingPeriodService = inject(BillCollectorBillingPeriodService);
 
     readonly maxReading = 999999999;
 
@@ -86,6 +95,12 @@ export class BuildingBoxesComponent implements OnInit, OnDestroy {
     previewImageUrl: string | null = null;
     previewImageTitle = '';
 
+    private readonly dialogService = inject(DialogService);
+
+    private billingPeriodDialogRef?: DynamicDialogRef;
+
+    readonly autoBillOnReading = this.authService.autoBillOnReading;
+
     ngOnInit(): void {
         this.token = this.route.snapshot.paramMap.get('token') ?? '';
 
@@ -100,6 +115,7 @@ export class BuildingBoxesComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.revokeSharedPreview();
         this.revokeAllRowPreviews();
+        this.billingPeriodDialogRef?.close();
     }
 
     get filteredRows(): BillCollectorBoxReadingVm[] {
@@ -385,6 +401,15 @@ export class BuildingBoxesComponent implements OnInit, OnDestroy {
     }
 
     submitReadings(): void {
+        const billingPeriod = this.autoBillOnReading() ? this.billingPeriodService.getSnapshot() : null;
+
+        if (this.autoBillOnReading() && !billingPeriod) {
+            this.notificationService.warn('Billing Period Required', 'Select the billing month before submitting readings.');
+
+            this.openBillingPeriodDialog();
+            return;
+        }
+
         if (this.loading) {
             this.notificationService.warn('Loading', 'Please wait until the box is loaded.');
             return;
@@ -423,13 +448,14 @@ export class BuildingBoxesComponent implements OnInit, OnDestroy {
         const request: BulkKvaReadingRequest = {
             boxImage: this.photoMode === 'SHARED',
             boxImageFile: this.photoMode === 'SHARED' ? this.sharedImageFile : null,
+            billYear: billingPeriod?.billYear,
+            billMonth: billingPeriod?.billMonth,
             kvaReadings: rowsToSubmit.map((row) => ({
                 subscriberId: row.subscriber.id,
                 reading: Number(row.reading),
                 picture: this.photoMode === 'PER_METER' ? (row.picture ?? null) : null
             }))
         };
-
         this.submitting = true;
 
         this.billCollectorService
@@ -648,6 +674,41 @@ export class BuildingBoxesComponent implements OnInit, OnDestroy {
             if (row.picturePreviewUrl) {
                 URL.revokeObjectURL(row.picturePreviewUrl);
                 row.picturePreviewUrl = null;
+            }
+        });
+    }
+
+    openBillingPeriodDialog(): void {
+        /*
+         * Prevent multiple billing-period dialogs from being opened by repeated
+         * taps.
+         */
+        this.billingPeriodDialogRef?.close();
+
+        const dialogRef = this.dialogService.open(BillingPeriodDialogComponent, {
+            header: 'Billing Period',
+            modal: true,
+            closable: true,
+            draggable: false,
+            resizable: false,
+            dismissableMask: false,
+            width: '95vw',
+            style: {
+                maxWidth: '460px'
+            },
+            breakpoints: {
+                '640px': '95vw'
+            },
+            contentStyle: {
+                overflow: 'visible'
+            }
+        });
+
+        this.billingPeriodDialogRef = dialogRef;
+
+        dialogRef.onClose.pipe(take(1)).subscribe(() => {
+            if (this.billingPeriodDialogRef === dialogRef) {
+                this.billingPeriodDialogRef = undefined;
             }
         });
     }

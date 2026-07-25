@@ -1,13 +1,14 @@
-import { effect, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { ApiService } from '@/core/services/api/api.service';
 import { RefreshTokenRequest, SignInRequest } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import { RefreshTokenResponse, SignInResponse } from '@/core/services/api/response';
-import { AuthSession, TokenPair } from '@/core/dtos/dto';
+import { AppJwtClaims, AuthSession, TokenPair } from '@/core/dtos/dto';
 import { environment } from '../../../environments/environment';
 import { User } from '@/core/models/model';
 import { UserRole } from '@/core/enums/enum';
 import { Router, UrlTree } from '@angular/router';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -158,4 +159,22 @@ export class AuthService {
 
         this.sessionState.set(updated);
     }
+
+    readonly tokenClaims = computed<AppJwtClaims | null>(() => {
+        const accessToken = this.sessionState()?.accessToken;
+
+        if (!accessToken) {
+            return null;
+        }
+
+        try {
+            return jwtDecode<AppJwtClaims>(accessToken);
+        } catch {
+            return null;
+        }
+    });
+
+    readonly autoBillOnReading = computed<boolean>(() => {
+        return this.tokenClaims()?.bc_auto_bill_on_reading === 'true';
+    });
 }

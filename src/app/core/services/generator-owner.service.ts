@@ -47,7 +47,9 @@ import {
     GetBulkBillReportRequest,
     DashboardV2FilterRequest,
     UpdateSubscriberBuildingBoxOrderRequest,
-    GetBuildingBoxQrCodeRequest
+    GetBuildingBoxQrCodeRequest,
+    UpdateInvoiceTemplateRequest,
+    GetInvoiceTemplateSampleRequest
 } from '@/core/services/api/request';
 import { Observable } from 'rxjs';
 import {
@@ -114,7 +116,9 @@ import {
     DashboardV2OverviewResponse,
     DashboardV2SubscribersResponse,
     GetSubscribersByBuildingBoxTokenResponse,
-    UpdateSubscriberBuildingBoxOrderResponse
+    UpdateSubscriberBuildingBoxOrderResponse,
+    GetInvoiceTemplatesResponse,
+    UpdateInvoiceTemplateResponse
 } from '@/core/services/api/response';
 
 @Injectable({ providedIn: 'root' })
@@ -158,7 +162,7 @@ export class GeneratorOwnerService {
     public getSmsTemplate(queryParams: GetGoSmsTemplatesQueryParams): Observable<GetSmsTemplatesResponse> {
         let params = this.apiService.buildParams(queryParams);
 
-        return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SMSTemplates', { params: params });
+        return this.apiService.get<GetSmsTemplatesResponse>('/GeneratorOwner/SmsTemplates', { params: params });
     }
 
     public getLookup(queryParams: GetLookupQueryParams): Observable<GetLookupResponse> {
@@ -520,5 +524,17 @@ export class GeneratorOwnerService {
 
     public getBuildingBoxQrCodeZip(request: GetBuildingBoxQrCodeRequest) {
         return this.apiService.postBlob('/GeneratorOwner/building-boxes/QrCodeZip', request);
+    }
+
+    public getInvoiceTemplates(): Observable<GetInvoiceTemplatesResponse> {
+        return this.apiService.get<GetInvoiceTemplatesResponse>(`/GeneratorOwner/InvoiceTemplates`);
+    }
+
+    public updateInvoiceTemplate(request: UpdateInvoiceTemplateRequest): Observable<UpdateInvoiceTemplateResponse> {
+        return this.apiService.put<UpdateInvoiceTemplateResponse>(`/GeneratorOwner/InvoiceTemplates`, request);
+    }
+
+    public getInvoiceTemplateSample(request: GetInvoiceTemplateSampleRequest) {
+        return this.apiService.postBlob('/GeneratorOwner/InvoiceTemplates/Sample', request);
     }
 }

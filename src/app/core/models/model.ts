@@ -1,5 +1,5 @@
 import { UserRole } from '@/core/enums/enum';
-import { SubscriberAddress } from '@/core/dtos/dto';
+import { AssignedGenerator, SubscriberAddress } from '@/core/dtos/dto';
 
 export interface User {
     id: number;
@@ -75,11 +75,16 @@ export interface GeneratorOwnerProfile {
 
 export interface BillCollectorProfile {
     id: number;
-    userId?: number;
+    userId: number;
+    generatorOwnerUserId: number;
     username: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
+    autoBillOnReading: boolean;
+    statusCode: string;
+    createdAt: string;
+    assignedGenerators: AssignedGenerator[];
 }
 
 export interface SmsTemplate {
@@ -250,6 +255,19 @@ export interface KvaReading {
     subscriberFirstName: string;
     subscriberLastName: string;
     subscriberPhoneNumber: string;
+    address: {
+        id: number;
+        country: string;
+        city: string;
+        street: string;
+        building: string;
+        floor: string;
+    };
+    addressCountry: string;
+    addressCity: string;
+    addressStreet: string;
+    addressBuilding: string;
+    addressFloor: string;
     electricMeterNumber: string;
     generatorId: number;
     generatorCode: string;
@@ -426,4 +444,29 @@ export interface BuildingBox {
     building: string;
     meteredSubscriberCount: number;
     pendingReadingsCount: number;
+}
+
+export interface InvoiceTemplatePreference {
+    generatorOwnerUserId: number;
+    billTemplateCode: string;
+    receiptTemplateCode: string;
+    languageCode: string;
+    isRtl: boolean;
+    includeBillCollectorExtension: boolean;
+    modifiedAt: string;
+}
+
+export interface InvoiceTemplate {
+    code: string;
+    name: string;
+    description: string;
+    category: string;
+    pageWidthMm: number;
+    pageHeightMm: number;
+    supportsArabic: boolean;
+    supportsExtension: boolean;
+    previewImageUrl: string;
+    isActive: boolean;
+    sortOrder: number;
+    isSelected: boolean;
 }

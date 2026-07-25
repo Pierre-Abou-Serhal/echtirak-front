@@ -20,6 +20,7 @@ import { SubscriberAddressesComponent } from '@/modules/generator-owner/subscrib
 import { BillCollectionsComponent } from '@/modules/generator-owner/bills/bill-collections/bill-collections.component';
 import { GeneratorOwnerDocsComponent } from '@/modules/generator-owner/docs/generator-owner-docs.component';
 import { ExpensesFinancesComponent } from '@/modules/generator-owner/expenses-finances/expenses-finances.component';
+import { InvoiceTemplatesComponent } from '@/modules/generator-owner/invoice-templates/invoice-templates.component';
 
 export const GENERATOR_OWNER_ROUTES: Routes = [
     {
@@ -43,6 +44,7 @@ export const GENERATOR_OWNER_ROUTES: Routes = [
             { path: 'kva-reading-history', component: KvaReadingHistoryComponent, data: { screenName: 'Generator Owner - KWH Reading History' } },
             { path: 'sms-templates', component: SmsTemplatesComponent, data: { screenName: 'Generator Owner - SMS Templates' } },
             { path: 'bills', component: BillsComponent, data: { screenName: 'Generator Owner - Bills' } },
+            { path: 'invoice-templates', component: InvoiceTemplatesComponent, data: { screenName: 'Generator Owner - Invoice Templates' } },
             { path: 'subscription-billing-model', component: SubscriptionBillingModelComponent, data: { screenName: 'Generator Owner - Subscription Billing Models' } },
             { path: 'currency-rates', component: CurrencyRatesComponent, data: { screenName: 'Generator Owner - Currency Rates' } },
             { path: 'wallet', component: WalletComponent, data: { screenName: 'Generator Owner - Wallet' } },

@@ -104,12 +104,13 @@ export enum BillAction {
     PAY = 'PAY',
     CANCEL = 'CANCEL',
     GET_BILL_REPORT = 'GET_BILL_REPORT',
-    GET_RECEIPT_REPORT = 'GET_RECEIPT_REPORT',
+    GET_RECEIPT_REPORT = 'GET_RECEIPT_REPORT'
 }
 
 export enum SmsTemplateRole {
     BILL_ISSUANCE = 'BILL_ISSUANCE',
     OVERDUE_BILL = 'OVERDUE_BILL',
+    BILL_PAID = 'BILL_PAID',
     SUBSCRIBER = 'SUBSCRIBER'
 }
 
@@ -129,13 +130,13 @@ export enum SubscriberAction {
 export enum BillCollectionStatus {
     NOT_COLLECTED = 'NOT_COLLECTED',
     COLLECTED_BY_BC = 'COLLECTED_BY_BC',
-    COLLECTED_BY_GO = 'COLLECTED_BY_GO',
+    COLLECTED_BY_GO = 'COLLECTED_BY_GO'
 }
 
 export enum BillCollectionRecordStatus {
     COLLECTED_PENDING_GO_APPROVAL = 'COLLECTED_PENDING_GO_APPROVAL',
     APPROVED = 'APPROVED',
-    REJECTED = 'REJECTED',
+    REJECTED = 'REJECTED'
 }
 
 export enum ReportPaperSize {
@@ -149,4 +150,18 @@ export enum KvaReadingHistoryAction {
     EDIT = 'EDIT',
     VIEW_IMAGE = 'VIEW_IMAGE',
     CANCEL = 'CANCEL'
+}
+
+export enum PendingWorkAction {
+    NEEDS_READING = 'needs_reading',
+    COLLECTION_PENDING = 'collection_pending'
+}
+
+export enum InvoiceTemplateCode {
+    STANDARD_A4 = 'STANDARD_A4',
+    STANDARD_A4_MINI = 'STANDARD_A4_MINI',
+    PORTABLE_80MM = 'PORTABLE_80MM',
+    PORTABLE_80_MINI = 'PORTABLE_80_MINI',
+    PORTABLE_58 = 'PORTABLE_58',
+    PORTABLE_58_MINI = 'PORTABLE_58_MINI'
 }

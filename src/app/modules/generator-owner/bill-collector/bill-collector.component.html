@@ -11,7 +11,12 @@
         #dt
         [value]="billCollectors"
         dataKey="id"
-        [globalFilterFields]="['code', 'description', 'location']"
+        [globalFilterFields]="[
+                'username',
+                'firstName',
+                'lastName',
+                'phoneNumber'
+            ]"
         responsiveLayout="scroll"
         [loading]="loading"
         rowHover
@@ -75,6 +80,14 @@
                         <p-sortIcon field="phoneNumber" />
                     </div>
                 </th>
+
+                <th style="min-width: 11rem">
+                    Automatic Billing
+                </th>
+
+                <th style="min-width: 18rem">
+                    Assigned Generators
+                </th>
             </tr>
         </ng-template>
         <ng-template #body let-billCollector>
@@ -97,16 +110,39 @@
                 <td>
                     {{ billCollector.phoneNumber | lbPhone }}
                 </td>
+
+                <td>
+                    <p-tag
+                        [value]="billCollector.autoBillOnReading ? 'Automatic' : 'Manual'"
+                        [severity]="billCollector.autoBillOnReading ? 'success' : 'secondary'"
+                    />
+                </td>
+
+                <td>
+                    <div class="flex flex-wrap gap-2">
+                        @for (
+                            generator of billCollector.assignedGenerators;
+                            track generator.generatorId
+                            ) {
+                            <p-tag
+                                [value]="generator.generatorCode"
+                                severity="info"
+                            />
+                        } @empty {
+                            <span class="text-muted-color">No generators assigned</span>
+                        }
+                    </div>
+                </td>
             </tr>
         </ng-template>
         <ng-template #emptymessage>
             <tr>
-                <td colspan="11">No bill collectors found.</td>
+                <td colspan="8">No bill collectors found.</td>
             </tr>
         </ng-template>
         <ng-template #loadingbody>
             <tr>
-                <td colspan="11">Loading bill collector data. Please wait.</td>
+                <td colspan="8">Loading bill collector data. Please wait.</td>
             </tr>
         </ng-template>
     </p-table>
@@ -118,7 +154,7 @@
         [modal]="true"
     >
         <ng-template #content>
-            <form [formGroup]="billCollectorForm">
+            <form [formGroup]="billCollectorForm" autocomplete="off">
                 <label for="dialogUserName" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Username</label>
                 <input pInputText id="dialogUserName" type="text" placeholder="Username" class="w-full md:w-120 mb-4"  formControlName="username" [invalid]="isInvalid('username')" />
 
@@ -161,31 +197,146 @@
                     <p-message severity="error" size="small" variant="simple">Phone Number is required.</p-message>
                 }
 
-                <label for="dialogNewPassword" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">New Password</label>
-                <p-password id="dialogNewPassword" placeholder="New Password" class="mb-4" fluid formControlName="newPassword" [invalid]="billCollectorForm.hasError('newRequired')" [toggleMask]="true" [feedback]="false" />
+                <label
+                    for="dialogGenerators"
+                    class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2"
+                >
+                    Assigned Generators
+                </label>
 
-                @if (billCollectorForm.hasError('newRequired') && (billCollectorForm.get('newPassword')?.touched || billCollectorForm.get('newPassword')?.dirty)) {
+                <p-multiselect
+                    inputId="dialogGenerators"
+                    formControlName="generatorIds"
+                    [options]="availableGenerators"
+                    optionLabel="code"
+                    optionValue="id"
+                    placeholder="Select generators"
+                    display="chip"
+                    [filter]="true"
+                    filterBy="code"
+                    [showToggleAll]="true"
+                    [maxSelectedLabels]="3"
+                    selectedItemsLabel="{0} generators selected"
+                    appendTo="body"
+                    class="w-full mb-4"
+                    [invalid]="isInvalid('generatorIds')"
+                    [loading]="loadingGenerators"
+                >
+                    <ng-template #item let-generator>
+                        {{ generator.code }}
+                    </ng-template>
+                </p-multiselect>
+
+                @if (isInvalid('generatorIds')) {
                     <p-message severity="error" size="small" variant="simple">
-                        New Password is required when confirming a password.
+                        At least one generator must be selected.
                     </p-message>
                 }
 
-                <label for="dialogConfirmPassword" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Confirm Password</label>
+                <div class="flex items-center gap-3 mb-4 mt-4">
+                    <p-toggleswitch
+                        inputId="dialogAutoBillOnReading"
+                        formControlName="autoBillOnReading"></p-toggleswitch>
 
-                <p-password id="dialogConfirmPassword" placeholder="Confirm Password" class="mb-4" fluid formControlName="confirmPassword" [invalid]="billCollectorForm.hasError('confirmRequired') ||
-    billCollectorForm.hasError('passwordMismatch')" [toggleMask]="true" [feedback]="false" />
+                    <label
+                        for="dialogAutoBillOnReading"
+                        class="text-surface-900 dark:text-surface-0 font-medium"
+                    >
+                        Automatically generate bill when a reading is added
+                    </label>
+                </div>
 
+                @if (!isNewBillCollector) {
+                    <div class="flex items-center gap-3 mb-4">
+                        <p-toggleswitch
+                            inputId="dialogChangePassword"
+                            formControlName="changePassword"
+                            (onChange)="onChangePasswordChanged()"
+                        />
 
-                @if (billCollectorForm.hasError('confirmRequired') && (billCollectorForm.get('confirmPassword')?.touched || billCollectorForm.get('confirmPassword')?.dirty)) {
-                    <p-message severity="error" size="small" variant="simple">
-                        Confirm Password is required when changing the password.
-                    </p-message>
+                        <div>
+                            <label
+                                for="dialogChangePassword"
+                                class="block text-surface-900 dark:text-surface-0 font-medium"
+                            >
+                                Change password
+                            </label>
+
+                            <small class="text-muted-color">
+                                Enable this option to set a new password.
+                            </small>
+                        </div>
+                    </div>
                 }
 
-                @if (billCollectorForm.hasError('passwordMismatch') && (billCollectorForm.get('confirmPassword')?.touched || billCollectorForm.get('confirmPassword')?.dirty)) {
-                    <p-message severity="error" size="small" variant="simple">
-                        Passwords do not match.
-                    </p-message>
+                @if (isChangingPassword) {
+                    <label
+                        for="dialogNewPassword"
+                        class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2"
+                    >
+                        New Password
+                    </label>
+
+                    <p-password
+                        inputId="dialogNewPassword"
+                        placeholder="New Password"
+                        class="mb-4"
+                        fluid
+                        formControlName="newPassword"
+                        autocomplete="new-password"
+                        [invalid]="billCollectorForm.hasError('newRequired')"
+                        [toggleMask]="true"
+                        [feedback]="false"
+                    />
+
+                    @if (
+                        billCollectorForm.hasError('newRequired') &&
+                        billCollectorForm.get('newPassword')?.touched
+                        ) {
+                        <p-message severity="error" size="small" variant="simple">
+                            New Password is required.
+                        </p-message>
+                    }
+
+                    <label
+                        for="dialogConfirmPassword"
+                        class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2 mt-4"
+                    >
+                        Confirm Password
+                    </label>
+
+                    <p-password
+                        inputId="dialogConfirmPassword"
+                        placeholder="Confirm Password"
+                        class="mb-4"
+                        fluid
+                        formControlName="confirmPassword"
+                        autocomplete="new-password"
+                        [invalid]="
+            billCollectorForm.hasError('confirmRequired') ||
+            billCollectorForm.hasError('passwordMismatch')
+        "
+                        [toggleMask]="true"
+                        [feedback]="false"
+                    />
+
+                    @if (
+                        billCollectorForm.hasError('confirmRequired') &&
+                        billCollectorForm.get('confirmPassword')?.touched
+                        ) {
+                        <p-message severity="error" size="small" variant="simple">
+                            Confirm Password is required.
+                        </p-message>
+                    }
+
+                    @if (
+                        billCollectorForm.hasError('passwordMismatch') &&
+                        billCollectorForm.get('confirmPassword')?.touched
+                        ) {
+                        <p-message severity="error" size="small" variant="simple">
+                            Passwords do not match.
+                        </p-message>
+                    }
                 }
 
             </form>

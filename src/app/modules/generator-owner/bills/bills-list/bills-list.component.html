@@ -1,18 +1,24 @@
 <div class="card">
-
-    <!-- FILTERS BAR -->
+    <!-- Filters -->
     <div class="mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-            <!-- Subscriber Name -->
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <!-- Bill Reference -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterBillReference">
+                <label
+                    for="filterBillReference"
+                    class="mb-2 block text-sm font-semibold"
+                >
                     Bill Reference
                 </label>
-                <p-iconfield iconPosition="left" class="w-full">
+
+                <p-iconfield
+                    iconPosition="left"
+                    class="w-full"
+                >
                     <p-inputicon>
                         <i class="pi pi-hashtag"></i>
                     </p-inputicon>
+
                     <p-inputnumber
                         inputId="filterBillReference"
                         [(ngModel)]="billSearchFilter.billReference"
@@ -20,41 +26,52 @@
                         [minFractionDigits]="0"
                         [maxFractionDigits]="0"
                         class="w-full"
-                        (keyup.enter)="applyFilters()"
                         placeholder="Search by bill reference"
+                        (keyup.enter)="applyFilters()"
                     ></p-inputnumber>
                 </p-iconfield>
             </div>
 
-            <!-- Subscriber Name -->
+            <!-- Subscriber -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterSubscriberName">
+                <label
+                    for="filterSubscriberName"
+                    class="mb-2 block text-sm font-semibold"
+                >
                     Subscriber Name
                 </label>
-                <p-iconfield iconPosition="left" class="w-full">
+
+                <p-iconfield
+                    iconPosition="left"
+                    class="w-full"
+                >
                     <p-inputicon>
                         <i class="pi pi-user"></i>
                     </p-inputicon>
+
                     <input
                         id="filterSubscriberName"
                         pInputText
                         type="text"
                         class="w-full"
                         [(ngModel)]="billSearchFilter.subscriberName"
-                        (keyup.enter)="applyFilters()"
                         placeholder="Search by name"
+                        (keyup.enter)="applyFilters()"
                     />
                 </p-iconfield>
             </div>
 
-            <!-- Subscriber Phone -->
+            <!-- Phone -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterSubscriberPhone">
+                <label class="mb-2 block text-sm font-semibold">
                     Subscriber Phone
                 </label>
 
                 <p-inputgroup>
-                    <p-inputgroup-addon>+961</p-inputgroup-addon>
+                    <p-inputgroup-addon>
+                        +961
+                    </p-inputgroup-addon>
+
                     <input
                         pInputText
                         placeholder="Phone Number"
@@ -66,32 +83,40 @@
                 </p-inputgroup>
             </div>
 
-            <!-- Bill Date From -->
+            <!-- Date From -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterBillDateFrom">
+                <label
+                    for="filterBillDateFrom"
+                    class="mb-2 block text-sm font-semibold"
+                >
                     Bill Date From
                 </label>
+
                 <p-datepicker
                     inputId="filterBillDateFrom"
                     [(ngModel)]="billSearchFilter.billDateFrom"
                     [showIcon]="true"
-                    [iconDisplay]="'input'"
+                    iconDisplay="input"
                     dateFormat="yy-mm-dd"
                     appendTo="body"
                     class="w-full"
                 ></p-datepicker>
             </div>
 
-            <!-- Bill Date To -->
+            <!-- Date To -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterBillDateTo">
+                <label
+                    for="filterBillDateTo"
+                    class="mb-2 block text-sm font-semibold"
+                >
                     Bill Date To
                 </label>
+
                 <p-datepicker
                     inputId="filterBillDateTo"
                     [(ngModel)]="billSearchFilter.billDateTo"
                     [showIcon]="true"
-                    [iconDisplay]="'input'"
+                    iconDisplay="input"
                     dateFormat="yy-mm-dd"
                     appendTo="body"
                     class="w-full"
@@ -100,9 +125,13 @@
 
             <!-- Generator -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterGenerator">
+                <label
+                    for="filterGenerator"
+                    class="mb-2 block text-sm font-semibold"
+                >
                     Generator
                 </label>
+
                 <p-select
                     inputId="filterGenerator"
                     class="w-full"
@@ -118,9 +147,13 @@
 
             <!-- Status -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterStatus">
+                <label
+                    for="filterStatus"
+                    class="mb-2 block text-sm font-semibold"
+                >
                     Status
                 </label>
+
                 <p-select
                     inputId="filterStatus"
                     class="w-full"
@@ -136,31 +169,40 @@
 
             <!-- Keyword -->
             <div class="flex flex-col">
-                <label class="block text-sm font-semibold mb-2" for="filterKeyword">
+                <label
+                    for="filterKeyword"
+                    class="mb-2 block text-sm font-semibold"
+                >
                     Keyword
                 </label>
 
-                <p-iconfield iconPosition="left" class="w-full">
-                    <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+                <p-iconfield
+                    iconPosition="left"
+                    class="w-full"
+                >
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+
                     <input
                         id="filterKeyword"
                         pInputText
                         type="text"
                         class="w-full"
                         [(ngModel)]="billSearchFilter.keyword"
-                        (keyup.enter)="applyFilters()"
                         placeholder="Search anything..."
+                        (keyup.enter)="applyFilters()"
                     />
                 </p-iconfield>
             </div>
 
-            <!-- Actions -->
+            <!-- Filter Actions -->
             <div class="flex items-end gap-2">
                 <p-button
                     label="Apply"
                     icon="pi pi-filter"
-                    (click)="applyFilters()"
                     [loading]="loading"
+                    (onClick)="applyFilters()"
                 ></p-button>
 
                 <p-button
@@ -168,16 +210,23 @@
                     icon="pi pi-times"
                     severity="secondary"
                     text
-                    (click)="resetFilters()"
+                    (onClick)="resetFilters()"
                 ></p-button>
             </div>
-
         </div>
     </div>
 
-    <p-contextmenu #cm [model]="items" (onHide)="selectedBill = null">
-        <ng-template pTemplate="item" let-item>
-            <div class="w-full px-2 py-1 cursor-pointer">
+    <!-- Row menu -->
+    <p-contextmenu
+        #cm
+        [model]="items"
+        (onHide)="selectedBill = null"
+    >
+        <ng-template
+            pTemplate="item"
+            let-item
+        >
+            <div class="w-full cursor-pointer px-2 py-1">
                 <p-button
                     class="w-full"
                     styleClass="p-button-sm me-3"
@@ -188,16 +237,38 @@
                     [loading]="!!item.data?.loading"
                     (onClick)="onMenuItemClick(item, $event)"
                 ></p-button>
-                <span class="text-sm font-semibold">{{item.label}}</span>
+
+                <span class="text-sm font-semibold">
+                    {{ item.label }}
+                </span>
             </div>
         </ng-template>
     </p-contextmenu>
 
+    <!-- Custom pagination -->
     <div class="mb-4">
-        <p-button type="button" icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" text />
-        <p-button type="button" icon="pi pi-refresh" (click)="reset()" text />
-        <p-button type="button" icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" text />
+        <p-button
+            icon="pi pi-chevron-left"
+            text
+            [disabled]="isFirstPage()"
+            (onClick)="prev()"
+        ></p-button>
+
+        <p-button
+            icon="pi pi-refresh"
+            text
+            (onClick)="reset()"
+        ></p-button>
+
+        <p-button
+            icon="pi pi-chevron-right"
+            text
+            [disabled]="isLastPage()"
+            (onClick)="next()"
+        ></p-button>
     </div>
+
+    <!-- Bills Table -->
     <p-table
         #dt
         [value]="bills"
@@ -221,35 +292,35 @@
         (onRowCollapse)="onRowCollapse($event)"
     >
         <ng-template #caption>
-            <!-- Top row: New / Export / Download QR PDF -->
-            <div class="flex justify-between items-center flex-column sm:flex-row gap-3 pb-4">
-                <div class="flex flex-wrap items-center gap-2 ml-auto">
-
+            <div
+                class="flex flex-col items-center justify-between gap-3 pb-4 sm:flex-row"
+            >
+                <div class="ml-auto flex flex-wrap items-center gap-2">
                     <p-button
                         icon="pi pi-dollar"
                         label="Pay In Bulk"
-                        (click)="payBillsInBulk()"
                         [loading]="payBulkBillsLoading"
-                    />
+                        (onClick)="payBillsInBulk()"
+                    ></p-button>
 
                     <p-button
                         icon="pi pi-print"
                         label="Print Bulk Bill Reports"
-                        (click)="openBulkReportBills()"
                         severity="contrast"
-                    />
+                        (onClick)="openBulkReportBills()"
+                    ></p-button>
 
                     <p-button
                         icon="pi pi-external-link"
                         label="Export CSV"
-                        (click)="exportToCsv()"
-                    />
-
+                        (onClick)="exportToCsv()"
+                    ></p-button>
                 </div>
             </div>
 
-            <!-- Second row: Clear + Search -->
-            <div class="flex justify-between items-center flex-column sm:flex-row gap-3">
+            <div
+                class="flex flex-col items-center justify-between gap-3 sm:flex-row"
+            >
                 <div>
                     <button
                         pButton
@@ -259,93 +330,144 @@
                         (click)="clear(dt)"
                     ></button>
 
-                    <p-button label="Expand All" icon="pi pi-plus" (onClick)="expandAll()" variant="outlined" class="me-2"/>
-                    <p-button label="Collapse All" icon="pi pi-minus" (onClick)="collapseAll()" variant="outlined" />
-                </div>
+                    <p-button
+                        label="Expand All"
+                        icon="pi pi-plus"
+                        outlined
+                        class="me-2"
+                        (onClick)="expandAll()"
+                    ></p-button>
 
+                    <p-button
+                        label="Collapse All"
+                        icon="pi pi-minus"
+                        outlined
+                        (onClick)="collapseAll()"
+                    ></p-button>
+                </div>
             </div>
         </ng-template>
+
         <ng-template #header>
             <tr>
-                <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
-                <th style="width: 5rem">Actions</th>
+                <th style="width: 4rem">
+                    <p-tableHeaderCheckbox />
+                </th>
 
-                <th class="no-wrap-text" pSortableColumn="subscriberFirstName">
-                    <div class="flex justify-between items-center gap-2">
+                <th style="width: 5rem">
+                    Actions
+                </th>
+
+                <th
+                    class="no-wrap-text"
+                    pSortableColumn="subscriberFirstName"
+                >
+                    <div class="flex items-center justify-between gap-2">
                         Subscriber
                         <p-sortIcon field="subscriberFirstName" />
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="generatorCode">
-                    <div class="flex justify-between items-center gap-2">
+                <th
+                    class="no-wrap-text"
+                    pSortableColumn="generatorCode"
+                >
+                    <div class="flex items-center justify-between gap-2">
                         Generator
                         <p-sortIcon field="generatorCode" />
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="currentKva">
-                    <div class="flex justify-between items-center gap-2">
+                <th
+                    class="no-wrap-text"
+                    pSortableColumn="currentKva"
+                >
+                    <div class="flex items-center justify-between gap-2">
                         KWH
                         <p-sortIcon field="currentKva" />
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="billDate">
-                    <div class="flex justify-between items-center gap-2">
+                <th
+                    class="no-wrap-text"
+                    pSortableColumn="billDate"
+                >
+                    <div class="flex items-center justify-between gap-2">
                         Created Date
                         <p-sortIcon field="billDate" />
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="billPeriodKey">
-                    <div class="flex justify-between items-center gap-2">
+                <th
+                    class="no-wrap-text"
+                    pSortableColumn="billPeriodKey"
+                >
+                    <div class="flex items-center justify-between gap-2">
                         Bill Year/Month
                         <p-sortIcon field="billPeriodKey" />
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="dueDate">
-                    <div class="flex justify-between items-center gap-2">
+                <th
+                    class="no-wrap-text"
+                    pSortableColumn="dueDate"
+                >
+                    <div class="flex items-center justify-between gap-2">
                         Due Date
                         <p-sortIcon field="dueDate" />
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="amount">
-                    <div class="flex justify-between items-center gap-2">
+                <th
+                    class="no-wrap-text"
+                    pSortableColumn="amount"
+                >
+                    <div class="flex items-center justify-between gap-2">
                         Grand Total
                         <p-sortIcon field="amount" />
                     </div>
                 </th>
 
-                <th class="no-wrap-text" pSortableColumn="statusCode">
-                    <div class="flex justify-between items-center gap-2">
+                <th
+                    class="no-wrap-text"
+                    pSortableColumn="statusCode"
+                >
+                    <div class="flex items-center justify-between gap-2">
                         Status
                         <p-sortIcon field="statusCode" />
                     </div>
                 </th>
             </tr>
         </ng-template>
-        <ng-template #body let-bill let-expanded="expanded" >
-            <tr [pSelectableRow]="bill"
+
+        <ng-template
+            #body
+            let-bill
+            let-expanded="expanded"
+        >
+            <tr
+                [pSelectableRow]="bill"
                 [pRowToggler]="bill"
-                class="cursor-pointer">
+                class="cursor-pointer"
+            >
                 <td (click)="$event.stopPropagation()">
                     <p-tableCheckbox [value]="bill" />
                 </td>
-                <!-- ACTIONS (edit / save / cancel) -->
+
                 <td (click)="$event.stopPropagation()">
-                    <div class="flex justify-start items-center">
+                    <div class="flex items-center justify-start">
                         <p-button
                             icon="pi pi-pencil"
                             styleClass="p-button-sm me-3"
                             rounded
-                            (onClick)="openRowMenu($event, bill, cm)"
                             severity="info"
+                            (onClick)="openRowMenu($event, bill, cm)"
                         ></p-button>
 
-                        @if(bill.billIssuedSmsStatus === BillIssuedSmsStatus.SENT){
+                        @if (
+                            bill.billIssuedSmsStatus ===
+                            BillIssuedSmsStatus.SENT
+                            ) {
                             <p-tag
                                 icon="pi pi-envelope"
                                 severity="success"
@@ -366,48 +488,88 @@
                             />
                         }
 
-                        <i class="pi text-500" [ngClass]="expanded ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+                        <i
+                            class="pi text-500"
+                            [ngClass]="
+                                expanded
+                                    ? 'pi-chevron-down'
+                                    : 'pi-chevron-right'
+                            "
+                        ></i>
                     </div>
+                </td>
 
-                </td>
                 <td>
-                    {{ bill.subscriberFirstName }} {{ bill.subscriberLastName }}
+                    {{ bill.subscriberFirstName }}
+                    {{ bill.subscriberLastName }}
                 </td>
+
                 <td>
                     {{ bill.generatorCode }}
                 </td>
+
                 <td>
-                    <div class="flex flex-col gap-1 min-w-[13rem]">
+                    <div class="flex min-w-[13rem] flex-col gap-1">
                         <div class="grid grid-cols-2 gap-3">
-                            <div class="flex items-center justify-between gap-2 text-xs">
-                                <span class="text-color-secondary font-bold">Previous</span>
-                                <span class="font-medium">{{ bill.previousKva | number:'1.0-4' }}</span>
+                            <div
+                                class="flex items-center justify-between gap-2 text-xs"
+                            >
+                                <span class="font-bold text-color-secondary">
+                                    Previous
+                                </span>
+
+                                <span class="font-medium">
+                                    {{ bill.previousKva | number:'1.0-4' }}
+                                </span>
                             </div>
 
-                            <div class="flex items-center justify-between gap-2 text-xs">
-                                <span class="text-color-secondary font-bold">Current</span>
-                                <span class="font-medium">{{ bill.currentKva | number:'1.0-4' }}</span>
+                            <div
+                                class="flex items-center justify-between gap-2 text-xs"
+                            >
+                                <span class="font-bold text-color-secondary">
+                                    Current
+                                </span>
+
+                                <span class="font-medium">
+                                    {{ bill.currentKva | number:'1.0-4' }}
+                                </span>
                             </div>
                         </div>
 
-                        <div class="border-t border-surface-200 mt-1 pt-1 flex items-center justify-between gap-3">
-                            <span class="text-xs text-color-secondary font-bold">Consumed</span>
-                            <span class="font-semibold text-primary">{{ (bill.currentKva - bill.previousKva) | number:'1.0-4' }}</span>
+                        <div
+                            class="mt-1 flex items-center justify-between gap-3 border-t border-surface-200 pt-1"
+                        >
+                            <span class="text-xs font-bold text-color-secondary">
+                                Consumed
+                            </span>
+
+                            <span class="font-semibold text-primary">
+                                {{
+                                    bill.currentKva - bill.previousKva
+                                        | number:'1.0-4'
+                                }}
+                            </span>
                         </div>
                     </div>
                 </td>
+
                 <td>
                     {{ bill.billDate | date:'yyyy-MM-dd' }}
                 </td>
+
                 <td>
                     {{ bill.billPeriodKey }}
                 </td>
+
                 <td>
                     {{ bill.dueDate | date:'yyyy-MM-dd' }}
                 </td>
+
                 <td>
-                    {{ getBillTotalAmount(bill) | number:'1.0-4' }} {{ bill.currencyCode }}
+                    {{ getBillTotalAmount(bill) | number:'1.0-4' }}
+                    {{ bill.currencyCode }}
                 </td>
+
                 <td>
                     <p-tag
                         [value]="bill.statusCode"
@@ -416,65 +578,133 @@
                 </td>
             </tr>
         </ng-template>
-        <ng-template #expandedrow let-bill>
+
+        <!-- Expanded Bill -->
+        <ng-template
+            #expandedrow
+            let-bill
+        >
             <tr>
-                <td colspan="10" class="p-0">
+                <td
+                    colspan="10"
+                    class="p-0"
+                >
                     <div class="p-2">
                         <div class="bill-cards">
-
-                            <!-- Notes (full width) -->
+                            <!-- Notes -->
                             <div class="detail-card detail-card--wide">
                                 <div class="detail-head">
                                     <i class="pi pi-pencil"></i>
-                                    <span class="detail-label">Notes</span>
+
+                                    <span class="detail-label">
+                                        Notes
+                                    </span>
                                 </div>
+
                                 <div class="detail-value">
                                     {{ bill.notes || '—' }}
                                 </div>
                             </div>
 
+                            <!-- AMPS -->
                             <div class="detail-card detail-card--third">
                                 <div class="detail-head">
                                     <i class="pi pi-bolt"></i>
-                                    <span class="detail-label">Subscription AMPS</span>
+
+                                    <span class="detail-label">
+                                        Subscription AMPS
+                                    </span>
                                 </div>
-                                <div class="detail-value">{{ bill.billingModel }} {{ bill.subscriptionAmps | number:'1.0-4' }}</div>
+
+                                <div class="detail-value">
+                                    {{ bill.billingModel }}
+                                    {{
+                                        bill.subscriptionAmps
+                                            | number:'1.0-4'
+                                    }}
+                                </div>
                             </div>
 
-                            <!-- Amount per KVA -->
+                            <!-- Amount/KWH -->
                             <div class="detail-card detail-card--third">
                                 <div class="detail-head">
                                     <i class="pi pi-tag"></i>
-                                    <span class="detail-label">Amount Per KWH</span>
+
+                                    <span class="detail-label">
+                                        Amount Per KWH
+                                    </span>
                                 </div>
-                                <div class="detail-value">{{ bill.amountPerKva == null ? '—' : (bill.amountPerKva | number:'1.0-4') }}</div>
+
+                                <div class="detail-value">
+                                    {{
+                                        bill.amountPerKva == null
+                                            ? '—'
+                                            : (
+                                                bill.amountPerKva
+                                                    | number:'1.0-4'
+                                            )
+                                    }}
+                                </div>
                             </div>
 
-                            <!-- Row 2: Fees -->
+                            <!-- Total KWH fee -->
                             <div class="detail-card detail-card--third">
                                 <div class="detail-head">
                                     <i class="pi pi-tag"></i>
-                                    <span class="detail-label">Total KWH Fee</span>
+
+                                    <span class="detail-label">
+                                        Total KWH Fee
+                                    </span>
                                 </div>
-                                <div class="detail-value">{{ bill.kvaFee == null ? '—' : (bill.kvaFee | number:'1.0-4') }}</div>
+
+                                <div class="detail-value">
+                                    {{
+                                        bill.kvaFee == null
+                                            ? '—'
+                                            : (
+                                                bill.kvaFee
+                                                    | number:'1.0-4'
+                                            )
+                                    }}
+                                </div>
                             </div>
 
+                            <!-- Fixed fee -->
                             <div class="detail-card detail-card--third">
                                 <div class="detail-head">
                                     <i class="pi pi-wallet"></i>
-                                    <span class="detail-label">Subscription Fee Fixed</span>
+
+                                    <span class="detail-label">
+                                        Subscription Fee Fixed
+                                    </span>
                                 </div>
-                                <div class="detail-value">{{ bill.subscriptionFeeFixed == null ? '—' : (bill.subscriptionFeeFixed | number:'1.0-4') }}</div>
+
+                                <div class="detail-value">
+                                    {{
+                                        bill.subscriptionFeeFixed == null
+                                            ? '—'
+                                            : (
+                                                bill.subscriptionFeeFixed
+                                                    | number:'1.0-4'
+                                            )
+                                    }}
+                                </div>
                             </div>
 
-                            <!-- Bill Reference -->
+                            <!-- Reference -->
                             @if (bill.billReference != null) {
                                 <div class="detail-card detail-card--third">
                                     <div class="detail-head">
                                         <i class="pi pi-hashtag"></i>
-                                        <span class="detail-label">Bill Reference</span>
+
+                                        <span class="detail-label">
+                                            Bill Reference
+                                        </span>
                                     </div>
-                                    <div class="detail-value">{{ bill.billReference }}</div>
+
+                                    <div class="detail-value">
+                                        {{ bill.billReference }}
+                                    </div>
                                 </div>
                             }
 
@@ -483,68 +713,127 @@
                                 <div class="detail-card detail-card--third">
                                     <div class="detail-head">
                                         <i class="pi pi-sync"></i>
-                                        <span class="detail-label">Exchange Rate</span>
+
+                                        <span class="detail-label">
+                                            Exchange Rate
+                                        </span>
                                     </div>
-                                    <div class="detail-value">{{ bill.exchangeRate | number:'1.0-4' }}</div>
+
+                                    <div class="detail-value">
+                                        {{
+                                            bill.exchangeRate
+                                                | number:'1.0-4'
+                                        }}
+                                    </div>
                                 </div>
                             }
 
-                            <!-- Amount LBP -->
+                            <!-- LBP Amount -->
                             @if (bill.amountLBP != null) {
                                 <div class="detail-card detail-card--third">
                                     <div class="detail-head">
                                         <i class="pi pi-money-bill"></i>
-                                        <span class="detail-label">Amount (LBP)</span>
+
+                                        <span class="detail-label">
+                                            Amount (LBP)
+                                        </span>
                                     </div>
-                                    <div class="detail-value">{{ bill.amountLBP | number:'1.0-4'}} LBP</div>
+
+                                    <div class="detail-value">
+                                        {{ bill.amountLBP }} LBP
+                                    </div>
                                 </div>
                             }
 
-                            <!-- Paid At -->
+                            <!-- Paid Date -->
                             @if (bill.paidAt) {
                                 <div class="detail-card detail-card--third">
                                     <div class="detail-head">
                                         <i class="pi pi-calendar-check"></i>
-                                        <span class="detail-label">Paid At</span>
+
+                                        <span class="detail-label">
+                                            Paid At
+                                        </span>
                                     </div>
-                                    <div class="detail-value">{{ bill.paidAt | date: 'yyyy-MM-dd'}}</div>
+
+                                    <div class="detail-value">
+                                        {{
+                                            bill.paidAt
+                                                | date:'yyyy-MM-dd'
+                                        }}
+                                    </div>
                                 </div>
                             }
 
+                            <!-- Extra Fees -->
                             @if ((bill.extraFees?.length ?? 0) > 0) {
                                 <div
                                     class="detail-card detail-card--wide cursor-pointer select-none"
-                                    (click)="toggleExtraFees(bill.id); $event.stopPropagation()"
+                                    (click)="
+                                        toggleExtraFees(bill.id);
+                                        $event.stopPropagation()
+                                    "
                                 >
-                                    <!-- Header -->
                                     <div class="detail-head">
                                         <i class="pi pi-tags"></i>
-                                        <span class="detail-label">Extra Fees</span>
 
-                                        <div class="ml-auto flex items-center gap-3 text-xs text-surface-500">
-                                            <span class="whitespace-nowrap">USD: {{ getExtraFeesTotalUsd(bill) | currency:'USD':'symbol':'1.0-4' }}</span>
-                                            <span class="whitespace-nowrap">LBP: {{ getExtraFeesTotalLbp(bill) | number:'1.0-4' }} LBP</span>
+                                        <span class="detail-label">
+                                            Extra Fees
+                                        </span>
+
+                                        <div
+                                            class="ml-auto flex items-center gap-3 text-xs text-surface-500"
+                                        >
+                                            <span class="whitespace-nowrap">
+                                                USD:
+                                                {{
+                                                    getExtraFeesTotalUsd(bill)
+                                                        | currency:'USD':'symbol':'1.0-4'
+                                                }}
+                                            </span>
+
+                                            <span class="whitespace-nowrap">
+                                                LBP:
+                                                {{
+                                                    getExtraFeesTotalLbp(bill)
+                                                        | number:'1.0-4'
+                                                }}
+                                                LBP
+                                            </span>
+
                                             <i
                                                 class="pi text-surface-500"
-                                                [ngClass]="isExtraFeesExpanded(bill.id) ? 'pi-chevron-up' : 'pi-chevron-down'"
+                                                [ngClass]="
+                                                    isExtraFeesExpanded(bill.id)
+                                                        ? 'pi-chevron-up'
+                                                        : 'pi-chevron-down'
+                                                "
                                             ></i>
                                         </div>
                                     </div>
 
-                                    <!-- Pills (one line, scroll horizontally) -->
-                                    <div class="flex flex-nowrap gap-2 overflow-x-auto py-1">
-                                        @for (f of (bill.extraFees ?? []); track $index) {
+                                    <div
+                                        class="flex flex-nowrap gap-2 overflow-x-auto py-1"
+                                    >
+                                        @for (
+                                            fee of bill.extraFees ?? [];
+                                            track $index
+                                            ) {
                                             <p-tag
-                                                [value]="f.extraFeeName || '—'"
+                                                [value]="
+                                                    fee.extraFeeName || '—'
+                                                "
                                                 severity="info"
                                                 rounded
                                             />
                                         }
                                     </div>
 
-                                    <!-- Details (expanded area) -->
                                     @if (isExtraFeesExpanded(bill.id)) {
-                                        <div class="mt-3 border-t border-surface-200 pt-3" (click)="$event.stopPropagation()">
+                                        <div
+                                            class="mt-3 border-t border-surface-200 pt-3"
+                                            (click)="$event.stopPropagation()"
+                                        >
                                             <p-table
                                                 [value]="bill.extraFees ?? []"
                                                 class="p-datatable-sm"
@@ -553,22 +842,52 @@
                                             >
                                                 <ng-template pTemplate="header">
                                                     <tr>
-                                                        <th>Fee</th>
-                                                        <th class="text-right">USD</th>
-                                                        <th class="text-right">LBP</th>
+                                                        <th>
+                                                            Fee
+                                                        </th>
+
+                                                        <th class="text-right">
+                                                            USD
+                                                        </th>
+
+                                                        <th class="text-right">
+                                                            LBP
+                                                        </th>
                                                     </tr>
                                                 </ng-template>
 
-                                                <ng-template pTemplate="body" let-f>
+                                                <ng-template
+                                                    pTemplate="body"
+                                                    let-fee
+                                                >
                                                     <tr>
-                                                        <td class="max-w-[16rem] truncate" [pTooltip]="f.extraFeeName">
-                                                            {{ f.extraFeeName || '—' }}
+                                                        <td
+                                                            class="max-w-[16rem] truncate"
+                                                            [pTooltip]="fee.extraFeeName"
+                                                        >
+                                                            {{
+                                                                fee.extraFeeName ||
+                                                                '—'
+                                                            }}
                                                         </td>
-                                                        <td class="text-right whitespace-nowrap">
-                                                            {{ (f.amount ?? 0) | currency:'USD':'symbol':'1.0-4' }}
+
+                                                        <td
+                                                            class="whitespace-nowrap text-right"
+                                                        >
+                                                            {{
+                                                                (fee.amount ?? 0)
+                                                                    | currency:'USD':'symbol':'1.0-4'
+                                                            }}
                                                         </td>
-                                                        <td class="text-right whitespace-nowrap">
-                                                            {{ f.amountLBP != null ? (f.amountLBP) + ' LBP' : '—' }}
+
+                                                        <td
+                                                            class="whitespace-nowrap text-right"
+                                                        >
+                                                            {{
+                                                                fee.amountLBP != null
+                                                                    ? fee.amountLBP + ' LBP'
+                                                                    : '—'
+                                                            }}
                                                         </td>
                                                     </tr>
                                                 </ng-template>
@@ -577,26 +896,331 @@
                                     }
                                 </div>
                             }
-
                         </div>
                     </div>
                 </td>
             </tr>
         </ng-template>
+
         <ng-template #emptymessage>
             <tr>
-                <td colspan="10">No bills found.</td>
+                <td colspan="10">
+                    No bills found.
+                </td>
             </tr>
         </ng-template>
+
         <ng-template #loadingbody>
             <tr>
-                <td colspan="10">Loading bills data. Please wait.</td>
+                <td colspan="10">
+                    Loading bills data. Please wait.
+                </td>
             </tr>
         </ng-template>
     </p-table>
-
 </div>
 
+<!-- Payment and SMS Confirmation -->
+<p-dialog
+    [(visible)]="paymentDialogVisible"
+    [header]="paymentDialogTitle"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="!paymentSubmitting"
+    [closeOnEscape]="!paymentSubmitting"
+    [dismissableMask]="false"
+    [style]="{
+        width: '95vw',
+        maxWidth: '620px'
+    }"
+    (onHide)="closePaymentDialog()"
+>
+    <ng-template #content>
+        <div class="flex flex-col gap-4">
+            <!-- Payment Summary -->
+            <section
+                class="rounded-2xl border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-800"
+            >
+                <div class="flex items-start gap-3">
+                    <div
+                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+                    >
+                        <i class="pi pi-dollar"></i>
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                        <div class="font-semibold">
+                            @if (paymentMode === 'bulk') {
+                                Pay {{ paymentBillCount }} selected bills?
+                            } @else {
+                                Pay this bill?
+                            }
+                        </div>
+
+                        <div class="mt-1 text-sm text-color-secondary">
+                            The selected
+                            {{
+                                paymentBillCount === 1
+                                    ? 'bill'
+                                    : 'bills'
+                            }}
+                            will be marked as paid.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Single bill information -->
+            @if (
+                paymentMode === 'single' &&
+                paymentBills[0];
+                as bill
+                ) {
+                <section
+                    class="rounded-2xl border border-surface-200 p-4 dark:border-surface-700"
+                >
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0">
+                            <div class="text-xs text-color-secondary">
+                                Subscriber
+                            </div>
+
+                            <div class="mt-1 break-words font-semibold">
+                                {{ bill.subscriberFirstName }}
+                                {{ bill.subscriberLastName }}
+                            </div>
+
+                            <div class="mt-1 text-sm text-color-secondary">
+                                Bill #{{ bill.billReference || bill.id }}
+                            </div>
+                        </div>
+
+                        <div class="shrink-0 text-right">
+                            <div class="text-xs text-color-secondary">
+                                Grand Total
+                            </div>
+
+                            <div class="mt-1 text-lg font-bold text-primary">
+                                {{
+                                    getBillTotalAmount(bill)
+                                        | number:'1.0-4'
+                                }}
+                                {{ bill.currencyCode }}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            }
+
+            <!-- SMS Configuration -->
+            <section
+                class="rounded-2xl border border-surface-200 p-4 dark:border-surface-700"
+                [class.border-blue-300]="sendPaidSms"
+                [class.bg-blue-50]="sendPaidSms"
+                [class.dark:border-blue-700]="sendPaidSms"
+                [class.dark:bg-blue-950]="sendPaidSms"
+            >
+                <div class="flex items-start justify-between gap-4">
+                    <label
+                        for="sendPaidSms"
+                        class="min-w-0 cursor-pointer"
+                    >
+                        <span
+                            class="flex items-center gap-2 font-semibold"
+                        >
+                            <i class="pi pi-send"></i>
+                            Send payment confirmation SMS
+                        </span>
+
+                        <span
+                            class="mt-1 block text-sm text-color-secondary"
+                        >
+                            Review the SMS cost before confirming payment.
+                        </span>
+                    </label>
+
+                    <p-toggleswitch
+                        inputId="sendPaidSms"
+                        [(ngModel)]="sendPaidSms"
+                        [disabled]="paymentSubmitting"
+                        (ngModelChange)="onSendPaidSmsChanged($event)"
+                    ></p-toggleswitch>
+                </div>
+
+                @if (!sendPaidSms) {
+                    <div
+                        class="mt-3 flex items-center gap-2 text-xs text-color-secondary"
+                    >
+                        <i class="pi pi-bell-slash"></i>
+
+                        <span>
+                            No payment confirmation SMS will be sent.
+                        </span>
+                    </div>
+                } @else {
+                    <div
+                        class="mt-4 border-t border-blue-200 pt-4 dark:border-blue-800"
+                    >
+                        <!-- Forecast Loading -->
+                        @if (forecastingPaidSms) {
+                            <div
+                                class="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-300"
+                            >
+                                <i class="pi pi-spin pi-spinner"></i>
+
+                                <div>
+                                    <div class="font-semibold">
+                                        Calculating SMS cost
+                                    </div>
+
+                                    <div class="mt-0.5 text-xs">
+                                        Checking the estimated charge against
+                                        your wallet balance.
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Affordable -->
+                        @if (
+                            !forecastingPaidSms &&
+                            paidSmsForecast?.isAffordable
+                            ) {
+                            <div
+                                class="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-300"
+                            >
+                                <div class="flex items-start gap-2">
+                                    <i class="pi pi-check-circle mt-0.5"></i>
+
+                                    <div>
+                                        <div class="font-semibold">
+                                            SMS cost confirmed
+                                        </div>
+
+                                        <p class="mb-0 mt-1">
+                                            {{ paidSmsForecast?.message }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Not Affordable -->
+                        @if (
+                            !forecastingPaidSms &&
+                            paidSmsForecast &&
+                            !paidSmsForecast.isAffordable
+                            ) {
+                            <div
+                                class="rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-700 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-300"
+                            >
+                                <div class="flex items-start gap-2">
+                                    <i
+                                        class="pi pi-exclamation-triangle mt-0.5"
+                                    ></i>
+
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-semibold">
+                                            Insufficient SMS wallet balance
+                                        </div>
+
+                                        <p class="mb-0 mt-1">
+                                            {{
+                                                paidSmsForecast.warningMessage
+                                            }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p-button
+                                    label="Continue Without SMS"
+                                    icon="pi pi-arrow-right"
+                                    severity="secondary"
+                                    outlined
+                                    size="small"
+                                    class="mt-3"
+                                    (onClick)="continueWithoutPaidSms()"
+                                ></p-button>
+                            </div>
+                        }
+
+                        <!-- Forecast Error -->
+                        @if (
+                            !forecastingPaidSms &&
+                            paidSmsForecastFailed
+                            ) {
+                            <div
+                                class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300"
+                            >
+                                <div class="flex items-start gap-2">
+                                    <i
+                                        class="pi pi-exclamation-circle mt-0.5"
+                                    ></i>
+
+                                    <div>
+                                        <div class="font-semibold">
+                                            Could not calculate SMS cost
+                                        </div>
+
+                                        <div class="mt-1">
+                                            Retry the forecast or continue
+                                            without SMS.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <p-button
+                                        label="Retry Forecast"
+                                        icon="pi pi-refresh"
+                                        severity="danger"
+                                        outlined
+                                        size="small"
+                                        (onClick)="retryPaidSmsForecast()"
+                                    ></p-button>
+
+                                    <p-button
+                                        label="Continue Without SMS"
+                                        severity="secondary"
+                                        outlined
+                                        size="small"
+                                        (onClick)="continueWithoutPaidSms()"
+                                    ></p-button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <div class="grid w-full grid-cols-2 gap-2">
+            <p-button
+                label="Cancel"
+                severity="secondary"
+                outlined
+                styleClass="w-full"
+                [disabled]="paymentSubmitting"
+                (onClick)="closePaymentDialog()"
+            ></p-button>
+
+            <p-button
+                [label]="paymentActionLabel"
+                icon="pi pi-check"
+                severity="success"
+                styleClass="w-full"
+                [loading]="paymentSubmitting"
+                [disabled]="!canConfirmPayment"
+                (onClick)="confirmPayment()"
+            ></p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- Bill edit -->
 <app-bill-edit-modal
     [(visible)]="editVisible"
     [bill]="billToEdit"
@@ -607,8 +1231,12 @@
     (cancel)="onBillEditCancel()"
 />
 
-<p-confirmdialog [style]="{ width: '450px' }"></p-confirmdialog>
+<!-- Used for bill cancellation -->
+<p-confirmdialog
+    [style]="{ width: '450px' }"
+></p-confirmdialog>
 
+<!-- Bulk reports -->
 <app-bulk-bill-report-modal
     [(visible)]="bulkBillReportVisible"
     [billStatuses]="billStatuses"

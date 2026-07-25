@@ -267,193 +267,21 @@
     [modal]="true"
     [draggable]="false"
     [resizable]="false"
-    [style]="{ width: '95vw', maxWidth: '520px' }"
+    [closable]="!readingEditorBusy"
+    [closeOnEscape]="!readingEditorBusy"
+    [style]="{ width: '95vw', maxWidth: '540px' }"
     [breakpoints]="{ '640px': '95vw' }"
+    (onHide)="closeUpdate()"
 >
-    <ng-template #content>
-        <div class="flex flex-col gap-4">
-            <!-- Subscriber summary -->
-            <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                        <div class="text-xs text-color-secondary mb-1">
-                            Subscriber
-                        </div>
-
-                        <div class="text-xl font-bold truncate">
-                            {{ selected?.subscriberFirstName }} {{ selected?.subscriberLastName }}
-                        </div>
-
-                        <div class="mt-1 flex items-center gap-2 text-sm text-color-secondary">
-                            <i class="pi pi-phone text-xs"></i>
-                            <span>{{ selected?.subscriberPhoneNumber | lbPhone }}</span>
-                        </div>
-                    </div>
-
-                    @if (selected?.status) {
-                        <p-tag
-                            [value]="selected?.status"
-                            [severity]="getSeverity(selected?.status!)"
-                            class="shrink-0"
-                        ></p-tag>
-                    }
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 mt-4">
-                    <div class="rounded-xl bg-surface-50 dark:bg-surface-800 border border-surface-100 dark:border-surface-800 p-3">
-                        <div class="flex items-center gap-2 text-xs text-color-secondary mb-1">
-                            <i class="pi pi-bolt"></i>
-                            <span>Generator</span>
-                        </div>
-
-                        <div class="font-bold truncate">
-                            {{ selected?.generatorCode || '—' }}
-                        </div>
-                    </div>
-
-                    <div class="rounded-xl bg-surface-50 dark:bg-surface-800 border border-surface-100 dark:border-surface-800 p-3">
-                        <div class="flex items-center gap-2 text-xs text-color-secondary mb-1">
-                            <i class="pi pi-hashtag"></i>
-                            <span>Meter</span>
-                        </div>
-
-                        <div class="font-bold truncate">
-                            {{ selected?.electricMeterNumber || '—' }}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-4 rounded-xl bg-surface-50 dark:bg-surface-800 border border-surface-100 dark:border-surface-800 p-4">
-                    <div class="flex items-center gap-2 text-xs text-color-secondary mb-3">
-                        <i class="pi pi-chart-line"></i>
-                        <span>Current Reading Context</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <div class="text-xs text-color-secondary">
-                                Previous
-                            </div>
-
-                            <div class="text-lg font-bold">
-                                {{ selected?.kvaPrevious | number:'1.0-4' }}
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="text-xs text-color-secondary">
-                                Current
-                            </div>
-
-                            <div class="text-lg font-bold">
-                                {{ selected?.kvaCurrent | number:'1.0-4' }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Reading input -->
-            <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4">
-                <label class="block text-sm font-semibold mb-2">
-                    New KWH Reading *
-                </label>
-
-                <p-inputnumber
-                    [(ngModel)]="editKvaReading"
-                    class="w-full"
-                    inputStyleClass="w-full"
-                    placeholder="Enter reading"
-                    [min]="0"
-                ></p-inputnumber>
-
-                @if (submitted && !editKvaReadingValid()) {
-                    <small class="block text-red-500 mt-2">
-                        KWH reading is required and must be greater than or equal to current KWH.
-                    </small>
-                }
-            </div>
-
-            <!-- Image -->
-            <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4">
-                <label class="block text-sm font-semibold mb-2">
-                    Reading Image
-                    <span class="text-xs text-color-secondary font-normal">(optional)</span>
-                </label>
-
-                <input
-                    #fileInput
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    class="hidden"
-                    (change)="onFileSelected($event)"
-                />
-
-                <div class="flex gap-2">
-                    <p-button
-                        class="flex-1"
-                        icon="pi pi-camera"
-                        label="Camera / Gallery"
-                        severity="secondary"
-                        [disabled]="saving || compressingImage"
-                        (onClick)="fileInput.value = ''; fileInput.click()"
-                    ></p-button>
-
-                    <p-button
-                        icon="pi pi-times"
-                        severity="secondary"
-                        outlined
-                        [disabled]="!imagePreviewUrl || saving || compressingImage"
-                        (onClick)="clearImage(); fileInput.value = ''"
-                    ></p-button>
-                </div>
-
-                @if (compressingImage) {
-                    <div class="mt-3 text-sm text-color-secondary flex items-center gap-2">
-                        <i class="pi pi-spin pi-spinner"></i>
-                        <span>Compressing image...</span>
-                    </div>
-                }
-
-                @if (loadingImagePreview) {
-                    <p-skeleton height="220px" class="w-full mt-3"></p-skeleton>
-                } @else if (imagePreviewUrl) {
-                    <div class="mt-3 rounded-xl overflow-hidden border border-surface-200 dark:border-surface-700">
-                        <img
-                            [src]="imagePreviewUrl"
-                            class="w-full"
-                            alt="Reading image preview"
-                        />
-                    </div>
-                } @else {
-                    <div class="mt-3 rounded-xl border border-dashed border-surface-300 dark:border-surface-700 p-4 text-center text-sm text-color-secondary">
-                        No image selected.
-                    </div>
-                }
-            </div>
-        </div>
-    </ng-template>
-
-    <ng-template #footer>
-        <div class="grid grid-cols-2 gap-2 w-full">
-            <p-button
-                label="Cancel"
-                severity="secondary"
-                outlined
-                styleClass="w-full"
-                [disabled]="saving || compressingImage"
-                (onClick)="closeUpdate()"
-            ></p-button>
-
-            <p-button
-                label="Save"
-                icon="pi pi-check"
-                styleClass="w-full"
-                [loading]="saving"
-                [disabled]="saving || compressingImage || !editKvaReadingValid()"
-                (onClick)="submitUpdate()"
-            ></p-button>
-        </div>
-    </ng-template>
+    @if (updateOpen && selected) {
+        <app-kva-reading-editor
+            [subscriberId]="selected.subscriberId"
+            [reading]="selected"
+            [showCancel]="true"
+            [stickyActions]="false"
+            (busyChange)="readingEditorBusy = $event"
+            (saved)="onReadingUpdated($event)"
+            (cancelled)="closeUpdate()"
+        ></app-kva-reading-editor>
+    }
 </p-dialog>
