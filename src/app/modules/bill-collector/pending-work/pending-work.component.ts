@@ -1,8 +1,8 @@
-import { Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { catchError, finalize, firstValueFrom, forkJoin, of, Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, finalize, firstValueFrom, forkJoin, of, Subscription } from 'rxjs';
 
 import { Button } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
@@ -10,8 +10,11 @@ import { Dialog } from 'primeng/dialog';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
+
+import { AsYouType, CountryCode, getCountries, getCountryCallingCode, parsePhoneNumberFromString } from 'libphonenumber-js';
 
 import { BillCollectorService } from '@/core/services/bill-collector.service';
 import { NotificationService } from '@/core/services/notification.service';
@@ -19,28 +22,38 @@ import { BillCollectorQrNavigationService } from '@/core/services/bill-collector
 
 import { CollectionPending, NeedReading } from '@/core/services/api/response';
 import { GetPendingWorkQueryParams } from '@/core/services/api/request';
+
 import { BillCollectionStatus, BillStatus, PendingWorkAction } from '@/core/enums/enum';
+
 import { BillSummary, NeedReadingItem, UpsertKvaReadingResult } from '@/core/dtos/dto';
+
 import { LbPhonePipe } from '@/core/pipes/pipes';
 
 import { QrScannerComponent } from '@/modules/bill-collector/qr-scanner/qr-scanner.component';
 import { KvaReadingEditorComponent } from '@/modules/bill-collector/kva-readings/kva-reading-editor/kva-reading-editor.component';
 
+import { environment } from '../../../../environments/environment';
+
 type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
+
+interface PhoneCountry {
+    iso2: CountryCode;
+    name: string;
+    dialCode: string;
+    flag: string;
+    searchText: string;
+}
 
 @Component({
     selector: 'app-pending-work',
     standalone: true,
-    imports: [FormsModule, DatePipe, DecimalPipe, Button, DatePicker, Dialog, IconField, InputIcon, InputText, Skeleton, Tag, LbPhonePipe, QrScannerComponent, KvaReadingEditorComponent],
+    imports: [FormsModule, DatePipe, DecimalPipe, Button, DatePicker, Dialog, IconField, InputIcon, InputText, Select, Skeleton, Tag, LbPhonePipe, QrScannerComponent, KvaReadingEditorComponent],
     templateUrl: './pending-work.component.html'
 })
 export class PendingWorkComponent implements OnInit, OnDestroy {
     private readonly billCollectorService = inject(BillCollectorService);
-
     private readonly notificationService = inject(NotificationService);
-
     private readonly qrNavigationService = inject(BillCollectorQrNavigationService);
-
     private readonly destroyRef = inject(DestroyRef);
 
     readonly PendingWorkAction = PendingWorkAction;
@@ -57,29 +70,75 @@ export class PendingWorkComponent implements OnInit, OnDestroy {
     collectionBills: BillSummary[] = [];
 
     filteredNeedsReadingItems: NeedReadingItem[] = [];
-
     filteredCollectionBills: BillSummary[] = [];
 
     keyword = '';
 
     readonly skeletonItems = [1, 2, 3];
 
-    printingBillId: number | null = null;
+    private pendingRequest?: Subscription;
 
-    // Shared KWH reading editor
+    /*
+     * KWH reading editor
+     */
     readingDialogOpen = false;
     readingEditorBusy = false;
-
     selectedPendingItem: NeedReadingItem | null = null;
 
-    // QR scanner
+    /*
+     * Bill PDF
+     */
+    printingBillId: number | null = null;
+
+    /*
+     * Page-level QR scanner
+     */
     isQrDialogOpen = false;
 
-    selectedBillForScan: BillSummary | null = null;
-
+    /*
+     * Direct bill collection
+     */
+    collectDialogVisible = false;
+    selectedBillForCollection: BillSummary | null = null;
     collectingBillId: number | null = null;
 
-    private pendingRequest?: Subscription;
+    /*
+     * WhatsApp dialog
+     */
+    whatsAppDialogVisible = false;
+    selectedWhatsAppBill: BillSummary | null = null;
+
+    whatsAppPhoneNumber = '';
+    whatsAppPhoneTouched = false;
+
+    loadingWhatsAppSubscriberCode = false;
+    whatsAppSubscriberCode: string | null = null;
+    whatsAppSubscriberCodeLoadFailed = false;
+
+    private whatsAppSubscriberRequest?: Subscription;
+
+    private readonly subscriberCodeCache = new Map<number, string>();
+
+    private readonly regionNames = new Intl.DisplayNames(['en'], {
+        type: 'region'
+    });
+
+    readonly phoneCountries: PhoneCountry[] = getCountries()
+        .map((iso2) => {
+            const name = this.regionNames.of(iso2) ?? iso2;
+            const dialCode = getCountryCallingCode(iso2);
+
+            return {
+                iso2,
+                name,
+                dialCode,
+                flag: this.getCountryFlag(iso2),
+                searchText: `${name} ${iso2} +${dialCode}`
+            };
+        })
+        .sort((first, second) => first.name.localeCompare(second.name));
+
+    selectedPhoneCountry: PhoneCountry = this.phoneCountries.find((country) => country.iso2 === 'LB') ?? this.phoneCountries[0]!;
 
     get selectedBillYear(): string | null {
         return this.billPeriod ? String(this.billPeriod.getFullYear()) : null;
@@ -95,6 +154,7 @@ export class PendingWorkComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.pendingRequest?.unsubscribe();
+        this.whatsAppSubscriberRequest?.unsubscribe();
     }
 
     reload(): void {
@@ -240,6 +300,7 @@ export class PendingWorkComponent implements OnInit, OnDestroy {
 
     private clearPendingWorkResults(): void {
         this.loading = false;
+
         this.needsReadingItems = [];
         this.collectionBills = [];
 
@@ -318,7 +379,7 @@ export class PendingWorkComponent implements OnInit, OnDestroy {
         }
     }
 
-    getCollectionSeverity(status: string): TagSeverity {
+    getCollectionSeverity(status: string | null | undefined): TagSeverity {
         switch (status) {
             case BillCollectionStatus.NOT_COLLECTED:
                 return 'info';
@@ -334,9 +395,9 @@ export class PendingWorkComponent implements OnInit, OnDestroy {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // Shared reading editor
-    // ---------------------------------------------------------------------
+    /*
+     * KWH reading editor
+     */
 
     openReading(item: NeedReadingItem): void {
         this.selectedPendingItem = item;
@@ -378,9 +439,9 @@ export class PendingWorkComponent implements OnInit, OnDestroy {
         return Number(this.selectedPendingItem?.pendingReadingId) > 0 ? 'Update KWH Reading' : 'Add KWH Reading';
     }
 
-    // ---------------------------------------------------------------------
-    // Bill PDF
-    // ---------------------------------------------------------------------
+    /*
+     * Bill PDF
+     */
 
     printBill(bill: BillSummary): void {
         if (this.printingBillId !== null) {
@@ -391,11 +452,11 @@ export class PendingWorkComponent implements OnInit, OnDestroy {
 
         if (!reportWindow) {
             this.notificationService.warn('Popup Blocked', 'Please allow popups to open the bill PDF.');
+
             return;
         }
 
         reportWindow.opener = null;
-
         reportWindow.document.title = 'Preparing Bill';
 
         reportWindow.document.body.innerHTML = `
@@ -443,6 +504,7 @@ export class PendingWorkComponent implements OnInit, OnDestroy {
                 },
                 error: (error) => {
                     console.error(error);
+
                     reportWindow.close();
 
                     this.notificationService.warn('Report Failed', 'Failed to open the bill PDF. Please try again.');
@@ -454,91 +516,373 @@ export class PendingWorkComponent implements OnInit, OnDestroy {
         return this.printingBillId === billId;
     }
 
-    // ---------------------------------------------------------------------
-    // Local QR collection
-    // ---------------------------------------------------------------------
+    /*
+     * Page-level QR collection
+     */
 
-    openQrScanner(bill: BillSummary): void {
+    openQrScanner(): void {
         if (this.collectingBillId !== null) {
             return;
         }
 
-        this.selectedBillForScan = bill;
         this.isQrDialogOpen = true;
     }
 
     closeQr(): void {
         this.isQrDialogOpen = false;
-        this.selectedBillForScan = null;
+    }
+
+    async onQrScanned(value: string): Promise<void> {
+        this.isQrDialogOpen = false;
+
+        try {
+            const target = this.qrNavigationService.parse(value);
+
+            if (!target) {
+                this.notificationService.warn('Invalid QR', 'This QR code is not recognized. Please try again.');
+
+                return;
+            }
+
+            if (target.type !== 'bill-collection') {
+                this.notificationService.warn('Wrong QR Type', 'Please scan a bill collection QR code.');
+
+                return;
+            }
+
+            if (!Number.isInteger(target.billId) || target.billId <= 0) {
+                this.notificationService.warn('Invalid Bill', 'The scanned QR code does not contain a valid bill.');
+
+                return;
+            }
+
+            await this.collectBillById(target.billId, 'Scan Failed', 'The scanned bill could not be collected. Please try again.');
+        } catch (error) {
+            console.error(error);
+
+            this.notificationService.warn('Scan Failed', 'The scanned QR code could not be processed.');
+        }
+    }
+
+    /*
+     * Direct bill collection
+     */
+
+    canCollectBill(bill: BillSummary): boolean {
+        return bill.statusCode === BillStatus.PENDING && bill.collectionStatus === BillCollectionStatus.NOT_COLLECTED;
+    }
+
+    openCollectDialog(bill: BillSummary): void {
+        if (this.collectingBillId !== null || !this.canCollectBill(bill)) {
+            return;
+        }
+
+        this.selectedBillForCollection = bill;
+        this.collectDialogVisible = true;
+    }
+
+    resetCollectDialog(): void {
+        if (this.collectingBillId === null) {
+            this.selectedBillForCollection = null;
+        }
     }
 
     isCollectingBill(billId: number): boolean {
         return this.collectingBillId === billId;
     }
 
-    async onQrScanned(value: string): Promise<void> {
-        /*
-         * Preserve the selected card before hiding
-         * the dialog because onHide calls closeQr().
-         */
-        const expectedBill = this.selectedBillForScan;
+    async confirmBillCollection(): Promise<void> {
+        const bill = this.selectedBillForCollection;
 
-        this.isQrDialogOpen = false;
+        if (!bill || this.collectingBillId !== null) {
+            return;
+        }
+
+        /*
+         * Preserve the bill locally because hiding the dialog
+         * triggers resetCollectDialog().
+         */
+        this.collectDialogVisible = false;
+
+        await this.collectBillById(bill.id, 'Collection Failed', 'The bill could not be collected. Please try again.');
+
+        this.selectedBillForCollection = null;
+    }
+
+    private async collectBillById(billId: number, failureTitle: string, failureMessage: string): Promise<void> {
+        if (this.collectingBillId !== null) {
+            return;
+        }
+
+        this.collectingBillId = billId;
 
         try {
-            /*
-             * Parse only. Do not call
-             * handleScannedValue(), because that method
-             * redirects bill QR codes to Bill Collections.
-             */
-            const target = this.qrNavigationService.parse(value);
-
-            if (!target) {
-                this.notificationService.warn('Invalid QR', 'This QR code is not recognized. Please try again.');
-                return;
-            }
-
-            if (target.type !== 'bill-collection') {
-                this.notificationService.warn('Wrong QR Type', 'Please scan the QR code printed on the selected bill.');
-                return;
-            }
-
-            if (!expectedBill) {
-                this.notificationService.warn('No Bill Selected', 'Select a bill and try scanning again.');
-                return;
-            }
-
-            if (target.billId !== expectedBill.id) {
-                this.notificationService.warn('Different Bill Scanned', `The scanned QR belongs to bill #${target.billId}, but bill #${expectedBill.billReference || expectedBill.id} was selected.`);
-                return;
-            }
-
-            this.collectingBillId = target.billId;
-
             const response = await firstValueFrom(
                 this.billCollectorService
                     .ScanBillBarcode({
-                        billId: target.billId
+                        billId
                     })
                     .pipe(takeUntilDestroyed(this.destroyRef))
             );
 
             const collection = response?.item;
 
-            this.notificationService.success('Bill Collected', collection ? `Bill #${collection.billReference} was collected successfully. Amount: ${collection.amount} ${collection.currencyCode}.` : 'Bill was collected successfully.');
+            this.notificationService.success('Bill Collected', collection ? `Bill #${collection.billReference} was collected successfully. Amount: ${collection.amount} ${collection.currencyCode}.` : 'The bill was collected successfully.');
 
-            /*
-             * Stay on Pending Work and refresh
-             * both its counters and lists.
-             */
             this.reload();
         } catch (error) {
             console.error(error);
 
-            this.notificationService.warn('Scan Failed', 'The scanned QR code could not be processed.');
+            this.notificationService.error(failureTitle, failureMessage);
         } finally {
             this.collectingBillId = null;
-            this.selectedBillForScan = null;
         }
+    }
+
+    /*
+     * WhatsApp invoice sharing
+     */
+
+    openWhatsAppDialog(bill: BillSummary): void {
+        this.selectedWhatsAppBill = bill;
+        this.whatsAppPhoneTouched = false;
+
+        this.whatsAppSubscriberCode = null;
+        this.whatsAppSubscriberCodeLoadFailed = false;
+        this.loadingWhatsAppSubscriberCode = false;
+
+        this.initializeWhatsAppPhone(bill.subscriberPhoneNumber);
+
+        this.whatsAppDialogVisible = true;
+
+        this.loadWhatsAppSubscriberCode(bill);
+    }
+
+    resetWhatsAppDialog(): void {
+        this.whatsAppSubscriberRequest?.unsubscribe();
+        this.whatsAppSubscriberRequest = undefined;
+
+        this.selectedWhatsAppBill = null;
+        this.whatsAppPhoneNumber = '';
+        this.whatsAppPhoneTouched = false;
+
+        this.whatsAppSubscriberCode = null;
+        this.whatsAppSubscriberCodeLoadFailed = false;
+        this.loadingWhatsAppSubscriberCode = false;
+    }
+
+    sendBillToWhatsApp(): void {
+        this.whatsAppPhoneTouched = true;
+
+        const bill = this.selectedWhatsAppBill;
+        const subscriberBillCode = this.whatsAppSubscriberCode;
+        const phoneNumber = this.getWhatsAppPhoneNumber();
+
+        if (!bill || !subscriberBillCode || !phoneNumber) {
+            return;
+        }
+
+        const message = this.buildWhatsAppMessage(bill, subscriberBillCode);
+
+        const whatsAppUrl = `https://wa.me/${phoneNumber}` + `?text=${encodeURIComponent(message)}`;
+
+        const whatsAppWindow = window.open(whatsAppUrl, '_blank');
+
+        if (whatsAppWindow) {
+            whatsAppWindow.opener = null;
+        } else {
+            window.location.href = whatsAppUrl;
+        }
+
+        this.whatsAppDialogVisible = false;
+    }
+
+    private buildWhatsAppMessage(bill: BillSummary, subscriberBillCode: string): string {
+        const subscriberName = [bill.subscriberFirstName, bill.subscriberLastName].filter(Boolean).join(' ');
+
+        const greeting = subscriberName ? `Hello ${subscriberName},` : 'Hello,';
+
+        const reference = bill.billReference || bill.id;
+
+        const month = String(bill.billMonth).padStart(2, '0');
+
+        const invoiceUrl = this.buildPublicBillUrl(bill, subscriberBillCode);
+
+        return `${greeting}\n\n` + `Your invoice ${reference} for ` + `${bill.billYear}/${month} is ready.\n\n` + `Open or download your invoice here:\n` + `${invoiceUrl}\n\n` + `Thank you.`;
+    }
+
+    private buildPublicBillUrl(bill: BillSummary, subscriberBillCode: string): string {
+        const apiBaseUrl = environment.apiUrl.replace(/\/+$/, '');
+
+        const url = new URL(`${apiBaseUrl}/Public/GetBillReportByCode`);
+
+        url.searchParams.set('subscriberBillCode', subscriberBillCode);
+
+        url.searchParams.set('billId', String(bill.id));
+
+        return url.toString();
+    }
+
+    private loadWhatsAppSubscriberCode(bill: BillSummary): void {
+        const cachedCode = this.subscriberCodeCache.get(bill.subscriberId);
+
+        if (cachedCode) {
+            this.whatsAppSubscriberCode = cachedCode;
+            return;
+        }
+
+        this.whatsAppSubscriberRequest?.unsubscribe();
+
+        this.loadingWhatsAppSubscriberCode = true;
+        this.whatsAppSubscriberCodeLoadFailed = false;
+
+        this.whatsAppSubscriberRequest = this.billCollectorService
+            .getSubs({
+                pageNumber: 1,
+                pageSize: 1,
+                subscriberId: bill.subscriberId
+            })
+            .pipe(
+                finalize(() => {
+                    this.loadingWhatsAppSubscriberCode = false;
+                }),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe({
+                next: (response) => {
+                    if (this.selectedWhatsAppBill?.id !== bill.id) {
+                        return;
+                    }
+
+                    const subscriber = response?.page?.items?.[0];
+
+                    const subscriberBillCode = subscriber?.subscriberBillCode?.trim();
+
+                    if (!subscriberBillCode) {
+                        this.whatsAppSubscriberCodeLoadFailed = true;
+
+                        this.notificationService.warn('Code Not Found', 'The subscriber bill code could not be found.');
+
+                        return;
+                    }
+
+                    this.whatsAppSubscriberCode = subscriberBillCode;
+
+                    this.subscriberCodeCache.set(bill.subscriberId, subscriberBillCode);
+                },
+                error: (error) => {
+                    console.error(error);
+
+                    if (this.selectedWhatsAppBill?.id !== bill.id) {
+                        return;
+                    }
+
+                    this.whatsAppSubscriberCodeLoadFailed = true;
+
+                    this.notificationService.error('Subscriber Failed', 'Failed to retrieve the subscriber information.');
+                }
+            });
+    }
+
+    private getCountryFlag(countryCode: string): string {
+        return countryCode
+            .toUpperCase()
+            .split('')
+            .map((character) => String.fromCodePoint(127397 + character.charCodeAt(0)))
+            .join('');
+    }
+
+    private initializeWhatsAppPhone(phoneNumber: string | null | undefined): void {
+        const defaultCountry = this.phoneCountries.find((country) => country.iso2 === 'LB') ?? this.phoneCountries[0]!;
+
+        const rawValue = phoneNumber?.trim() ?? '';
+
+        if (!rawValue) {
+            this.selectedPhoneCountry = defaultCountry;
+            this.whatsAppPhoneNumber = '';
+            return;
+        }
+
+        let normalizedValue = rawValue;
+
+        if (normalizedValue.startsWith('00')) {
+            normalizedValue = `+${normalizedValue.substring(2)}`;
+        }
+
+        const digits = normalizedValue.replace(/\D/g, '');
+
+        if (!normalizedValue.startsWith('+') && digits.startsWith('961')) {
+            normalizedValue = `+${digits}`;
+        }
+
+        const parsedPhone = normalizedValue.startsWith('+') ? parsePhoneNumberFromString(normalizedValue) : parsePhoneNumberFromString(normalizedValue, 'LB');
+
+        const countryCode = parsedPhone?.country ?? 'LB';
+
+        this.selectedPhoneCountry = this.phoneCountries.find((country) => country.iso2 === countryCode) ?? defaultCountry;
+
+        const formattedNationalNumber = parsedPhone?.formatNational()?.trim();
+
+        if (formattedNationalNumber) {
+            this.whatsAppPhoneNumber = formattedNationalNumber;
+
+            return;
+        }
+
+        let nationalDigits = digits;
+
+        const dialCode = this.selectedPhoneCountry.dialCode;
+
+        if (nationalDigits.startsWith(dialCode)) {
+            nationalDigits = nationalDigits.substring(dialCode.length);
+        }
+
+        this.whatsAppPhoneNumber = new AsYouType(this.selectedPhoneCountry.iso2).input(nationalDigits);
+    }
+
+    private getParsedWhatsAppPhone() {
+        const value = this.whatsAppPhoneNumber.trim();
+
+        if (!value) {
+            return undefined;
+        }
+
+        return parsePhoneNumberFromString(value, this.selectedPhoneCountry.iso2);
+    }
+
+    get isWhatsAppPhoneValid(): boolean {
+        return this.getParsedWhatsAppPhone()?.isValid() ?? false;
+    }
+
+    private getWhatsAppPhoneNumber(): string | null {
+        const parsedPhone = this.getParsedWhatsAppPhone();
+
+        if (!parsedPhone?.isValid()) {
+            return null;
+        }
+
+        /*
+         * WhatsApp expects the E.164 number without "+".
+         */
+        return parsedPhone.number.substring(1);
+    }
+
+    onWhatsAppPhoneNumberChange(value: string | null | undefined): void {
+        const digits = (value ?? '').replace(/\D/g, '');
+
+        if (!digits) {
+            this.whatsAppPhoneNumber = '';
+            return;
+        }
+
+        this.whatsAppPhoneNumber = new AsYouType(this.selectedPhoneCountry.iso2).input(digits);
+    }
+
+    onWhatsAppCountryChanged(): void {
+        const digits = this.whatsAppPhoneNumber.replace(/\D/g, '');
+
+        this.whatsAppPhoneNumber = digits ? new AsYouType(this.selectedPhoneCountry.iso2).input(digits) : '';
+
+        this.whatsAppPhoneTouched = false;
     }
 }

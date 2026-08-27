@@ -676,23 +676,78 @@
                             </div>
                         }
 
-                        <!-- PDF action -->
+                        <!-- Bill actions -->
                         <div
                             class="mt-4 border-t border-surface-200 pt-4 dark:border-surface-700"
                         >
-                            <p-button
-                                label="Print"
-                                icon="pi pi-print"
-                                styleClass="w-full min-h-12"
-                                [loading]="
-                                    isPrintingBill(bill.id)
-                                "
-                                [disabled]="
-                                    printingBillId !== null &&
-                                    !isPrintingBill(bill.id)
-                                "
-                                (onClick)="openBillPdf(bill)"
-                            ></p-button>
+                            <!-- Print and WhatsApp -->
+                            <div
+                                class="grid gap-2"
+                                [class.grid-cols-1]="
+            bill.statusCode !== BillStatus.PENDING
+        "
+                                [class.grid-cols-2]="
+            bill.statusCode === BillStatus.PENDING
+        "
+                            >
+                                <p-button
+                                    label="Print"
+                                    icon="pi pi-print"
+                                    severity="info"
+                                    styleClass="w-full min-h-12"
+                                    [loading]="isPrintingBill(bill.id)"
+                                    [disabled]="
+                sharingBillId !== null ||
+                collectingBillId !== null ||
+                (
+                    printingBillId !== null &&
+                    !isPrintingBill(bill.id)
+                )
+            "
+                                    (onClick)="openBillPdf(bill)"
+                                ></p-button>
+
+                                @if (bill.statusCode === BillStatus.PENDING) {
+                                    <p-button
+                                        label="WhatsApp"
+                                        icon="pi pi-whatsapp"
+                                        severity="success"
+                                        styleClass="w-full min-h-12"
+                                        [loading]="isSharingBill(bill.id)"
+                                        [disabled]="
+                    printingBillId !== null ||
+                    collectingBillId !== null ||
+                    (
+                        sharingBillId !== null &&
+                        !isSharingBill(bill.id)
+                    )
+                "
+                                        (onClick)="openWhatsAppDialog(bill)"
+                                    ></p-button>
+                                }
+                            </div>
+
+                            <!-- Full-width Collect button -->
+                            @if (canCollectBill(bill)) {
+                                <div class="mt-2">
+                                    <p-button
+                                        label="Collect"
+                                        icon="pi pi-wallet"
+                                        styleClass="w-full min-h-12"
+                                        severity="primary"
+                                        [loading]="isCollectingBill(bill.id)"
+                                        [disabled]="
+                    printingBillId !== null ||
+                    sharingBillId !== null ||
+                    (
+                        collectingBillId !== null &&
+                        !isCollectingBill(bill.id)
+                    )
+                "
+                                        (onClick)="openCollectDialog(bill)"
+                                    ></p-button>
+                                </div>
+                            }
                         </div>
                     </article>
                 }
@@ -723,3 +778,303 @@
         }
     </div>
 </div>
+
+
+<p-dialog
+    header="Send Invoice on WhatsApp"
+    [(visible)]="whatsAppDialogVisible"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{
+        width: '30rem',
+        maxWidth: 'calc(100vw - 2rem)'
+    }"
+    appendTo="body"
+    (onHide)="resetWhatsAppDialog()"
+>
+    @if (selectedWhatsAppBill; as bill) {
+        <div class="flex flex-col gap-4">
+            <!-- Selected subscriber and invoice -->
+            <div
+                class="flex items-start gap-3 rounded-xl border border-surface-200 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800"
+            >
+                <div
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                >
+                    <i class="pi pi-whatsapp"></i>
+                </div>
+
+                <div class="min-w-0">
+                    <div class="font-semibold">
+                        {{ bill.subscriberFirstName }}
+                        {{ bill.subscriberLastName }}
+                    </div>
+
+                    <div class="mt-1 text-sm text-color-secondary">
+                        Invoice {{ bill.billReference || bill.id }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Public-link loading state -->
+            @if (loadingWhatsAppSubscriberCode) {
+                <div
+                    class="flex items-center gap-2 rounded-xl bg-surface-100 p-3 text-sm dark:bg-surface-800"
+                >
+                    <i
+                        class="pi pi-spinner pi-spin text-primary"
+                    ></i>
+
+                    <span>
+                        Preparing the public invoice link...
+                    </span>
+                </div>
+            }
+
+            <!-- Public-link error state -->
+            @if (whatsAppSubscriberCodeLoadFailed) {
+                <div
+                    class="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300"
+                >
+                    <i
+                        class="pi pi-exclamation-triangle mt-0.5"
+                    ></i>
+
+                    <span>
+                        The invoice link could not be prepared.
+                        Close the dialog and try again.
+                    </span>
+                </div>
+            }
+
+            <!-- Phone-number input -->
+            <div
+                class="grid grid-cols-[7.5rem_minmax(0,1fr)] items-stretch gap-2"
+            >
+                <p-select
+                    [options]="phoneCountries"
+                    [(ngModel)]="selectedPhoneCountry"
+                    optionLabel="name"
+                    filterBy="searchText"
+                    [filter]="true"
+                    filterPlaceholder="Search country or code"
+                    appendTo="body"
+                    class="h-full w-full min-w-0"
+                    (onChange)="onWhatsAppCountryChanged()"
+                >
+                    <ng-template
+                        #selectedItem
+                        let-country
+                    >
+                        @if (country) {
+                            <div class="flex items-center gap-2">
+                                <!-- No text-lg here -->
+                                <span>{{ country.flag }}</span>
+
+                                <span class="font-semibold">
+                        +{{ country.dialCode }}
+                    </span>
+                            </div>
+                        }
+                    </ng-template>
+
+                    <ng-template
+                        #item
+                        let-country
+                    >
+                        <div class="flex w-full items-center gap-3">
+                            <span>{{ country.flag }}</span>
+
+                            <div class="min-w-0 flex-1">
+                                <div class="font-semibold">
+                                    {{ country.name }}
+                                </div>
+
+                                <div
+                                    class="text-xs text-color-secondary"
+                                >
+                                    {{ country.iso2 }}
+                                </div>
+                            </div>
+
+                            <span
+                                class="shrink-0 font-semibold text-color-secondary"
+                            >
+                    +{{ country.dialCode }}
+                </span>
+                        </div>
+                    </ng-template>
+                </p-select>
+
+                <input
+                    id="whatsAppPhoneNumber"
+                    name="whatsAppPhoneNumber"
+                    pInputText
+                    type="tel"
+                    inputmode="tel"
+                    autocomplete="tel-national"
+                    class="h-full w-full min-w-0"
+                    placeholder="Phone number"
+                    [ngModel]="whatsAppPhoneNumber"
+                    [class.ng-invalid]="
+            whatsAppPhoneTouched &&
+            !isWhatsAppPhoneValid
+        "
+                    [class.ng-dirty]="whatsAppPhoneTouched"
+                    (ngModelChange)="
+            onWhatsAppPhoneNumberChange($event)
+        "
+                    (blur)="whatsAppPhoneTouched = true"
+                    (keyup.enter)="sendBillToWhatsApp()"
+                />
+            </div>
+
+            <!-- Explanation -->
+            <div
+                class="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-300"
+            >
+                <i class="pi pi-info-circle mt-0.5"></i>
+
+                <span>
+                    Confirm the phone number before continuing.
+                </span>
+            </div>
+        </div>
+    }
+
+    <ng-template #footer>
+        <div class="grid w-full grid-cols-2 gap-2">
+            <p-button
+                label="Cancel"
+                severity="secondary"
+                outlined
+                styleClass="w-full"
+                (onClick)="whatsAppDialogVisible = false"
+            ></p-button>
+
+            <p-button
+                label="WhatsApp"
+                icon="pi pi-whatsapp"
+                severity="success"
+                styleClass="w-full"
+                [loading]="loadingWhatsAppSubscriberCode"
+                [disabled]="
+                    !whatsAppSubscriberCode ||
+                    whatsAppSubscriberCodeLoadFailed
+                "
+                (onClick)="sendBillToWhatsApp()"
+            ></p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-dialog
+    header="Confirm Bill Collection"
+    [(visible)]="collectDialogVisible"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="collectingBillId === null"
+    [style]="{
+        width: '28rem',
+        maxWidth: 'calc(100vw - 2rem)'
+    }"
+    appendTo="body"
+    (onHide)="resetCollectDialog()"
+>
+    @if (selectedBillForCollection; as bill) {
+        <div class="flex flex-col gap-4">
+            <div
+                class="flex items-start gap-3 rounded-xl border border-surface-200 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800"
+            >
+                <div
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/40"
+                >
+                    <i class="pi pi-wallet"></i>
+                </div>
+
+                <div class="min-w-0">
+                    <div class="font-semibold">
+                        {{ bill.subscriberFirstName }}
+                        {{ bill.subscriberLastName }}
+                    </div>
+
+                    <div
+                        class="mt-1 text-sm text-color-secondary"
+                    >
+                        Bill
+                        {{ bill.billReference || bill.id }}
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="rounded-xl border border-primary-200 bg-primary-50 p-4 dark:border-primary-800 dark:bg-primary-950/30"
+            >
+                <div
+                    class="text-xs font-semibold text-color-secondary"
+                >
+                    Amount to collect
+                </div>
+
+                <div
+                    class="mt-1 text-2xl font-extrabold text-primary"
+                >
+                    {{ bill.grandTotal | number:'1.0-2' }}
+
+                    <span class="text-base">
+                        {{ bill.currencyCode }}
+                    </span>
+                </div>
+
+                @if (
+                    bill.grandTotalLBP &&
+                    bill.currencyCode !== 'LBP'
+                    ) {
+                    <div
+                        class="mt-1 text-sm font-semibold text-color-secondary"
+                    >
+                        {{ bill.grandTotalLBP }} LBP
+                    </div>
+                }
+            </div>
+
+            <div
+                class="flex items-start gap-2 rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-700 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-300"
+            >
+                <i
+                    class="pi pi-exclamation-triangle mt-0.5"
+                ></i>
+
+                <span>
+                    Confirm only after receiving the complete
+                    payment from the subscriber. This action
+                    will mark the bill as collected.
+                </span>
+            </div>
+        </div>
+    }
+
+    <ng-template #footer>
+        <div class="grid w-full grid-cols-2 gap-2">
+            <p-button
+                label="Cancel"
+                severity="secondary"
+                outlined
+                styleClass="w-full"
+                [disabled]="collectingBillId !== null"
+                (onClick)="collectDialogVisible = false"
+            ></p-button>
+
+            <p-button
+                label="Confirm"
+                icon="pi pi-check"
+                styleClass="w-full"
+                [loading]="collectingBillId !== null"
+                [disabled]="collectingBillId !== null"
+                (onClick)="confirmBillCollection()"
+            ></p-button>
+        </div>
+    </ng-template>
+</p-dialog>
